@@ -2,32 +2,33 @@
 
 Phase: Phase 7 — CI, Portability, Consumer Cutover, and Source Retirement
 
-Verification: Local frozen installation, formatting, forced lint/typecheck,
-fresh Jest coverage, and strict packed-artifact validation passed. The stable
-global executable and legacy rollback command completed read-only consumer
-smoke checks in the two worktrees that mount the shared state. GitHub Actions
-has not executed.
+Verification: The public repository's Quality workflow passed on Ubuntu/Linux
+and its Portability workflow passed on Ubuntu/Linux and Windows. Local frozen
+installation, `pnpm check`, `pnpm validate`, and living-workflow validation also
+exited `0`; the final local suite has 139 passing tests.
 
-Resulting system state: The repository defines separate quality and
-Windows/Linux portability workflows. The Windows machine has the current
-private tarball installed globally, and active consumer instructions invoke
-the stable command with an explicit source rollback. The source and user state
-remain intact.
+Resulting system state: AI Arsenal is publicly published at
+`https://github.com/jimzord12/ai-arsenal` with `master` at `8004c7a`. CI is
+authoritative for quality and Windows/Linux process/distribution smoke checks.
+The private packed CLI is installed globally for the current Windows consumer,
+active consumer documentation invokes the stable command, rollback is
+documented, and the source plus user state remain intact.
 
-Discoveries: The repository has no initial commit or remote, and this machine
-has no Linux distribution. Three registered `ics-vcr` worktrees have no shared
-CLI-state or source-CLI junction and are not consumer worktrees. The source
-worktree head is `ef977fe70663329f91c7145006eba93a92a161c3`; its 14 recorded
-source hashes still match.
+Discoveries: The first Linux run exposed a Corepack path assumption in the E2E
+test harness; the first Windows matrix run exposed Corepack's first-download
+notice on stderr. Commits `3acdf64` and `8004c7a` made the harness portable
+without changing CLI behavior, persisted schemas, or the distribution boundary.
+Three registered `ics-vcr` worktrees lack both CLI junctions and are not
+consumers. The 14-file source hash inventory still matches.
 
-Canonical plan updates: Phase 7 is active, with CI configuration and consumer
-cutover recorded as verified local state. Windows/Linux workflow execution is
-the remaining acceptance criterion. Risks and current decisions now identify
-the unborn repository and absent remote as the CI blocker.
+Canonical plan updates: Phase 7 is complete. The plan now records public GitHub
+remote/commit state, passing CI run IDs, the cross-platform harness correction,
+consumer cutover, and the remaining source-deletion gate. Phase 8 is the next
+ready phase pending user direction.
 
-NEXT.md update: `NEXT.md` now asks for direction to create the initial commit
-and configure the GitHub remote, then run and inspect both CI platforms.
+NEXT.md update: `NEXT.md` now identifies Phase 8 — Final Validation and
+Operating Documentation as the next action.
 
-Approval required: User direction is required before creating the initial
-commit and configuring or pushing to a GitHub remote. Source deletion remains
-separately approval-gated.
+Approval required: User direction is required before starting Phase 8. Source
+deletion, public behavior/schema changes, transaction hardening, and user-state
+mutation remain separately approval-gated.

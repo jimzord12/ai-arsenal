@@ -2,7 +2,7 @@
 
 AI Arsenal is a pnpm/Turborepo monorepo for private AI-driven software-development tools.
 
-The repository contains the migrated private `features-cli` source package. Its packed artifact and Windows Bun shim are verified; the original source remains available for rollback until consumer cutover and explicit deletion approval. GitHub Actions defines quality and Windows/Linux process-distribution smoke coverage.
+The repository contains the migrated private `features-cli` source package. Its packed artifact and Windows Bun shim are verified; the original source remains available for rollback until consumer cutover and explicit deletion approval. Public GitHub Actions verifies quality and Windows/Linux process-distribution smoke coverage.
 
 ## Prerequisites
 
