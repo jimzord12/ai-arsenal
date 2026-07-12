@@ -1,0 +1,33 @@
+{
+  "name": "@jz/ai-arsenal-features-cli",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Private agent-facing CLI for durable feature workflow state.",
+  "type": "module",
+  "bin": {
+    "features-cli": "src/bin.ts"
+  },
+  "exports": {},
+  "files": [
+    "src/bin.ts",
+    "src/cli.ts",
+    "src/features-state.ts",
+    "src/issues-state.ts",
+    "src/milestone-progress.ts",
+    "src/milestone-state.ts",
+    "src/progress-state.ts",
+    "src/status-scanner.ts",
+    "README.md"
+  ],
+  "engines": {
+    "bun": "1.3.14"
+  },
+  "scripts": {
+    "format": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "test": "jest --runInBand --coverage",
+    "pack": "pnpm pack",
+    "validate": "publint --strict --pack pnpm"
+  }
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Initialize Living Plan'
+  short_description: 'Bootstrap or repair the living-plan workflow.'
+  default_prompt: "Initialize or repair this repository's living-plan workflow without starting product implementation."
+policy:
+  allow_implicit_invocation: true

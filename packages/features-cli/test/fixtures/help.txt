@@ -1,0 +1,15 @@
+features-cli commands:
+  init
+  create-feature <slug>
+  status
+  progress [--feature <slug>] [--json]
+  list-issues [--feature <slug>] [--actionable]
+  get-issue <--next|--next-contract|--resume> [--feature <slug>]
+  get-feature
+  update-feature <slug> [--status <status>] [--phase <phase>] [--focus <path|none>] [--pause-current]
+  mark-milestone-decomposed <milestone-slug> [--feature <slug>]
+  sync-issues [--feature <slug>]
+  update-blockers <id> --blockers <none|id[,id...]> [--feature <slug>]
+  update-status <id> --status <status> [--feature <slug>] [--force]
+  reopen-issue <id> --phase <red|green> <--reason <text>|--reason-file <path>> [--feature <slug>] [--force]
+  help | --help

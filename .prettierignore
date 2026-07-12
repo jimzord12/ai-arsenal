@@ -1,0 +1,10 @@
+node_modules
+.pnpm-store
+.turbo
+coverage
+dist
+.artifacts
+*.tgz
+pnpm-lock.yaml
+docs/evidence
+docs/archive

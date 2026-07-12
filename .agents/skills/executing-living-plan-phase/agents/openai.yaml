@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Execute Living Plan Phase'
+  short_description: 'Execute one approved phase and verify it.'
+  default_prompt: 'Orient from NEXT.md and execute only the current approved phase.'
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Reconcile Living Plan'
+  short_description: 'Update the plan and NEXT.md from verified reality.'
+  default_prompt: 'Reconcile the verified phase results into the canonical living plan and NEXT.md.'
+policy:
+  allow_implicit_invocation: true

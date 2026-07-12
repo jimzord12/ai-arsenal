@@ -1,0 +1,870 @@
+# AI Arsenal Canonical Living Implementation Plan
+
+> **Status:** Phase 6 complete; Phase 7 ready pending user direction
+> **Living-plan schema:** 1.0
+> **Last reconciled:** 2026-07-12
+> **Current phase:** Phase 7 — CI, Portability, Consumer Cutover, and Source Retirement
+> **Operator view:** `NEXT.md`
+
+---
+
+# 1. Purpose and Authority
+
+This is the single canonical implementation plan for:
+
+- Creating the AI Arsenal monorepo.
+- Discovering and migrating the existing TypeScript/Bun `features-cli`.
+- Designing its package and distribution model.
+- Establishing quality, versioning, testing, and CI.
+- Safely cutting consumers over from the old location.
+- Keeping implementation and testing synchronized as discoveries occur.
+
+This document merges the former separate monorepo/migration and testing plans.
+
+It is a **living document**. After every verified phase, it must be reconciled so that it reads as the coherent current plan rather than a chronological record of changing assumptions.
+
+Historical evolution belongs in:
+
+- Git history.
+- `docs/evidence/`.
+- `docs/decisions/`.
+- `docs/archive/`.
+
+No second implementation plan may compete with this document.
+
+---
+
+# 2. Evidence Base and Remaining Limitations
+
+Phase 1 directly inspected the CLI source, tests, local instructions, filesystem contracts, live read-only state, disposable mutations, source tooling, and known consumers. Phase 2 established the verified monorepo foundation. Phase 3 recorded the unversioned source baseline, migrated the CLI boundary, added command characterization, and verified source/destination parity. Phase 4 verified the private Bun source package and clean-consumer distribution. Phase 5 added domain/filesystem safety coverage and scoped milestone lock hardening. Evidence is stored under `docs/evidence/phase-01-discovery/`, `docs/evidence/phase-02-monorepo-foundation/`, `docs/evidence/phase-03-cli-migration/`, `docs/evidence/phase-04-build-packaging-distribution/`, and `docs/evidence/phase-05-domain-filesystem-test-foundation/`.
+
+Remaining limitations:
+
+- The CLI is Git-ignored and junction-shared, so it has no commit history or intrinsic version identifier.
+- Windows is the only verified execution platform.
+- The package's actual tarball and generated Windows Bun shim have been verified manually in a clean unrelated consumer; no persistent external installation was retained.
+- Automated black-box process/distribution regression tests and real multi-process contention tests are verified on Windows; no platform CI exists yet.
+- npm ownership of `@jz` is not relevant to the selected private initial release and remains unverified.
+- Consumer discovery is limited to the source repository, its linked workflow documentation, and installed personal `jz-*` skills visible locally.
+
+---
+
+# 3. Decision Classification
+
+Every material decision uses one of these labels.
+
+| Label           | Meaning                                                                       |
+| --------------- | ----------------------------------------------------------------------------- |
+| `[USER-LOCKED]` | Explicitly decided by the user; change only with approval                     |
+| `[VERIFIED]`    | Confirmed from code, configuration, execution, Git evidence, or real workflow |
+| `[RECOMMENDED]` | Preferred option based on current evidence and trade-offs                     |
+| `[ASSUMPTION]`  | Temporary working assumption that must be verified                            |
+| `[OPEN]`        | Requires evidence or user approval                                            |
+
+Reconciliation must update classifications as evidence improves.
+
+---
+
+# 4. Current Verified State
+
+## 4.1 Repository state
+
+- `[VERIFIED]` A pnpm `10.33.0` workspace and Turborepo `2.10.4` task graph exist with a frozen lockfile.
+- `[VERIFIED]` The intended monorepo root is `C:\Users\jimzord12\Documents\GitHub\ai-arsenal`.
+- `[VERIFIED]` Git is initialized at the monorepo root with no commits yet.
+- `[VERIFIED]` Root formatting, linting, typechecking, testing, commitlint, Husky/lint-staged, Changesets, and publint tooling are pinned and configured.
+- `[VERIFIED]` `packages/features-cli` is a private, self-contained source package boundary for `@jz/ai-arsenal-features-cli` with eight production modules, five migrated source suites, one command-characterization suite, strict TypeScript, Jest 29, linting, coverage, and package documentation.
+- `[VERIFIED]` Phase 3 recorded byte sizes and SHA-256 hashes for every top-level non-archive source file immediately before copying; the source still matches all 14 recorded hashes.
+- `[VERIFIED]` `archives/v1/` was excluded, production imports depend only on Node built-ins and sibling modules, and the source checkout remains available for rollback.
+- `[VERIFIED]` Representative source/migrated workflows match for exit codes, output, normalized schema-v2 state, derived issue JSON, and canonical issue bytes.
+- `[VERIFIED]` The migrated suite passes 139 tests across seven suites with 70.36% statement/line coverage; root formatting, package lint, strict typecheck, tests, package validation, and workflow validation pass.
+- `[VERIFIED]` Phase 5 covers malformed feature and issue JSON, invalid slug mutation safety, stale lock fail-fast behavior, feature-state transaction rollback and fail-closed recovery, direct issue-write partial failure characterization, milestone byte preservation, and shared-lock contention through both module and command boundaries.
+- `[VERIFIED]` Milestone mutation now participates in the same repository-level feature-state lock as feature and issue writers. Stale locks remain manual-recovery fail-fast sentinels, and broader issue-mutation transaction refactors are not implemented.
+- `[VERIFIED]` Packed artifacts are reproducible and Git-ignored. The current private tarball is installed in the Windows user's global pnpm environment, exposing `features-cli` on `PATH`; it did not mutate user `.scratch` state.
+- `[VERIFIED]` The private package exposes only `bin.features-cli = "src/bin.ts"`, blocks package imports with an empty `exports` map, and packs exactly package metadata, README, and eight production TypeScript modules; tests, coverage, configuration, archives, and unrelated files are excluded.
+- `[VERIFIED]` The actual tarball passes strict publint, installs into a clean unrelated pnpm consumer, generates a Windows `.CMD` shim that invokes Bun, and completes help plus a disposable schema-v2 feature lifecycle.
+- `[VERIFIED]` Automated black-box process coverage invokes the real Bun entrypoint in isolated temporary workspaces. It covers Bun version/help/parser behavior, feature and issue lifecycles, invalid or corrupt state, strict nested `cwd` behavior through paths with spaces and Unicode, idempotency, recovery journals, stale locks, direct issue-write partial failure, and fail-fast feature, issue, and milestone writer contention.
+- `[VERIFIED]` Automated distribution coverage packs the actual tarball, installs it into an unrelated temporary pnpm consumer, invokes its generated `features-cli` shim, and verifies schema version `"2"`. The package boundary remains exactly 10 files.
+- `[VERIFIED]` No import exports, bundling, standalone binary, runtime dependency, registry publication, or user-state mutation was introduced.
+- `[VERIFIED]` The source CLI is `C:\Users\jimzord12\Documents\ICS\github\ics-vcr.worktrees\remote-logging-system\scripts\features-cli`.
+- `[VERIFIED]` The surrounding source worktree is at commit `ef977fe70663329f91c7145006eba93a92a161c3` on branch `remote-logging-system`.
+- `[VERIFIED]` The CLI and `.scratch` are Git-ignored junctions into the primary `ics-vcr` checkout; the worktree commit is not a CLI revision.
+- `[VERIFIED]` The source worktree had unrelated uncommitted application changes and remained read-only throughout discovery.
+- `[VERIFIED]` Phase 1 inspected the implementation and observed real and disposable workflows without modifying source repositories.
+- `[VERIFIED]` The documented focused Jest suite passes: 5 suites and 109 tests.
+- `[VERIFIED]` Phase 2 verification passed; the source CLI retained matching hashes across 14 top-level files and its focused suite still passes 109 tests.
+- `[VERIFIED]` The repository defines separate GitHub Actions quality and portability workflows. They use frozen pnpm installation, the pinned Node, pnpm, and Bun toolchain, package validation, and a Windows/Linux E2E matrix; the workflows are not executed because the repository has neither an initial commit nor a remote.
+- `[VERIFIED]` The primary `ics-vcr` checkout and its `remote-logging-system` worktree mount the shared `.scratch` state. The globally installed stable executable and the legacy rollback command both completed read-only `status` checks in those consumers. The three other registered worktrees have neither junction and are not CLI consumers.
+
+## 4.2 Product context supplied by the user
+
+- `[USER-LOCKED]` The existing CLI is written in TypeScript and uses Bun.
+- `[VERIFIED]` It currently lives at `C:\Users\jimzord12\Documents\ICS\github\ics-vcr.worktrees\remote-logging-system\scripts\features-cli`.
+- `[USER-LOCKED]` Its high-level feature artifact structure uses:
+
+```text
+.scratch/
+└── features/
+    ├── features-status.json
+    └── NNN-feature-name/
+        ├── Markdown artifacts
+        ├── issues-status.json
+        └── issues/
+```
+
+- `[VERIFIED]` The exact feature, issue, milestone, contract, and progress schemas and transitions are documented in Phase 1 evidence.
+- `[VERIFIED]` The exact command, schema, lifecycle, path, output, and error contracts are recorded in Phase 1 evidence.
+
+## 4.3 Monorepo direction
+
+- `[USER-LOCKED]` Repository purpose: AI Arsenal, a collection of the user’s AI-driven software-development tools.
+- `[USER-LOCKED]` Workspace/package manager: pnpm.
+- `[USER-LOCKED]` Task orchestration and caching: Turborepo.
+- `[USER-LOCKED]` Bun remains the existing CLI runtime unless evidence and approval justify a change.
+- `[USER-LOCKED]` Package naming prefix: `@jz/ai-arsenal-`.
+- `[USER-LOCKED]` Intended CLI package: `@jz/ai-arsenal-features-cli`.
+- `[VERIFIED]` `@jz` registry ownership is not required for the private, non-published initial package.
+- `[VERIFIED]` Registry publication is not needed in the initial release; the package remains private.
+
+## 4.4 Quality and release direction
+
+- `[USER-LOCKED]` Prefer low-complexity, high-impact tooling.
+- `[USER-LOCKED]` Include ESLint and Prettier unless existing equivalent tooling is intentionally retained.
+- `[USER-LOCKED]` Include Husky and lint-staged for fast local feedback.
+- `[USER-LOCKED]` Use Conventional Commits and commitlint.
+- `[USER-LOCKED]` Use Changesets for package versions and changelogs.
+- `[USER-LOCKED]` Do not automate npm publication in the initial setup.
+- `[RECOMMENDED]` Use publint for packable packages.
+- `[RECOMMENDED]` Use Are the Types Wrong only when a package exposes TypeScript declarations/imports.
+- `[VERIFIED]` The initial CLI package exposes only an executable, so Are the Types Wrong is not applicable.
+
+---
+
+# 5. Project Goal
+
+Create a maintainable AI Arsenal monorepo that:
+
+- Houses reusable tools for AI-driven development.
+- Migrates `features-cli` without losing intended behavior.
+- Allows safe package-to-package reuse through declared TypeScript package APIs.
+- Produces a reliable CLI distribution appropriate to the real user workflow.
+- Uses senior-quality architecture without premature abstractions.
+- Has deep confidence in filesystem behavior, package installation, and cross-platform execution.
+- Is easy for a human to resume after forgetting workflow details.
+- Keeps its canonical implementation plan synchronized with implementation reality.
+
+---
+
+# 6. Definition of Done
+
+The project is complete when all approved requirements have been reconciled and verified, including:
+
+## Repository
+
+- A valid pnpm workspace and Turborepo task graph exist.
+- Tool versions are deliberately pinned.
+- Package boundaries and responsibilities are documented.
+- Internal dependencies use package names and the pnpm workspace protocol.
+- No mixed package-manager state exists.
+
+## CLI migration
+
+- Intended behavior has been characterized.
+- Source provenance is recorded.
+- The CLI is migrated into the approved package location.
+- It no longer imports private files from the source repository.
+- User project paths, package paths, assets, and configuration paths are correctly separated.
+- Current consumers have an approved cutover path.
+- The source copy is removed only after parity and rollback verification.
+
+## Package and distribution
+
+- The package name follows the approved `@jz/ai-arsenal-*` convention.
+- The selected build and distribution model is verified from a clean environment.
+- Packed/published contents are intentional.
+- Runtime assets and dependencies are present.
+- Package validation appropriate to the package contract passes.
+- Registry publication automation remains out of scope unless later approved.
+
+## Quality workflow
+
+- Formatting, linting, type checking, and tests have clear scripts.
+- Git hooks remain fast.
+- CI is authoritative.
+- Conventional Commits and commitlint work.
+- Changesets has an explicit package/version/changelog policy.
+
+## Testing
+
+- Test layers match the real architecture.
+- High-value domain behavior has unit coverage.
+- Filesystem behavior is exercised against real temporary workspaces.
+- The real CLI process is tested at the correct boundary.
+- The selected distribution artifact is tested from a clean consumer.
+- Corrupt state and failed mutations do not silently destroy valid data.
+- Concurrency is supported safely, guarded explicitly, or documented as unsupported.
+- Supported operating systems pass CI.
+
+## Workflow UX
+
+- `NEXT.md` always identifies the actual next step, requirements, blockers, and purpose.
+- The canonical plan represents current truth.
+- Every phase completion triggers reconciliation.
+- A returning user can confidently resume from a 30-second orientation.
+- Important architectural rationale is preserved without polluting the canonical plan.
+
+---
+
+# 7. Canonical Architecture
+
+This is the selected post-discovery architecture. Changes that affect public behavior, persisted state, distribution, or user-locked tooling require approval.
+
+## 7.1 Responsibility boundaries
+
+### pnpm
+
+Owns:
+
+- Dependency installation.
+- Workspace linking.
+- Lockfile generation.
+- Adding/removing dependencies.
+- Packing npm-compatible packages.
+- Root/package script execution.
+
+Do not use Bun, npm, or Yarn to produce competing dependency state.
+
+### Turborepo
+
+Owns:
+
+- Dependency-aware task orchestration.
+- Package filtering.
+- Parallel execution.
+- Build/test caching where correct.
+- Declared task inputs and outputs.
+
+It does not own package installation.
+
+### Bun
+
+For `features-cli`, owns:
+
+- Runtime execution.
+- The `#!/usr/bin/env bun` executable contract.
+
+The CLI currently uses Node-compatible APIs rather than `Bun.*`. Do not add bundling or replace Jest merely because Bun provides those capabilities.
+
+## 7.2 Repository layout
+
+Current foundation:
+
+```text
+ai-arsenal/
+├── .agents/
+│   └── skills/
+├── .changeset/
+│   └── config.json
+├── .husky/
+│   ├── commit-msg
+│   └── pre-commit
+├── docs/
+│   ├── archive/
+│   ├── decisions/
+│   ├── evidence/
+│   ├── input/
+│   ├── planning/
+│   └── workflow/
+├── packages/
+│   └── features-cli/
+│       └── package.json
+├── scripts/
+├── AGENTS.md
+├── NEXT.md
+├── README.md
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── tsconfig.json
+└── turbo.json
+```
+
+The CLI package now contains:
+
+```text
+packages/features-cli/
+├── src/
+│   ├── bin.ts
+│   ├── cli.ts
+│   ├── features-state.ts
+│   ├── issues-state.ts
+│   ├── milestone-progress.ts
+│   ├── milestone-state.ts
+│   ├── progress-state.ts
+│   ├── status-scanner.ts
+│   └── *.test.ts
+├── test/
+│   ├── fixtures/
+│   └── characterization.test.ts
+├── jest-transformer.cjs
+├── jest.config.cjs
+├── package.json
+├── README.md
+└── tsconfig.json
+```
+
+Later phases add automated distribution tests and CI when their behavior can be verified. Do not create empty directories or packages solely for visual symmetry.
+
+## 7.3 Package boundary policy
+
+- `packages/*`: reusable CLIs, SDKs, libraries, tools, and shared configurations.
+- `apps/*`: deployable applications and services.
+- Cross-package imports use package names and declared exports.
+- Do not import another package through its private `src/` path.
+- Do not create generic `common`, `core`, `types`, or `utils` packages until at least two real consumers need a coherent API.
+- A root TypeScript config may be simpler than a config package while only one package exists.
+
+## 7.4 Package naming
+
+Valid npm scope structure:
+
+```text
+@scope/package-name
+```
+
+Approved AI Arsenal convention:
+
+```text
+@jz/ai-arsenal-<name>
+```
+
+Current intended CLI name:
+
+```text
+@jz/ai-arsenal-features-cli
+```
+
+Folder names may remain short:
+
+```text
+packages/features-cli
+```
+
+The verified executable name is `features-cli`. Preserve it.
+
+The package is private in the initial release and exposes no TypeScript import API.
+
+## 7.5 Quality-tooling direction
+
+Verified initial stack:
+
+- ESLint flat config.
+- TypeScript ESLint support.
+- Prettier.
+- `eslint-config-prettier`.
+- Husky.
+- lint-staged.
+- commitlint and `@commitlint/config-conventional`.
+- Changesets.
+- publint.
+- Jest 29-compatible package tests migrated from the source baseline, plus command-boundary characterization.
+
+The root manifest pins Turbo `2.10.4`, TypeScript `6.0.3`, ESLint `10.7.0`, TypeScript-ESLint `8.63.0`, Prettier `3.9.5`, Husky `9.1.7`, lint-staged `17.0.8`, commitlint `21.2.x`, Changesets `2.31.0`, publint `0.3.21`, and Jest `29.7.0`. TypeScript `7` is not used because it is outside the verified TypeScript-ESLint peer range.
+
+Use publint for the packed package. Do not add Are the Types Wrong while the package exposes no TypeScript import surface.
+
+The package-local Jest transformer uses the already pinned TypeScript compiler and produces `coverage/` as a declared Turbo output. Strict package typechecking uses bundler resolution to preserve Bun-compatible extensionless sibling imports. The migrated package retains one narrow lint exception for the characterized fail-closed throw inside `finally`.
+
+Pre-commit hooks should run only fast staged-file checks.
+
+Full tests, builds, package validation, and platform checks belong in explicit scripts and CI.
+
+## 7.6 Test architecture
+
+Required layers:
+
+1. Unit tests for pure domain behavior.
+2. Integration tests against the real temporary filesystem.
+3. Black-box CLI E2E tests using the real process boundary.
+4. Distribution tests against the actual package or executable.
+5. Windows and Linux CI for quality and distribution smoke tests.
+
+Current verified coverage includes colocated domain/filesystem suites, an in-process command-characterization suite, and a real-process E2E/distribution suite: 139 tests across seven Jest suites. It covers schema/domain validation, status/review/dependency selection, real temporary filesystem persistence, corrupt JSON rejection, recovery-journal fail-closed behavior, stale and held lock behavior, direct issue-write partial failure characterization, strict `cwd` rooting, paths with spaces and Unicode, milestone byte preservation, real concurrent writer fail-fast behavior, and actual packed-artifact installation/invocation from a clean consumer. Windows is the verified execution platform. GitHub Actions configuration now schedules the quality workflow on Linux and the process/distribution suite on both Windows and Linux, but no CI run has occurred yet.
+
+Preserve Jest initially because the existing 109-test suite uses Jest-specific spies, fake timers, and module access. Use Node subprocess APIs in tests to invoke the real Bun executable; do not couple tests to `Bun.spawn` unless production needs it.
+
+## 7.7 Package and distribution contract
+
+- Package: `@jz/ai-arsenal-features-cli`.
+- Folder: `packages/features-cli`.
+- Executable: `features-cli`.
+- Runtime: Bun `1.3.14` initially, deliberately pinned at the repository level.
+- Artifact: npm-compatible source package containing TypeScript executed by Bun.
+- Runtime dependencies: none unless migration evidence proves otherwise.
+- Registry: private package; no npm publication or publication automation.
+- Packed boundary: package metadata, README, and the eight production TypeScript modules only.
+- Validation: strict publint packs with pnpm; Are the Types Wrong remains inapplicable because there is no import surface.
+- Verified consumption: install the tarball into a clean unrelated pnpm consumer and run `features-cli` through the generated Bun-aware command shim. The current artifact is also installed globally on the Windows consumer machine; the stable executable and legacy rollback command pass read-only smoke checks in the two worktrees that mount the shared `.scratch` state.
+- Source CLI and junction remain available for rollback until consumer cutover and explicit deletion approval.
+
+## 7.8 Behavioral and persistence contract
+
+- The invocation `cwd` is the project root; do not add upward root discovery during migration.
+- Preserve command names, flags, human output meaning, JSON shape, and `0/1` exit behavior.
+- Preserve feature state schema version `"2"`, canonical issue Markdown, derived `issues-status.json`, milestone fences, and contract-file derivation.
+- Preserve exact-byte behavior for user-authored Markdown outside intended metadata edits.
+- Preserve one-writer fail-fast locking for the migration release.
+- Treat incomplete atomicity and stale locks as explicit hardening work, not silent migration refactors.
+
+---
+
+# 8. Living-Plan Maintenance Contract
+
+Every phase ends with a mandatory reconciliation gate.
+
+## 8.1 Inputs to reconciliation
+
+- Phase acceptance criteria.
+- Executed verification commands and results.
+- Git diff and resulting file structure.
+- Implementation discoveries.
+- New limitations and quirks.
+- Requirements learned from the user.
+- Newly discovered risks.
+- Changes in package/API/filesystem behavior.
+
+## 8.2 Required updates
+
+Reconciliation must inspect and update all affected areas:
+
+- Current verified state.
+- User-locked requirements.
+- Architecture.
+- Package/file paths.
+- Current and future phases.
+- Test strategy and scenarios.
+- Risks and constraints.
+- Open decisions.
+- Definition of done.
+- `NEXT.md`.
+
+## 8.3 Natural rewrite rule
+
+The canonical plan must read like the current coherent plan.
+
+Do not retain plan-diff prose such as:
+
+```text
+Originally we intended X, but Phase 2 found Y.
+```
+
+Instead write the corrected current truth.
+
+Preserve important historical rationale in an ADR or phase reconciliation report.
+
+## 8.4 Completed phase representation
+
+Once a phase is completed, its section should be rewritten from speculative tasks into:
+
+- Resulting verified state.
+- Ongoing invariants.
+- Important interfaces.
+- Verification that remains relevant.
+- Any remaining follow-up moved to the correct future phase.
+
+The phase map may show completion, but status alone is never sufficient.
+
+## 8.5 Idempotency
+
+Running reconciliation twice with no new evidence must not produce wording churn or task reshuffling.
+
+## 8.6 Approval triggers
+
+Stop for user approval when reconciliation would:
+
+- Modify a user-locked requirement.
+- Change public behavior or persisted formats.
+- Add a major dependency or external service.
+- Expand scope materially.
+- Introduce meaningful cost/security/privacy/operations.
+- Change the approved distribution direction.
+- Remove user data or the original source copy.
+- Proceed beyond the post-discovery implementation gate.
+
+---
+
+# 9. Phase Map
+
+| Phase | Name                                                     | Current status  | Main output                                          | Approval gate            |
+| ----- | -------------------------------------------------------- | --------------- | ---------------------------------------------------- | ------------------------ |
+| 0     | Workflow Bootstrap and Repository Orientation            | **Complete**    | Valid workflow state and organized inputs            | Satisfied                |
+| 1     | CLI Discovery, Workflow Observation, and Plan Grounding  | **Complete**    | Evidence-grounded canonical plan                     | Satisfied                |
+| 2     | Monorepo Foundation and Developer Workflow               | **Complete**    | pnpm/Turbo root and quality workflow                 | Satisfied                |
+| 3     | CLI Characterization and Migration Boundary              | **Complete**    | Behavior baseline and migrated package boundary      | Satisfied                |
+| 4     | Build, Packaging, and Distribution                       | **Complete**    | Verified distribution artifact                       | Satisfied                |
+| 5     | Domain and Filesystem Test Foundation                    | **Complete**    | Unit/integration confidence and data-safety contract | Satisfied                |
+| 6     | CLI E2E and Distribution Testing                         | **Complete**    | Real process and clean-consumer confidence           | Satisfied                |
+| 7     | CI, Portability, Consumer Cutover, and Source Retirement | **In progress** | Configured CI and safe consumer cutover              | CI execution/source gate |
+| 8     | Final Validation and Operating Documentation             | Blocked         | Release-ready verified repository                    | Final acceptance         |
+
+---
+
+# 10. Phase 0 — Workflow Bootstrap and Repository Orientation
+
+## Resulting verified state
+
+- The effective repository root is `C:\Users\jimzord12\Documents\GitHub\ai-arsenal`.
+- Git is initialized at that root with no commits yet.
+- All starter files were inventoried; no additional user inputs or superseded plans require organization.
+- Required workflow files and all three repository-scoped skills are present.
+- The workflow validator passes under Node.
+- The source CLI location, worktree root, branch, and commit are recorded in Phase 0 evidence.
+- No production code was moved, no dependencies were installed, and no monorepo files were scaffolded.
+
+## Ongoing invariants
+
+- Keep source inspection read-only outside an approved migration/cutover phase because the worktree contains unrelated changes.
+- Preserve the source CLI in place until migration parity, consumer cutover, rollback verification, and explicit deletion approval.
+- Store new discovery evidence under `docs/evidence/phase-01-discovery/`.
+
+## Verification evidence
+
+- `docs/evidence/phase-00-workflow-bootstrap/inventory.md`
+- `docs/evidence/phase-00-workflow-bootstrap/verification.md`
+- `docs/evidence/phase-00-workflow-bootstrap/reconciliation.md`
+
+---
+
+# 11. Phase 1 — CLI Discovery, Workflow Observation, and Plan Grounding
+
+## Outcome
+
+The generic starter plan is now grounded in the actual CLI, workflows, consumers, tests, and risks.
+
+## Resulting verified state
+
+- Source provenance and its Git-ignore/junction limitation are recorded.
+- CLI architecture, command surface, schemas, path behavior, error behavior, and consumer coupling are mapped.
+- Real read-only routing plus disposable feature, issue, invalid-request, and recovery workflows were observed.
+- The documented focused suite passes 109 tests across five suites.
+- Current data-safety gaps and test gaps are explicit.
+- Jest remains the initial test runner; Bun remains the runtime.
+- The selected distribution is a private npm-compatible source package requiring Bun, verified through a packed tarball.
+- Windows and Linux are the initial CI platforms; macOS remains unsupported until required.
+- The initial concurrency policy is one writer with fail-fast contention; broad hardening is separately staged and must preserve schemas and behavior.
+
+## Ongoing evidence
+
+- `docs/evidence/phase-01-discovery/discovery-report.md`
+- `docs/evidence/phase-01-discovery/command-inventory.md`
+- `docs/evidence/phase-01-discovery/workflow-observations.md`
+- `docs/evidence/phase-01-discovery/consumer-inventory.md`
+- `docs/evidence/phase-01-discovery/risk-register.md`
+- `docs/evidence/phase-01-discovery/verification.md`
+- `docs/evidence/phase-01-discovery/deviation-report.md`
+- `docs/evidence/phase-01-discovery/reconciliation.md`
+- `docs/evidence/phase-01-discovery/approval.md`
+
+## Approval gate
+
+**Satisfied on 2026-07-12:** the user explicitly approved the reconciled plan and selected trade-offs before Phase 2.
+
+---
+
+# 12. Phase 2 — Monorepo Foundation and Developer Workflow
+
+## Resulting verified state
+
+- The root is a private pnpm `10.33.0` workspace with a frozen `pnpm-lock.yaml`.
+- Turborepo `2.10.4` has package tasks for formatting, linting, typechecking, testing, packing, and validation.
+- Node `24.5.0` and Bun `1.3.14` pins match the installed toolchain.
+- ESLint flat config, TypeScript-ESLint, Prettier, Husky, lint-staged, commitlint, Changesets, publint, TypeScript, and Jest are pinned and configured.
+- Fast pre-commit and commit-message hooks pass without creating a commit.
+- `@jz/ai-arsenal-features-cli` exists only as a private package manifest; no CLI source was moved.
+- The root README documents installation, command ownership, workspace responsibilities, and the private release policy.
+
+## Ongoing invariants
+
+- pnpm alone owns dependency state; no competing lockfile exists.
+- Root package tasks delegate to the migrated package's real formatting, linting, strict typechecking, testing, packing, and validation scripts.
+- Root JavaScript remains compiler-checked without imposing strict `checkJs` on the existing workflow validator; the CLI package has its own strict TypeScript configuration.
+- Turbo test outputs remain empty until the migrated suite produces real coverage artifacts.
+- The real repository has no `HEAD`; Changesets configuration is verified in a disposable committed repository and root `changeset status` becomes available after the first real commit.
+- The source CLI remains read-only and unchanged.
+
+## Verification evidence
+
+- `docs/evidence/phase-02-monorepo-foundation/verification.md`
+- `docs/evidence/phase-02-monorepo-foundation/source-preservation.md`
+- `docs/evidence/phase-02-monorepo-foundation/reconciliation.md`
+
+---
+
+# 13. Phase 3 — CLI Characterization and Migration Boundary
+
+## Resulting verified state
+
+- The unversioned source baseline is identified by a fresh inventory of 14 top-level non-archive files with byte sizes and SHA-256 hashes.
+- Eight production modules and the five-suite, 109-test source baseline are migrated under `packages/features-cli/src/`; the adapted README and package-local Jest/TypeScript configuration are present.
+- Nine new command-characterization tests cover help, status/progress JSON, feature and issue lifecycles, invalid input, recovery-required state, strict `cwd` rooting, BOM/CRLF preservation, and held-lock failure.
+- The migrated package retains strict typechecking, linting, formatting, repository-wide checks, and the expanded test suite summarized in Current Verified State.
+- Representative source and migrated workflows match in exit behavior, output, normalized persisted state, derived state, and canonical user-authored bytes.
+- `archives/v1/` is absent from the package; the original CLI, archive, and source hashes remain available for rollback.
+- Production imports have no source-checkout dependency. The legacy secondary-entrypoint usage string remains frozen public output, not a runtime path dependency.
+
+## Ongoing invariants
+
+- Preserve commands, output meaning, exit behavior, parser behavior, lifecycle rules, schema version `"2"`, canonical Markdown, derived JSON, exact user-authored bytes, fail-fast locking, recovery behavior, and strict invocation-`cwd` semantics.
+- Keep the source copy read-only and available until consumer cutover, rollback verification, and explicit deletion approval.
+- Retain `status-scanner.ts` until later coverage and obsolete-module review justify removal.
+- Keep tests isolated from real `.scratch` data and retain Jest 29 until an approved change proves a safer replacement.
+
+## Verification evidence
+
+- `docs/evidence/phase-03-cli-migration/source-provenance.md`
+- `docs/evidence/phase-03-cli-migration/parity.md`
+- `docs/evidence/phase-03-cli-migration/verification.md`
+- `docs/evidence/phase-03-cli-migration/reconciliation.md`
+
+---
+
+# 14. Phase 4 — Build, Packaging, and Distribution
+
+## Resulting verified state
+
+- `@jz/ai-arsenal-features-cli` remains private and source-distributed, exposes only the stable `features-cli` executable at `src/bin.ts`, blocks deep imports with an empty `exports` map, requires Bun `1.3.14`, and has no import API.
+- The explicit packed boundary contains exactly `package.json`, `README.md`, and the eight production TypeScript modules. Tests, fixtures, coverage, Turbo logs, configuration, archives, and unrelated files are excluded.
+- `pnpm --filter @jz/ai-arsenal-features-cli pack` produces the intended tarball, and strict publint passes both the package's pnpm-packed view and the actual tarball.
+- A clean unrelated temporary pnpm consumer installs the tarball. Its generated Windows `.CMD` shim invokes Bun from `PATH`, help succeeds, and a disposable init/create/update/get lifecycle persists schema version `"2"` with the expected state.
+- The temporary consumer was removed after verification. No user `.scratch` data, persistent consumer installation, source checkout, public behavior, schema, registry, or publication automation changed.
+
+## Ongoing invariants
+
+- Keep the artifact as TypeScript source executed by Bun; bundling, standalone binaries, import exports, automated publication, and new runtime dependencies require evidence and approval.
+- Keep the explicit packed boundary synchronized with production modules and verify the actual tarball, not a workspace link.
+- Use `pnpm run pack` when invoking the root Turbo script; bare root `pnpm pack` is pnpm's built-in root-package command.
+- Preserve the original source and archive until consumer cutover, rollback verification, and explicit deletion approval.
+
+## Verification evidence
+
+- `docs/evidence/phase-04-build-packaging-distribution/verification.md`
+- `docs/evidence/phase-04-build-packaging-distribution/reconciliation.md`
+
+---
+
+# 15. Phase 5 — Domain and Filesystem Test Foundation
+
+## Resulting verified state
+
+- The package has 125 passing Jest tests across six suites.
+- Domain coverage includes feature schema validation, slug safety, feature lifecycle constraints, issue status/review transitions, blocker/dependency selection, resumable issue selection, milestone parsing, milestone dependency validation, and milestone/issue reconciliation.
+- Filesystem coverage uses isolated temporary workspaces for initialization, feature and issue persistence, corrupt feature and issue JSON, strict invocation-`cwd` behavior, recovery-required fail-closed behavior, held and stale lock behavior, direct issue-write partial failure characterization, and user-authored milestone byte preservation.
+- Feature-state multi-file updates use a recovery journal and rollback tested against both successful rollback and rollback failure.
+- Feature, issue, and milestone writers share the repository-level `.scratch/features-status.lock` fail-fast writer lock.
+- Milestone mutation is tested through both module and command boundaries while another writer holds the shared lock.
+- Stale-looking lock files are treated as manual-recovery sentinels and are not automatically removed.
+- Direct issue mutations remain non-transactional: a derived-state write failure after an issue Markdown rewrite can leave the issue file updated while derived issue state is absent or stale and feature registry timestamps remain unchanged. The lock is still released. This behavior is characterized for future hardening decisions.
+
+## Ongoing invariants
+
+- Preserve public CLI behavior, schema version `"2"`, existing command output shape, exact user-authored bytes, strict `cwd` semantics, the private Bun source distribution, and the explicit packed file boundary.
+- Keep stale lock auto-recovery out of scope unless evidence and approval justify it.
+- Do not broaden transaction refactors for issue Markdown, derived issue state, or feature registry timestamps without approval.
+- Keep tests isolated from real `.scratch` data.
+
+## Verification evidence
+
+- `docs/evidence/phase-05-domain-filesystem-test-foundation/verification.md`
+- `docs/evidence/phase-05-domain-filesystem-test-foundation/reconciliation.md`
+
+---
+
+# 16. Phase 6 — CLI E2E and Distribution Testing
+
+## Resulting verified state
+
+- `packages/features-cli/test/e2e.test.ts` runs the real Bun entrypoint rather than calling the CLI module in-process. Every test uses a removed temporary workspace; no user `.scratch` data or consumer path is touched.
+- The process contract is verified for Bun version, help, parser failure, feature and issue lifecycle, invalid/missing entities, malformed state, idempotency, recovery-journal hard stop, stale lock preservation, strict nested `cwd`, and paths with spaces and Unicode. It checks process exit code, stdout/stderr, persisted state, and unrelated-file preservation where relevant.
+- The direct issue-write partial-failure boundary is confirmed at the process boundary: when derived issue-state writing fails after canonical Markdown is updated, the command exits `1`, the Markdown update remains, feature registry bytes remain unchanged, and the writer lock is released. No broad transaction hardening was introduced.
+- Real concurrent feature, issue, and milestone CLI writers prove the shared repository lock permits one writer and makes the competing process fail fast. Stale locks remain manual-recovery sentinels and are not auto-recovered.
+- The E2E suite packs the actual source artifact, installs it into an unrelated temporary pnpm consumer, invokes `features-cli` through the installed command shim, and verifies schema version `"2"`. The selected private Bun source distribution and its 10-file packed boundary are unchanged.
+
+## Ongoing invariants
+
+- Preserve public CLI behavior, schema version `"2"`, exact user-authored bytes outside intended metadata edits, strict invocation-`cwd` semantics, fail-fast locking, recovery hard stops, and the private Bun source distribution.
+- Keep process and distribution tests isolated from user state and workspace links.
+- Do not add stale-lock auto-recovery or broaden issue mutation transactions without evidence and approval.
+- Windows is verified locally; Windows and Linux CI, consumer cutover, and source retirement remain Phase 7 work.
+
+## Verification evidence
+
+- `docs/evidence/phase-06-cli-e2e-distribution-testing/verification.md`
+- `docs/evidence/phase-06-cli-e2e-distribution-testing/reconciliation.md`
+
+---
+
+# 17. Phase 7 — CI, Portability, Consumer Cutover, and Source Retirement
+
+## Current verified state
+
+- `.github/workflows/quality.yml` defines an Ubuntu quality gate with frozen pnpm installation, formatting, linting, typechecking, unit/integration tests with coverage, and strict packed-artifact validation.
+- `.github/workflows/portability.yml` defines a non-fail-fast Windows/Linux matrix that executes the real-process E2E suite. That suite includes the actual packed-artifact install/invocation, path, and writer-contention cases.
+- Both workflows use the pinned Node, pnpm, and Bun versions and have read-only repository permissions. Their YAML is formatted and their local commands pass, but GitHub has not executed them because this unborn repository has no remote.
+- The current packed artifact is installed globally through pnpm, exposing the stable `features-cli` command. The primary `ics-vcr` checkout and the `remote-logging-system` worktree pass read-only stable-command and legacy-roll-back-command smoke checks against their shared `.scratch` state.
+- The Spec-to-Ship workflow documentation and the five personal `jz-*` consumers use the stable executable; no personal consumer retains a direct `scripts/features-cli` or `npx tsx` invocation. The three other registered `ics-vcr` worktrees have no `.scratch` or source-CLI junction, so they are not CLI consumers.
+- `docs/operations/features-cli-cutover.md` records global installation, read-only smoke verification, rollback, and the source-deletion gate. The source still matches all 14 recorded SHA-256 hashes.
+
+## Remaining verification
+
+- Create the initial Git commit, configure the GitHub remote, and run the configured workflows. Both matrix operating systems must pass before Phase 7 can complete.
+- Linux has no local execution environment on this machine; use the configured GitHub-hosted Linux runner rather than adding Docker or a new local runtime.
+
+Windows is required. Linux is the portability target. macOS is out of scope until a consumer requires it.
+
+## Source deletion gate
+
+Do not remove the old `scripts/features-cli` until:
+
+- Behavior parity is approved.
+- Consumers are migrated.
+- CI passes.
+- Rollback is documented.
+- The user explicitly approves deletion.
+
+## Reconciliation gate
+
+Required. Rewrite current repository state and final completion work.
+
+---
+
+# 18. Phase 8 — Final Validation and Operating Documentation
+
+## Intended outcome
+
+The project is complete, understandable, and resumable.
+
+## Exact tasks
+
+- Run complete clean-checkout verification.
+- Validate the packed source artifact from a clean consumer.
+- Validate hooks and Changesets workflow.
+- Verify no stale source paths.
+- Verify no mixed lockfiles.
+- Verify Windows and Linux CI.
+- Update package and root docs.
+- Ensure `NEXT.md` reflects maintenance/release work rather than a completed implementation phase.
+- Reconcile completed phases into current-state foundations.
+- Confirm no unabsorbed input plans exist before any archival.
+- Record final ADRs where needed.
+
+## Final acceptance
+
+The user receives:
+
+- Current architecture.
+- How to use and develop the CLI.
+- How versions/changelogs work.
+- How to test/package/release.
+- Known constraints.
+- Clear future next action.
+
+## Reconciliation gate
+
+Required final reconciliation and user acceptance.
+
+---
+
+# 19. Current Risks
+
+| Risk                                                                                                               | Current status                    | Required resolution                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------ | --------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Source rollback copy can drift after its captured baseline                                                         | Controlled                        | The 14-file inventory matched during cutover; preserve the source copy through its explicit deletion gate       |
+| Direct issue mutations can leave issue Markdown ahead of derived JSON and feature timestamps after a write failure | Characterized open risk           | Real-process boundary is verified; broaden transaction hardening only with approval                             |
+| Stale locks require manual recovery                                                                                | Accepted, test-backed constraint  | Preserve fail-fast behavior; do not automate without evidence and approval                                      |
+| Skills depend on paths, output, and schemas                                                                        | Controlled for cut-over consumers | Stable-command instructions and two read-only worktree smoke checks are verified; preserve the rollback command |
+| Wrong `cwd` targets the wrong `.scratch`                                                                           | Controlled by E2E                 | Preserve documented root invocation; no upward discovery                                                        |
+| Windows junction/path behavior may regress                                                                         | Partially controlled              | Local smoke checks pass; require the configured Windows CI run                                                  |
+| Linux portability is unverified                                                                                    | Open                              | Execute the configured Linux CI packed-artifact smoke test                                                      |
+| User-authored Markdown may be damaged by hardening                                                                 | Controlled by tests               | Preserve byte-level milestone tests and extend before any broader mutation hardening                            |
+| Separate plans could drift                                                                                         | Controlled                        | Single canonical plan                                                                                           |
+| Human forgets workflow state                                                                                       | Controlled by design              | `NEXT.md` and session contract                                                                                  |
+| Agent skips reconciliation                                                                                         | Controlled by workflow            | Required skills and gates                                                                                       |
+| Unborn Git history and absent remote block CI execution                                                            | Active Phase 7 blocker            | Create the initial commit, configure a GitHub remote, and inspect the Windows/Linux workflow runs               |
+
+Reconciliation must remove resolved risks and add newly material risks.
+
+---
+
+# 20. Current Open Decisions
+
+Phase 7 consumer cutover is complete under the user's authorization. CI execution is blocked only by the lack of an initial commit, GitHub remote, and local Linux environment; the configured GitHub-hosted matrix is the approved verification path.
+
+Broad transaction hardening for issue Markdown, derived issue state, and feature registry timestamp coupling remains an approval-controlled decision. Phase 6 confirms the existing partial-write boundary without showing a distribution or process failure that changes that decision.
+
+Later explicit gates remain for any public behavior/schema change, material tooling or distribution deviation, and source deletion.
+
+---
+
+# 21. Explicit Initial Non-Goals
+
+Unless discovery and user approval change scope:
+
+- Automated npm publishing.
+- Semantic-release or release-please alongside Changesets.
+- Remote Turborepo caching.
+- Docker.
+- A documentation website.
+- Multiple release channels.
+- Native binaries for every platform.
+- Generic shared `core`, `types`, or `utils` packages.
+- Replacing Bun.
+- Replacing the CLI command framework.
+- Redesigning `.scratch/`.
+- Silent schema migrations.
+- Broad unrelated refactoring.
+- Full test/build execution inside Git hooks.
+- Treating the canonical plan as a changelog.
+
+---
+
+# 22. Phase Evidence Contract
+
+For each phase, store concise evidence under:
+
+```text
+docs/evidence/phase-XX-<name>/
+```
+
+Recommended contents:
+
+- `verification.md`: commands, exit codes, key output.
+- `reconciliation.md`: compact summary of plan updates and approval needs.
+- Additional reports specific to the phase.
+
+Do not dump excessive raw logs into the repository unless they are genuinely useful. Prefer concise evidence plus references to CI/Git commits.
+
+---
+
+# 23. Reconciliation Report Format
+
+Use:
+
+```text
+Phase:
+Verification:
+Resulting system state:
+Discoveries:
+Canonical plan updates:
+NEXT.md update:
+Approval required:
+```
+
+The reconciliation report is historical evidence.
+
+The canonical plan itself must contain only current truth.
+
+---
+
+# 24. Immediate Next Step
+
+Obtain user direction to create the initial commit and configure the GitHub remote, then execute and inspect the configured Windows/Linux CI workflows for **Phase 7**. Do not change public behavior, persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval.
