@@ -2,7 +2,7 @@
 
 AI Arsenal is a pnpm/Turborepo monorepo for private AI-driven software-development tools.
 
-The repository contains the migrated private `features-cli` source package. Its packed artifact and Windows Bun shim are verified; the original source remains available for rollback until consumer cutover and explicit deletion approval. Public GitHub Actions verifies quality and Windows/Linux process-distribution smoke coverage.
+The repository contains the migrated private `features-cli` source package. Its packed artifact and Windows Bun shim are verified; the original source remains available for rollback until explicit deletion approval. Public GitHub Actions verifies quality and Windows/Linux process-distribution smoke coverage.
 
 ## Prerequisites
 
@@ -22,6 +22,7 @@ pnpm install --frozen-lockfile
 ```
 
 Do not use npm, Yarn, or Bun to create competing dependency state.
+Tracked text files are checked out with LF line endings through `.gitattributes`, including on Windows, so formatter checks and byte-sensitive fixtures are stable in clean clones.
 
 ## Workspace layout
 
@@ -48,6 +49,26 @@ Do not use npm, Yarn, or Bun to create competing dependency state.
 Pre-commit hooks run only lint-staged checks. Commit-message hooks enforce Conventional Commits. Full tests, package validation, and platform checks remain explicit commands and CI responsibilities.
 
 For consumer installation, read-only smoke checks, rollback, and the source-retirement gate, see [the Features CLI cutover guide](docs/operations/features-cli-cutover.md).
+
+## features-cli operations
+
+Create and validate the private source artifact from the repository root:
+
+```powershell
+pnpm --filter @jz/ai-arsenal-features-cli pack
+pnpm --filter @jz/ai-arsenal-features-cli validate
+```
+
+Install the packed artifact into a consumer and run `features-cli` from that consumer repository root. The CLI intentionally uses the invocation `cwd` as the workflow root and does not search parent directories.
+
+Use Changesets for version and changelog updates:
+
+```powershell
+pnpm changeset
+pnpm version-packages
+```
+
+Automated npm publication is not configured. Any future publication, release channel, public CLI behavior change, persisted schema change, or source CLI deletion needs explicit approval.
 
 ## Living-plan workflow
 

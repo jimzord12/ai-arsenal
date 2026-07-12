@@ -68,3 +68,11 @@ pnpm --filter @jz/ai-arsenal-features-cli lint
 pnpm --filter @jz/ai-arsenal-features-cli pack
 pnpm --filter @jz/ai-arsenal-features-cli validate
 ```
+
+## Packaging contract
+
+The package intentionally packs exactly package metadata, this README, and the eight production TypeScript modules under `src/`. Tests, fixtures, coverage, configuration, archives, and generated artifacts are excluded.
+
+`pnpm --filter @jz/ai-arsenal-features-cli validate` runs strict publint against the pnpm-packed view. The real distribution path is still a packed tarball installed into a consumer that has Bun available on `PATH`.
+
+Use the root Changesets workflow for version and changelog updates. Automated npm publication is intentionally not configured.

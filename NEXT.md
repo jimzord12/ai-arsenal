@@ -3,49 +3,51 @@
 **Workflow version:** 1.0
 **Last reconciled:** 2026-07-12
 **Project:** AI Arsenal monorepo and `features-cli` migration
-**State:** Phase 7 CI, portability, and consumer cutover verified in the public repository
-**Current phase:** Phase 8 — Final Validation and Operating Documentation
+**State:** Phase 8 final validation and operating documentation accepted
+**Current phase:** Maintenance / release handoff
 
 ## Next Action
 
-Obtain user direction to begin Phase 8, then invoke `$executing-living-plan-phase` for Final Validation and Operating Documentation.
+Decide whether to commit and push the accepted Phase 8 changes.
 
 ## Why This Is Next
 
-- Quality run `29206253391` passed on Linux, and Portability run `29206253402` passed on Ubuntu and Windows.
-- The pinned toolchain, frozen install, strict package validation, real-process E2E, packed-artifact smoke, path, and concurrency cases pass in CI.
-- The packed private artifact is installed globally; stable and rollback read-only smoke checks pass in the two `ics-vcr` worktrees that mount the shared `.scratch` junction.
-- Consumer documentation uses the stable executable and records the legacy command as rollback; the source remains intact.
+- Complete local validation passes with the pinned Node, pnpm, and Bun toolchain.
+- Simulated clean-checkout validation passes with LF checkout policy, frozen install, formatting, linting, strict typechecking, 139 tests, strict package validation, and workflow validation.
+- The actual packed source artifact installs into an unrelated consumer, exposes `features-cli`, completes a disposable schema-v2 lifecycle, and preserves the exact 10-file package boundary.
+- Hooks, commitlint, Changesets status, stale-path review, mixed-lockfile review, unabsorbed-input review, and latest `master` CI verification pass.
+- Root and package documentation now describe current architecture, development, package validation, consumer usage, Changesets release flow, private release policy, known constraints, rollback, and approval gates.
+- The user accepted the completed Phase 8 migration and operating documentation on 2026-07-12.
 
 ## Requirements
 
-- [x] Phase 6 is verified and reconciled with 139 passing tests across seven suites.
-- [x] Real-process E2E and clean-consumer packed-artifact coverage preserve the CLI, schema, `cwd`, user bytes, and 10-file boundary.
-- [x] Define and execute quality CI plus Windows/Linux process and packed-artifact smoke coverage.
-- [x] Complete read-only consumer discovery, approved consumer cutover, and explicit rollback documentation.
-- [x] Create the public GitHub repository and push the initial AI Arsenal history.
-- [x] Preserve the source CLI through CI and the explicit source-deletion gate.
-- [ ] Complete Phase 8 final validation and operating documentation.
+- [x] Phase 8 final clean-checkout validation completed.
+- [x] Clean-consumer packed-artifact validation completed.
+- [x] Hooks and Changesets workflow validated.
+- [x] No mixed lockfiles or unabsorbed input plans found.
+- [x] Stale source-path references limited to source provenance, rollback documentation, and frozen legacy usage output.
+- [x] Latest Quality and Portability workflows passed on `master`.
+- [x] Canonical plan and `NEXT.md` reconciled.
+- [x] User final acceptance received.
 
 ## Blockers / Approval
 
-- Phase 7 has no remaining CI blocker. Phase 8 requires user direction before implementation begins.
+- Commit and push require explicit user direction.
 - Public behavior/schema changes, broader transaction semantics, distribution deviations, user `.scratch` mutation, and source deletion remain approval-gated.
-- Preserve the legacy usage string, source rollback copy, user `.scratch` data, and the approved Windows/Linux platform target.
+- Preserve the legacy usage string, source rollback copy, user `.scratch` data, approved Windows/Linux platform target, and LF checkout policy.
 
 ## Done When
 
-- Phase 8 final validation and operating documentation are complete and accepted.
-- Active consumers continue using the stable executable with documented rollback, and the source remains intact until its explicit deletion gate.
-- The canonical plan and `NEXT.md` describe maintenance/release work rather than an incomplete migration.
+- Accepted Phase 8 changes are either committed and pushed, or intentionally left local.
+- The repository remains maintenance/release-ready rather than an incomplete migration.
 
 ## After This
 
-- Stop at the Phase 8 final-acceptance gate before any source deletion decision.
+- Stop at the separate source-deletion gate. The user has explicitly said not to delete the legacy source CLI.
 
 ## Source of Truth
 
 - `AGENTS.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
-- `docs/evidence/phase-07-ci-portability-consumer-cutover/`
-- `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
+- `docs/evidence/phase-08-final-validation-operating-documentation/`
+- `docs/operations/features-cli-cutover.md`

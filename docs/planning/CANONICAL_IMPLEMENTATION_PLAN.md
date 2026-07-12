@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Phase 7 complete; Phase 8 ready pending user direction
+> **Status:** Phase 8 accepted; maintenance/release-ready
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-12
-> **Current phase:** Phase 8 — Final Validation and Operating Documentation
+> **Current phase:** Maintenance / release handoff
 > **Operator view:** `NEXT.md`
 
 ---
@@ -36,7 +36,7 @@ No second implementation plan may compete with this document.
 
 # 2. Evidence Base and Remaining Limitations
 
-Phase 1 directly inspected the CLI source, tests, local instructions, filesystem contracts, live read-only state, disposable mutations, source tooling, and known consumers. Phase 2 established the verified monorepo foundation. Phase 3 recorded the unversioned source baseline, migrated the CLI boundary, added command characterization, and verified source/destination parity. Phase 4 verified the private Bun source package and clean-consumer distribution. Phase 5 added domain/filesystem safety coverage and scoped milestone lock hardening. Phase 6 added black-box process/distribution coverage. Phase 7 added CI, portability verification, and consumer cutover. Evidence is stored under the corresponding `docs/evidence/phase-XX-*/` directories.
+Phase 1 directly inspected the CLI source, tests, local instructions, filesystem contracts, live read-only state, disposable mutations, source tooling, and known consumers. Phase 2 established the verified monorepo foundation. Phase 3 recorded the unversioned source baseline, migrated the CLI boundary, added command characterization, and verified source/destination parity. Phase 4 verified the private Bun source package and clean-consumer distribution. Phase 5 added domain/filesystem safety coverage and scoped milestone lock hardening. Phase 6 added black-box process/distribution coverage. Phase 7 added CI, portability verification, and consumer cutover. Phase 8 completed final clean-checkout validation, clean-consumer artifact validation, operating documentation, line-ending policy, hooks/Changesets checks, lockfile/input/stale-path checks, and final reconciliation. Evidence is stored under the corresponding `docs/evidence/phase-XX-*/` directories.
 
 Remaining limitations:
 
@@ -77,6 +77,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` `archives/v1/` was excluded, production imports depend only on Node built-ins and sibling modules, and the source checkout remains available for rollback.
 - `[VERIFIED]` Representative source/migrated workflows match for exit codes, output, normalized schema-v2 state, derived issue JSON, and canonical issue bytes.
 - `[VERIFIED]` The migrated suite passes 139 tests across seven suites with 70.36% statement/line coverage; root formatting, package lint, strict typecheck, tests, package validation, workflow validation, and public Windows/Linux CI pass.
+- `[VERIFIED]` `.gitattributes` enforces LF checkout for tracked text files on Windows and Linux, preventing clean-checkout formatter drift and byte-sensitive fixture drift.
 - `[VERIFIED]` Phase 5 covers malformed feature and issue JSON, invalid slug mutation safety, stale lock fail-fast behavior, feature-state transaction rollback and fail-closed recovery, direct issue-write partial failure characterization, milestone byte preservation, and shared-lock contention through both module and command boundaries.
 - `[VERIFIED]` Milestone mutation now participates in the same repository-level feature-state lock as feature and issue writers. Stale locks remain manual-recovery fail-fast sentinels, and broader issue-mutation transaction refactors are not implemented.
 - `[VERIFIED]` Packed artifacts are reproducible and Git-ignored. The current private tarball is installed in the Windows user's global pnpm environment, exposing `features-cli` on `PATH`; it did not mutate user `.scratch` state.
@@ -93,7 +94,13 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` The documented focused Jest suite passes: 5 suites and 109 tests.
 - `[VERIFIED]` Phase 2 verification passed; the source CLI retained matching hashes across 14 top-level files and its focused suite still passes 109 tests.
 - `[VERIFIED]` The public repository's separate GitHub Actions quality and portability workflows use frozen pnpm installation, the pinned Node, pnpm, and Bun toolchain, package validation, and a Windows/Linux E2E matrix. Quality run `29206475468` and Portability run `29206475467` passed on the Phase 7 reconciliation.
+- `[VERIFIED]` Latest `master` CI also passes on commit `c87a1451742d0fd434bdf104b9e008cfa0c612d5`: Quality run `29206548378` and Portability run `29206548382`.
 - `[VERIFIED]` The primary `ics-vcr` checkout and its `remote-logging-system` worktree mount the shared `.scratch` state. The globally installed stable executable and the legacy rollback command both completed read-only `status` checks in those consumers. The three other registered worktrees have neither junction and are not CLI consumers.
+- `[VERIFIED]` Phase 8 clean-checkout validation passes with frozen install, formatting, linting, strict typechecking, 139 tests, strict package validation, and workflow validation.
+- `[VERIFIED]` Phase 8 clean-consumer validation installs the actual packed tarball into an unrelated temporary consumer, runs help plus a disposable feature lifecycle, verifies schema version `"2"`, and confirms the 10-file package boundary.
+- `[VERIFIED]` Hooks and Changesets are operational: lint-staged, commitlint over recent commits, and Changesets status pass.
+- `[VERIFIED]` No mixed lockfiles or unabsorbed input plans are present. Stale source-path references are limited to current-truth provenance, documented rollback, and the frozen legacy usage string.
+- `[VERIFIED]` The user accepted Phase 8 final validation and operating documentation on 2026-07-12. Source CLI deletion remains explicitly not approved.
 
 ## 4.2 Product context supplied by the user
 
@@ -174,7 +181,7 @@ The project is complete when all approved requirements have been reconciled and 
 - It no longer imports private files from the source repository.
 - User project paths, package paths, assets, and configuration paths are correctly separated.
 - Current consumers have an approved cutover path.
-- The source copy is removed only after parity and rollback verification.
+- The source copy is removed only after parity, rollback verification, and explicit deletion approval.
 
 ## Package and distribution
 
@@ -264,6 +271,7 @@ ai-arsenal/
 │   └── skills/
 ├── .changeset/
 │   └── config.json
+├── .gitattributes
 ├── .husky/
 │   ├── commit-msg
 │   └── pre-commit
@@ -312,7 +320,7 @@ packages/features-cli/
 └── tsconfig.json
 ```
 
-Later phases add automated distribution tests and CI when their behavior can be verified. Do not create empty directories or packages solely for visual symmetry.
+Do not create empty directories or packages solely for visual symmetry.
 
 ## 7.3 Package boundary policy
 
@@ -377,6 +385,8 @@ The package-local Jest transformer uses the already pinned TypeScript compiler a
 Pre-commit hooks should run only fast staged-file checks.
 
 Full tests, builds, package validation, and platform checks belong in explicit scripts and CI.
+
+Tracked text files use LF line endings through `.gitattributes`; preserve that policy so Windows clean checkouts keep formatter and fixture behavior stable.
 
 ## 7.6 Test architecture
 
@@ -504,7 +514,7 @@ Stop for user approval when reconciliation would:
 | 5     | Domain and Filesystem Test Foundation                    | **Complete**   | Unit/integration confidence and data-safety contract | Satisfied            |
 | 6     | CLI E2E and Distribution Testing                         | **Complete**   | Real process and clean-consumer confidence           | Satisfied            |
 | 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**   | Verified CI and safe consumer cutover                | Source deletion gate |
-| 8     | Final Validation and Operating Documentation             | Ready          | Release-ready verified repository                    | Final acceptance     |
+| 8     | Final Validation and Operating Documentation             | **Complete**   | Release-ready verified repository                    | Final acceptance     |
 
 ---
 
@@ -734,38 +744,24 @@ Complete on 2026-07-12. Phase 8 is the next approved-plan gate; source deletion 
 
 # 18. Phase 8 — Final Validation and Operating Documentation
 
-## Intended outcome
+## Resulting verified state
 
-The project is complete, understandable, and resumable.
-
-## Exact tasks
-
-- Run complete clean-checkout verification.
-- Validate the packed source artifact from a clean consumer.
-- Validate hooks and Changesets workflow.
-- Verify no stale source paths.
-- Verify no mixed lockfiles.
-- Verify Windows and Linux CI.
-- Update package and root docs.
-- Ensure `NEXT.md` reflects maintenance/release work rather than a completed implementation phase.
-- Reconcile completed phases into current-state foundations.
-- Confirm no unabsorbed input plans exist before any archival.
-- Record final ADRs where needed.
+- Complete local and clean-checkout verification passes with the pinned Node, pnpm, and Bun toolchain.
+- Clean-checkout validation on Windows exposed and fixed the missing repository line-ending policy. `.gitattributes` now keeps tracked text files on LF, and ADR `docs/decisions/0001-line-ending-policy.md` records the rationale.
+- The actual packed source artifact installs into an unrelated temporary consumer, exposes the `features-cli` command, completes a disposable schema-v2 feature lifecycle, and retains the exact 10-file package boundary.
+- Hook and release workflow checks pass: lint-staged, commitlint, and Changesets status.
+- `pnpm-lock.yaml` remains the only repository lockfile, and no unabsorbed input plans are pending.
+- Active source-path references are limited to source provenance, rollback documentation, and the frozen legacy usage string.
+- Root and package documentation describe installation, architecture, development commands, package validation, consumer invocation, Changesets usage, private release policy, constraints, and approval gates.
+- Latest public Quality and Portability workflow runs pass on `master`.
 
 ## Final acceptance
 
-The user receives:
-
-- Current architecture.
-- How to use and develop the CLI.
-- How versions/changelogs work.
-- How to test/package/release.
-- Known constraints.
-- Clear future next action.
+The user accepted the completed migration and operating documentation on 2026-07-12. Source CLI deletion remains a separate approval gate and is not approved.
 
 ## Reconciliation gate
 
-Required final reconciliation and user acceptance.
+Complete on 2026-07-12. User final acceptance was received.
 
 ---
 
@@ -780,6 +776,7 @@ Required final reconciliation and user acceptance.
 | Wrong `cwd` targets the wrong `.scratch`                                                                           | Controlled by E2E                 | Preserve documented root invocation; no upward discovery                                                        |
 | Windows junction/path behavior may regress                                                                         | Controlled by CI and smoke checks | Preserve the stable `cwd` contract and shared-junction rollback path                                            |
 | Linux portability regression                                                                                       | Resolved by CI                    | Keep the public Ubuntu matrix as the portability regression gate                                                |
+| Windows line-ending drift may break formatting or byte-sensitive fixtures                                          | Controlled                        | Preserve `.gitattributes` LF policy                                                                             |
 | User-authored Markdown may be damaged by hardening                                                                 | Controlled by tests               | Preserve byte-level milestone tests and extend before any broader mutation hardening                            |
 | Separate plans could drift                                                                                         | Controlled                        | Single canonical plan                                                                                           |
 | Human forgets workflow state                                                                                       | Controlled by design              | `NEXT.md` and session contract                                                                                  |
@@ -791,7 +788,7 @@ Reconciliation must remove resolved risks and add newly material risks.
 
 # 20. Current Open Decisions
 
-Phase 7 consumer cutover and Windows/Linux CI verification are complete under the user's authorization. Source deletion remains separately approval-controlled.
+Phase 8 final validation is complete and accepted. Source deletion remains separately approval-controlled and is not approved.
 
 Broad transaction hardening for issue Markdown, derived issue state, and feature registry timestamp coupling remains an approval-controlled decision. Phase 6 confirms the existing partial-write boundary without showing a distribution or process failure that changes that decision.
 
@@ -861,4 +858,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Obtain user direction before invoking `$executing-living-plan-phase` for **Phase 8 — Final Validation and Operating Documentation**. Do not change public behavior, persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval.
+Decide whether to commit and push the accepted Phase 8 changes. Do not change public behavior, persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval. Source deletion remains a separate explicit gate and is not approved.

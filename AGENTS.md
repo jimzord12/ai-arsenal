@@ -37,7 +37,7 @@ The answer must be understandable in approximately 30 seconds. Do not give a wal
 
 ## Current Project State
 
-This repository is currently an **implemented public monorepo with Phase 7 verified and Phase 8 ready pending user direction**.
+This repository is currently an **implemented public monorepo with Phase 8 final validation accepted and maintenance/release handoff pending**.
 
 Known:
 
@@ -61,6 +61,9 @@ Known:
 - Phase 6 added a 14-test real-process E2E/distribution suite covering Bun/runtime help/parser behavior, feature and issue lifecycles, invalid/corrupt state, paths with spaces and Unicode, nested `cwd`, idempotency, recovery, stale locks, direct issue partial failure, writer contention, and clean packed-artifact installation/invocation.
 - The real-process suite uses isolated temporary workspaces and confirms the private package retains its exact 10-file packed boundary.
 - Phase 7 added separate GitHub Actions quality and Windows/Linux portability workflows. Quality run `29206475468` passed on Linux; Portability run `29206475467` passed on Ubuntu and Windows.
+- Phase 8 added the repository LF checkout policy, final operating documentation, final clean-checkout validation, clean-consumer packed-artifact validation, hooks/Changesets validation, stale-path and mixed-lockfile checks, and final reconciliation.
+- The user accepted Phase 8 final validation and operating documentation on 2026-07-12.
+- Latest `master` CI also passes on commit `c87a1451742d0fd434bdf104b9e008cfa0c612d5`: Quality run `29206548378` and Portability run `29206548382`.
 - The Linux CI failure on commit `b90a6bb` exposed a Corepack path assumption in the E2E harness; commits `3acdf64` and `8004c7a` made pnpm invocation portable and suppressed only Corepack's first-download prompt.
 - The current tarball is installed in the Windows user's global pnpm environment. The primary `ics-vcr` checkout and its `remote-logging-system` worktree pass read-only stable-command and legacy-rollback smoke checks; three registered worktrees without `.scratch` and source-CLI junctions are not CLI consumers.
 - Active consumer documentation and the five personal `jz-*` skills use the stable `features-cli` command; `docs/operations/features-cli-cutover.md` records installation, rollback, and the deletion gate.
@@ -68,7 +71,7 @@ Known:
 
 Not yet done:
 
-- Phase 8 final clean-checkout validation and operating-documentation acceptance remain.
+- Decide whether to commit and push the accepted Phase 8 changes.
 - The source CLI remains available for rollback and awaits its separate explicit deletion gate.
 
 The immediate next action is defined in `NEXT.md`.
