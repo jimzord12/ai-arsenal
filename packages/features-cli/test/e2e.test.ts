@@ -20,6 +20,7 @@ type ProcessResult = {
 const packageRoot = resolve(__dirname, '..');
 const binPath = join(packageRoot, 'src', 'bin.ts');
 const bunCommand = process.platform === 'win32' ? 'bun.exe' : 'bun';
+const pnpmCommand = process.platform === 'win32' ? process.execPath : 'pnpm';
 const pnpmEntrypoint = join(
   dirname(process.execPath),
   'node_modules',
@@ -69,7 +70,9 @@ function runCli(cwd: string, args: string[]): Promise<ProcessResult> {
 }
 
 function runPnpm(cwd: string, args: string[]): Promise<ProcessResult> {
-  return runProcess(process.execPath, [pnpmEntrypoint, ...args], cwd);
+  const commandArgs =
+    process.platform === 'win32' ? [pnpmEntrypoint, ...args] : args;
+  return runProcess(pnpmCommand, commandArgs, cwd);
 }
 
 async function createWorkspace(
