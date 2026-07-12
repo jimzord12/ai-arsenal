@@ -35,11 +35,12 @@ function runProcess(
   command: string,
   args: string[],
   cwd: string,
+  env = process.env,
 ): Promise<ProcessResult> {
   return new Promise((resolvePromise, reject) => {
     const child = spawn(command, args, {
       cwd,
-      env: process.env,
+      env,
       windowsHide: true,
     });
     let stdout = '';
@@ -72,7 +73,10 @@ function runCli(cwd: string, args: string[]): Promise<ProcessResult> {
 function runPnpm(cwd: string, args: string[]): Promise<ProcessResult> {
   const commandArgs =
     process.platform === 'win32' ? [pnpmEntrypoint, ...args] : args;
-  return runProcess(pnpmCommand, commandArgs, cwd);
+  return runProcess(pnpmCommand, commandArgs, cwd, {
+    ...process.env,
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: '0',
+  });
 }
 
 async function createWorkspace(
