@@ -8,7 +8,8 @@ installation, `pnpm check`, `pnpm validate`, and living-workflow validation also
 exited `0`; the final local suite has 139 passing tests.
 
 Resulting system state: AI Arsenal is publicly published at
-`https://github.com/jimzord12/ai-arsenal` with `master` at `8004c7a`. CI is
+`https://github.com/jimzord12/ai-arsenal` with the Phase 7 reconciliation on
+`master`. CI is
 authoritative for quality and Windows/Linux process/distribution smoke checks.
 The private packed CLI is installed globally for the current Windows consumer,
 active consumer documentation invokes the stable command, rollback is

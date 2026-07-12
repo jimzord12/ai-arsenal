@@ -5,13 +5,13 @@ Date: 2026-07-12
 ## Result
 
 Phase 7 acceptance criteria passed. The repository is public at
-`https://github.com/jimzord12/ai-arsenal`, `master` is at commit `8004c7a`,
-and both GitHub Actions workflows pass.
+`https://github.com/jimzord12/ai-arsenal`, the public `master` branch contains
+the Phase 7 reconciliation, and both GitHub Actions workflows pass.
 
 ## CI verification
 
-- Quality run [`29206253391`](https://github.com/jimzord12/ai-arsenal/actions/runs/29206253391): passed on Ubuntu/Linux. It verified the frozen install, formatting, lint, strict typecheck, 139-test coverage suite, packed artifact, and strict publint validation.
-- Portability run [`29206253402`](https://github.com/jimzord12/ai-arsenal/actions/runs/29206253402): passed on Ubuntu/Linux and Windows. It ran the real-process E2E suite, including packed-artifact installation/invocation, paths with spaces and Unicode, and concurrent writer cases.
+- Quality run [`29206475468`](https://github.com/jimzord12/ai-arsenal/actions/runs/29206475468): passed on Ubuntu/Linux. It verified the frozen install, formatting, lint, strict typecheck, 139-test coverage suite, packed artifact, and strict publint validation.
+- Portability run [`29206475467`](https://github.com/jimzord12/ai-arsenal/actions/runs/29206475467): passed on Ubuntu/Linux and Windows. It ran the real-process E2E suite, including packed-artifact installation/invocation, paths with spaces and Unicode, and concurrent writer cases.
 - Both workflows use the pinned Node `24.5.0`, pnpm `10.33.0`, and Bun `1.3.14` toolchain with read-only repository permissions.
 
 ## Local verification

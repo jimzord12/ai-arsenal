@@ -43,7 +43,7 @@ Known:
 
 - The project goal is to create the `AI Arsenal` monorepo for the user’s AI-driven development tools.
 - The confirmed monorepo root is `C:\Users\jimzord12\Documents\GitHub\ai-arsenal`.
-- Git is initialized at the monorepo root with public remote `https://github.com/jimzord12/ai-arsenal`; `master` is at commit `8004c7a`.
+- Git is initialized at the monorepo root with public remote `https://github.com/jimzord12/ai-arsenal`; the public `master` branch contains the Phase 7 reconciliation.
 - The existing TypeScript/Bun CLI lives at `C:\Users\jimzord12\Documents\ICS\github\ics-vcr.worktrees\remote-logging-system\scripts\features-cli`.
 - Its source worktree is at commit `ef977fe70663329f91c7145006eba93a92a161c3` on branch `remote-logging-system`; the CLI itself is Git-ignored and junction-shared, so that commit is consumer context rather than a CLI revision.
 - The monorepo uses pnpm `10.33.0` and Turborepo `2.10.4`.
@@ -60,7 +60,7 @@ Known:
 - The actual tarball passes strict publint and installs into a clean unrelated pnpm consumer; its Windows command shim invokes Bun and completes a disposable schema-v2 feature lifecycle.
 - Phase 6 added a 14-test real-process E2E/distribution suite covering Bun/runtime help/parser behavior, feature and issue lifecycles, invalid/corrupt state, paths with spaces and Unicode, nested `cwd`, idempotency, recovery, stale locks, direct issue partial failure, writer contention, and clean packed-artifact installation/invocation.
 - The real-process suite uses isolated temporary workspaces and confirms the private package retains its exact 10-file packed boundary.
-- Phase 7 added separate GitHub Actions quality and Windows/Linux portability workflows. Quality run `29206253391` passed on Linux; Portability run `29206253402` passed on Ubuntu and Windows.
+- Phase 7 added separate GitHub Actions quality and Windows/Linux portability workflows. Quality run `29206475468` passed on Linux; Portability run `29206475467` passed on Ubuntu and Windows.
 - The Linux CI failure on commit `b90a6bb` exposed a Corepack path assumption in the E2E harness; commits `3acdf64` and `8004c7a` made pnpm invocation portable and suppressed only Corepack's first-download prompt.
 - The current tarball is installed in the Windows user's global pnpm environment. The primary `ics-vcr` checkout and its `remote-logging-system` worktree pass read-only stable-command and legacy-rollback smoke checks; three registered worktrees without `.scratch` and source-CLI junctions are not CLI consumers.
 - Active consumer documentation and the five personal `jz-*` skills use the stable `features-cli` command; `docs/operations/features-cli-cutover.md` records installation, rollback, and the deletion gate.
