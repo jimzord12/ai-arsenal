@@ -1,5 +1,5 @@
 {
-  "name": "@jz/jz-skills",
+  "name": "@jz/ai-arsenal-jz-skills",
   "version": "0.1.0",
   "private": true,
   "description": "Single source of truth for jz-* agent skills (hand-crafted, generic, decoupled).",

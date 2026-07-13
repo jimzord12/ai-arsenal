@@ -1,4 +1,4 @@
-# @jz/jz-skills
+# @jz/ai-arsenal-jz-skills
 
 Single source of truth for the `jz-*` family of agent skills.
 
@@ -29,6 +29,6 @@ See the subdirectories for individual `SKILL.md` files.
 
 This is a content package. Run monorepo commands from root:
 
-- `pnpm --filter @jz/jz-skills pack`
+- `pnpm --filter @jz/ai-arsenal-jz-skills pack`
 
 No build step required.
