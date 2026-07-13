@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Flexible feature selectors verified; maintenance integration pending
+> **Status:** Private `0.1.0` release verified; global installation pending user confirmation
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-13
-> **Current phase:** Maintenance / flexible feature selector compatibility
+> **Current phase:** Maintenance / local distribution handoff
 > **Operator view:** `NEXT.md`
 
 ---
@@ -102,6 +102,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` No mixed lockfiles or unabsorbed input plans are present. Stale source-path references are limited to current-truth provenance, documented rollback, and the frozen legacy usage string.
 - `[VERIFIED]` The user accepted Phase 8 final validation and operating documentation on 2026-07-12. Source CLI deletion remains explicitly not approved.
 - `[VERIFIED]` The user approved public `--feature` selector compatibility on 2026-07-13. Every command accepting `--feature` now accepts an exact slug, a plain or zero-padded positive feature ID, or a matching `ID-slug` directory name; exact slug matching takes precedence, including numeric-only slugs.
+- `[VERIFIED]` Changesets generated private package version `0.1.0` and `packages/features-cli/CHANGELOG.md` for flexible feature selectors. The actual 10-file `0.1.0` tarball passes strict publint and installs into a clean unrelated pnpm consumer, where `features-cli --help` succeeds. Replacing the global pnpm package remains an explicit user decision.
 
 ## 4.2 Product context supplied by the user
 
@@ -140,6 +141,7 @@ Reconciliation must update classifications as evidence improves.
 - `[USER-LOCKED]` Include Husky and lint-staged for fast local feedback.
 - `[USER-LOCKED]` Use Conventional Commits and commitlint.
 - `[USER-LOCKED]` Use Changesets for package versions and changelogs.
+- `[USER-LOCKED]` For every user-declared release, including a private locally distributed tarball, choose a SemVer bump with Changesets and run `pnpm version-packages` to produce the package version and changelog. Ask before changing the user's global pnpm installation; never update it automatically.
 - `[USER-LOCKED]` Do not automate npm publication in the initial setup.
 - `[RECOMMENDED]` Use publint for packable packages.
 - `[RECOMMENDED]` Use Are the Types Wrong only when a package exposes TypeScript declarations/imports.
@@ -517,13 +519,13 @@ Stop for user approval when reconciliation would:
 | 6     | CLI E2E and Distribution Testing                         | **Complete**   | Real process and clean-consumer confidence           | Satisfied            |
 | 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**   | Verified CI and safe consumer cutover                | Source deletion gate |
 | 8     | Final Validation and Operating Documentation             | **Complete**   | Release-ready verified repository                    | Final acceptance     |
-| M1    | Flexible Feature Selector Compatibility                  | **Verified**   | Compatible public `--feature` selection              | CI after integration |
+| M1    | Flexible Feature Selector Compatibility                  | **Merged**     | Compatible public `--feature` selection              | CI confirmation      |
 
 ---
 
 # 10. Phase 0 — Workflow Bootstrap and Repository Orientation
 
-## Resulting verified state
+### Resulting verified state
 
 - The effective repository root is `C:\Users\jimzord12\Documents\GitHub\ai-arsenal`.
 - Git is initialized at that root with the public `master` branch and the initial commit in the public remote.
@@ -770,16 +772,31 @@ Complete on 2026-07-12. User final acceptance was received.
 
 ## Maintenance update — Flexible Feature Selector Compatibility
 
-## Resulting verified state
+### Resulting verified state
 
 - Every `--feature` command shares selector resolution that accepts a slug, plain or zero-padded feature ID, and a matching full `ID-slug` name.
 - Exact slug lookup remains first so a registered numeric-only slug is not reinterpreted as an ID.
 - A full selector with a registered ID but a different slug fails with the expected full name instead of selecting by ID alone.
 - Package formatting, linting, strict typechecking, strict publint package validation, and all 144 tests pass.
 
-## Reconciliation gate
+### Reconciliation gate
 
-The user approved this public CLI behavior change on 2026-07-13. Integration is complete only after the verified branch is merged and pushed, then the new `master` CI runs are confirmed.
+The user approved this public CLI behavior change on 2026-07-13. It was merged and pushed on `master` as `332cff2`; GitHub Actions had not yet exposed new runs for that commit at the latest check. The user also approved a private `0.1.0` release through the Changesets workflow. Global installation remains a separate confirmation gate.
+
+---
+
+## Maintenance update — Private `0.1.0` Release
+
+### Resulting verified state
+
+- The private package version is `0.1.0`, generated from the approved minor Changeset; `CHANGELOG.md` contains the selector compatibility entry.
+- Root quality verification passes with all 144 tests, and strict publint passes against the `0.1.0` packed package.
+- The actual 10-file tarball installs as `@jz/ai-arsenal-features-cli@0.1.0` in an unrelated temporary consumer and its installed `features-cli --help` command succeeds.
+- The global pnpm package remains unchanged until the user explicitly approves its replacement.
+
+### Reconciliation gate
+
+The user approved versioning, changelog generation, release verification, and commit/push. The next action is to ask whether to install the validated tarball globally; that environment change is not implied by release approval.
 
 ---
 
@@ -876,4 +893,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Merge and push the verified flexible feature selector change, then confirm the resulting `master` Quality and Portability workflows. Do not change persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval. Source deletion remains a separate explicit gate and is not approved.
+Ask whether to replace the globally installed package with the verified private `0.1.0` tarball. Confirm the resulting `master` Quality and Portability workflows when GitHub exposes them. Do not change persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval. Source deletion remains a separate explicit gate and is not approved.

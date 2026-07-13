@@ -1,6 +1,6 @@
 {
   "name": "@jz/ai-arsenal-features-cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Private agent-facing CLI for durable feature workflow state.",
   "type": "module",

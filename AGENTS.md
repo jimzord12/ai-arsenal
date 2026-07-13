@@ -65,13 +65,15 @@ Known:
 - The user accepted Phase 8 final validation and operating documentation on 2026-07-12.
 - Latest `master` CI also passes on commit `c87a1451742d0fd434bdf104b9e008cfa0c612d5`: Quality run `29206548378` and Portability run `29206548382`.
 - The Linux CI failure on commit `b90a6bb` exposed a Corepack path assumption in the E2E harness; commits `3acdf64` and `8004c7a` made pnpm invocation portable and suppressed only Corepack's first-download prompt.
-- The current tarball is installed in the Windows user's global pnpm environment. The primary `ics-vcr` checkout and its `remote-logging-system` worktree pass read-only stable-command and legacy-rollback smoke checks; three registered worktrees without `.scratch` and source-CLI junctions are not CLI consumers.
+- Version `0.1.0` is the verified private release for flexible feature selectors. Its packed tarball has the expected 10-file boundary and installs into a clean unrelated consumer. The Windows user's global pnpm environment still has the prior `0.0.0` package until the user explicitly approves replacement. The primary `ics-vcr` checkout and its `remote-logging-system` worktree pass read-only stable-command and legacy-rollback smoke checks; three registered worktrees without `.scratch` and source-CLI junctions are not CLI consumers.
 - Active consumer documentation and the five personal `jz-*` skills use the stable `features-cli` command; `docs/operations/features-cli-cutover.md` records installation, rollback, and the deletion gate.
 - All 14 source hashes remain unchanged, `archives/v1/` was not copied, and the source remains available for rollback.
+- Commit `332cff2` on `master` adds verified flexible `--feature` selectors. The approved private `0.1.0` release has a generated Changesets changelog and validated packed artifact; global-install replacement and the new GitHub Actions run confirmation remain pending.
 
 Not yet done:
 
-- Decide whether to commit and push the accepted Phase 8 changes.
+- Ask whether to replace the Windows user's global pnpm package with the validated `0.1.0` tarball.
+- Confirm the new `master` CI runs for the flexible feature selector update when GitHub exposes them.
 - The source CLI remains available for rollback and awaits its separate explicit deletion gate.
 
 The immediate next action is defined in `NEXT.md`.
@@ -217,6 +219,15 @@ Until the user changes it:
 - Initial release scope excludes automated npm publication.
 - Prefer low-complexity, high-impact choices.
 - Do not create generic shared packages before real reuse exists.
+
+## Release and Local-Distribution Rules
+
+Whenever the user says a change will be released, including a private packed-tarball or global local-distribution release:
+
+1. Use SemVer to choose the package bump, create a Changeset, and apply it with `pnpm version-packages`; do not hand-edit package versions or changelogs. The configured Changesets workflow versions private packages and generates their changelogs.
+2. Include the resulting package-manifest version and generated `CHANGELOG.md` in the release commit, then run the package and packed-artifact verification required by the release scope.
+3. Before packing for, installing into, or replacing the Windows user's global pnpm package, ask the user explicitly. Never perform a global package update automatically.
+4. Treat the flexible feature selector enhancement as a recommended first feature release of `0.1.0` from the current `0.0.0` baseline when the user authorizes its release; it is not released merely because its source change was merged.
 
 These are direction and constraints. Exact manifests, commands, architecture, build strategy, distribution model, and tests must be derived from repository evidence.
 
