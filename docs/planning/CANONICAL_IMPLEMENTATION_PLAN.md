@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Private `0.1.0` release verified; global installation pending user confirmation
+> **Status:** Private `0.1.0` release globally installed and verified; new `master` CI confirmation pending
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-13
-> **Current phase:** Maintenance / local distribution handoff
+> **Current phase:** Maintenance / CI confirmation
 > **Operator view:** `NEXT.md`
 
 ---
@@ -102,7 +102,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` No mixed lockfiles or unabsorbed input plans are present. Stale source-path references are limited to current-truth provenance, documented rollback, and the frozen legacy usage string.
 - `[VERIFIED]` The user accepted Phase 8 final validation and operating documentation on 2026-07-12. Source CLI deletion remains explicitly not approved.
 - `[VERIFIED]` The user approved public `--feature` selector compatibility on 2026-07-13. Every command accepting `--feature` now accepts an exact slug, a plain or zero-padded positive feature ID, or a matching `ID-slug` directory name; exact slug matching takes precedence, including numeric-only slugs.
-- `[VERIFIED]` Changesets generated private package version `0.1.0` and `packages/features-cli/CHANGELOG.md` for flexible feature selectors. The actual 10-file `0.1.0` tarball passes strict publint and installs into a clean unrelated pnpm consumer, where `features-cli --help` succeeds. Replacing the global pnpm package remains an explicit user decision.
+- `[VERIFIED]` Changesets generated private package version `0.1.0` and `packages/features-cli/CHANGELOG.md` for flexible feature selectors. The actual 10-file `0.1.0` tarball passes strict publint, installs into a clean unrelated pnpm consumer, and is installed in the Windows user's global pnpm environment. The global command resolves both index and full-name feature selectors in the active `ics-vcr` consumer.
 
 ## 4.2 Product context supplied by the user
 
@@ -781,7 +781,7 @@ Complete on 2026-07-12. User final acceptance was received.
 
 ### Reconciliation gate
 
-The user approved this public CLI behavior change on 2026-07-13. It was merged and pushed on `master` as `332cff2`; GitHub Actions had not yet exposed new runs for that commit at the latest check. The user also approved a private `0.1.0` release through the Changesets workflow. Global installation remains a separate confirmation gate.
+The user approved this public CLI behavior change on 2026-07-13. It was merged and pushed on `master` as `332cff2`; GitHub Actions had not yet exposed new runs for that commit at the latest check. The user also approved the private `0.1.0` release through the Changesets workflow and its global installation.
 
 ---
 
@@ -792,11 +792,11 @@ The user approved this public CLI behavior change on 2026-07-13. It was merged a
 - The private package version is `0.1.0`, generated from the approved minor Changeset; `CHANGELOG.md` contains the selector compatibility entry.
 - Root quality verification passes with all 144 tests, and strict publint passes against the `0.1.0` packed package.
 - The actual 10-file tarball installs as `@jz/ai-arsenal-features-cli@0.1.0` in an unrelated temporary consumer and its installed `features-cli --help` command succeeds.
-- The global pnpm package remains unchanged until the user explicitly approves its replacement.
+- The user approved replacement, and pnpm globally resolves `@jz/ai-arsenal-features-cli@0.1.0`. The installed `features-cli` command passed read-only active-consumer smoke checks for index `3` and full name `003-remote-logging-mvp-v2`.
 
 ### Reconciliation gate
 
-The user approved versioning, changelog generation, release verification, and commit/push. The next action is to ask whether to install the validated tarball globally; that environment change is not implied by release approval.
+The user approved versioning, changelog generation, release verification, commit/push, and global installation. The remaining release-handoff check is confirmation of the new `master` CI runs when GitHub exposes them.
 
 ---
 
@@ -893,4 +893,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Ask whether to replace the globally installed package with the verified private `0.1.0` tarball. Confirm the resulting `master` Quality and Portability workflows when GitHub exposes them. Do not change persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval. Source deletion remains a separate explicit gate and is not approved.
+Confirm the new `master` Quality and Portability workflows when GitHub exposes them. Do not change persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval. Source deletion remains a separate explicit gate and is not approved.

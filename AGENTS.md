@@ -65,14 +65,13 @@ Known:
 - The user accepted Phase 8 final validation and operating documentation on 2026-07-12.
 - Latest `master` CI also passes on commit `c87a1451742d0fd434bdf104b9e008cfa0c612d5`: Quality run `29206548378` and Portability run `29206548382`.
 - The Linux CI failure on commit `b90a6bb` exposed a Corepack path assumption in the E2E harness; commits `3acdf64` and `8004c7a` made pnpm invocation portable and suppressed only Corepack's first-download prompt.
-- Version `0.1.0` is the verified private release for flexible feature selectors. Its packed tarball has the expected 10-file boundary and installs into a clean unrelated consumer. The Windows user's global pnpm environment still has the prior `0.0.0` package until the user explicitly approves replacement. The primary `ics-vcr` checkout and its `remote-logging-system` worktree pass read-only stable-command and legacy-rollback smoke checks; three registered worktrees without `.scratch` and source-CLI junctions are not CLI consumers.
+- Version `0.1.0` is the verified private release for flexible feature selectors. Its packed tarball has the expected 10-file boundary, installs into a clean unrelated consumer, and is installed in the Windows user's global pnpm environment. The global `features-cli` command passed read-only index (`3`) and full-name (`003-remote-logging-mvp-v2`) selector smoke checks in the primary `ics-vcr` checkout. Its `remote-logging-system` worktree also retains its earlier stable-command and legacy-rollback smoke checks; three registered worktrees without `.scratch` and source-CLI junctions are not CLI consumers.
 - Active consumer documentation and the five personal `jz-*` skills use the stable `features-cli` command; `docs/operations/features-cli-cutover.md` records installation, rollback, and the deletion gate.
 - All 14 source hashes remain unchanged, `archives/v1/` was not copied, and the source remains available for rollback.
-- Commit `332cff2` on `master` adds verified flexible `--feature` selectors. The approved private `0.1.0` release has a generated Changesets changelog and validated packed artifact; global-install replacement and the new GitHub Actions run confirmation remain pending.
+- Commit `332cff2` on `master` adds verified flexible `--feature` selectors. The approved private `0.1.0` release has a generated Changesets changelog, validated packed artifact, and verified global installation; only new GitHub Actions run confirmation remains pending.
 
 Not yet done:
 
-- Ask whether to replace the Windows user's global pnpm package with the validated `0.1.0` tarball.
 - Confirm the new `master` CI runs for the flexible feature selector update when GitHub exposes them.
 - The source CLI remains available for rollback and awaits its separate explicit deletion gate.
 
