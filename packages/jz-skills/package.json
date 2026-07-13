@@ -1,0 +1,17 @@
+{
+  "name": "@jz/jz-skills",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Single source of truth for jz-* agent skills (hand-crafted, generic, decoupled).",
+  "files": [
+    "**/*"
+  ],
+  "scripts": {
+    "format": "echo 'jz-skills: no formatting step (markdown + shell)' || true",
+    "lint": "echo 'jz-skills: lint not applicable' || true",
+    "typecheck": "echo 'jz-skills: no TypeScript sources' || true",
+    "test": "echo 'jz-skills: no unit tests' || true",
+    "pack": "pnpm pack",
+    "validate": "echo 'jz-skills: publish validation skipped for content package' || true"
+  }
+}

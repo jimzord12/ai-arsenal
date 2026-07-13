@@ -1,0 +1,7 @@
+interface:
+  display_name: 'Fast Contract Implementation'
+  short_description: 'Implement contracted issues with a lean loop'
+  default_prompt: 'Use $jz-implement-contract-fast to implement the selected contracted issue with proportional verification.'
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,7 @@
+interface:
+  display_name: 'Resume Feature'
+  short_description: 'Report feature progress and recommend the next skill'
+  default_prompt: 'Use $jz-resume-feature to report the current feature state and recommend the next workflow skill.'
+
+policy:
+  allow_implicit_invocation: false
