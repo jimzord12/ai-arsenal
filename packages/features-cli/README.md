@@ -27,23 +27,36 @@ The npm-compatible package is source-distributed and private. The `features-cli`
 ```powershell
 pnpm exec features-cli --help
 pnpm exec features-cli status
-pnpm exec features-cli progress [--feature <slug>] [--json]
+pnpm exec features-cli progress [--feature <selector>] [--json]
 pnpm exec features-cli update-feature <slug> --status <status> --phase <phase> --focus <path|none>
 pnpm exec features-cli update-feature <slug> --status in-progress --pause-current
-pnpm exec features-cli sync-issues --feature <slug>
-pnpm exec features-cli get-issue --next --feature <slug>
-pnpm exec features-cli get-issue --next-contract --feature <slug>
-pnpm exec features-cli mark-milestone-decomposed <milestone-slug> --feature <slug>
+pnpm exec features-cli sync-issues --feature <selector>
+pnpm exec features-cli get-issue --next --feature <selector>
+pnpm exec features-cli get-issue --next-contract --feature <selector>
+pnpm exec features-cli mark-milestone-decomposed <milestone-slug> --feature <selector>
 ```
 
 Run `--help` for the complete issue mutation and reopen commands.
+
+### Feature selectors
+
+Every command that accepts `--feature <selector>` accepts a feature slug, a plain or zero-padded numeric ID, or the full directory-style name. Slugs remain the preferred form for scripts.
+
+```powershell
+pnpm exec features-cli progress --feature remote-logging-mvp-v2 --json
+pnpm exec features-cli progress --feature 3 --json
+pnpm exec features-cli progress --feature 003 --json
+pnpm exec features-cli progress --feature 003-remote-logging-mvp-v2 --json
+```
+
+An exact slug takes precedence, including a numeric-only slug. A full `ID-slug` selector must match both the registered ID and slug.
 
 ## Issue selection
 
 - `get-issue --next` returns the highest-priority actionable issue and reports its derived `contracted: true|false` and `nextAction: contract|implement` values.
 - `get-issue --next-contract` returns the highest-priority uncontracted `ready-for-agent` issue whose blockers are either terminal (`done` / `wontfix`) or already contracted. It may identify contract work ahead of the immediate implementation frontier.
 - Contract state comes only from the issue's sibling `change-contract.md`; it is not an issue status and is never stored in `issues-status.json`.
-- `progress --feature <slug> --json` remains the authoritative router for the next immediate workflow action.
+- `progress --feature <selector> --json` remains the authoritative router for the next immediate workflow action.
 
 ## State rules
 

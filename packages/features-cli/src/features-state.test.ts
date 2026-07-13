@@ -259,6 +259,58 @@ describe('feature state filesystem operations', () => {
     expect(resolveCurrentFeature(state).slug).toBe(current.slug);
   });
 
+  it('resolves an explicit feature by slug, plain or padded id, and full directory name', async () => {
+    const selected = makeFeature({
+      id: 3,
+      slug: 'remote-logging-mvp-v2',
+      status: 'paused',
+    });
+    const current = makeFeature({
+      id: 4,
+      slug: 'current-feature',
+      status: 'in-progress',
+    });
+    await writeState(cwd, [selected, current]);
+
+    const state = await readFeaturesState(cwd);
+
+    for (const selector of [
+      selected.slug,
+      '3',
+      '003',
+      '003-remote-logging-mvp-v2',
+    ]) {
+      expect(resolveFeatureForIssueRead(state, selector)).toMatchObject({
+        id: selected.id,
+        slug: selected.slug,
+      });
+    }
+  });
+
+  it('preserves exact numeric slugs and rejects mismatched full directory names', async () => {
+    const selected = makeFeature({
+      id: 3,
+      slug: 'remote-logging-mvp-v2',
+      status: 'paused',
+    });
+    const numericSlug = makeFeature({
+      id: 4,
+      slug: '003',
+      status: 'in-progress',
+    });
+    await writeState(cwd, [selected, numericSlug]);
+
+    const state = await readFeaturesState(cwd);
+
+    expect(resolveFeatureForIssueRead(state, '003')).toMatchObject({
+      id: numericSlug.id,
+      slug: numericSlug.slug,
+    });
+    expect(() =>
+      resolveFeatureForIssueRead(state, '003-other-feature'),
+    ).toThrow('does not match its registered slug');
+  });
+
   it('supports partial phase and focus updates without changing lifecycle status', async () => {
     const feature = makeFeature();
     await writeState(cwd, [feature]);

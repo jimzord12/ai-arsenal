@@ -132,20 +132,37 @@ async function resolveIssueSources(issuesDir: string): Promise<IssueSource[]> {
 
 export function resolveFeatureForIssueRead(
   state: FeaturesState,
-  explicitFeatureSlug?: string,
+  explicitFeatureSelector?: string,
 ): FeatureRecord {
-  if (explicitFeatureSlug) {
-    const feature = state.features.find(
-      (entry) => entry.slug === explicitFeatureSlug,
+  if (explicitFeatureSelector) {
+    const slugMatch = state.features.find(
+      (entry) => entry.slug === explicitFeatureSelector,
     );
 
-    if (!feature) {
+    if (slugMatch) {
+      return slugMatch;
+    }
+
+    const fullNameMatch = explicitFeatureSelector.match(/^(\d+)-(.+)$/);
+    const id = Number(fullNameMatch?.[1] ?? explicitFeatureSelector);
+    const idMatch =
+      Number.isSafeInteger(id) && id > 0
+        ? state.features.find((entry) => entry.id === id)
+        : undefined;
+
+    if (fullNameMatch && idMatch && idMatch.slug !== fullNameMatch[2]) {
       throw new FeatureStateError(
-        `Unknown feature "${explicitFeatureSlug}". Choose an existing feature slug from .scratch/features-status.json.`,
+        `Feature selector "${explicitFeatureSelector}" does not match its registered slug. Expected "${formatFeatureDir(idMatch)}".`,
       );
     }
 
-    return feature;
+    if (idMatch && (fullNameMatch || /^\d+$/.test(explicitFeatureSelector))) {
+      return idMatch;
+    }
+
+    throw new FeatureStateError(
+      `Unknown feature "${explicitFeatureSelector}". Choose an existing feature selector from .scratch/features-status.json.`,
+    );
   }
 
   return resolveCurrentFeature(state);

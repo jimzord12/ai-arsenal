@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Phase 8 accepted; maintenance/release-ready
+> **Status:** Flexible feature selectors verified; maintenance integration pending
 > **Living-plan schema:** 1.0
-> **Last reconciled:** 2026-07-12
-> **Current phase:** Maintenance / release handoff
+> **Last reconciled:** 2026-07-13
+> **Current phase:** Maintenance / flexible feature selector compatibility
 > **Operator view:** `NEXT.md`
 
 ---
@@ -36,7 +36,7 @@ No second implementation plan may compete with this document.
 
 # 2. Evidence Base and Remaining Limitations
 
-Phase 1 directly inspected the CLI source, tests, local instructions, filesystem contracts, live read-only state, disposable mutations, source tooling, and known consumers. Phase 2 established the verified monorepo foundation. Phase 3 recorded the unversioned source baseline, migrated the CLI boundary, added command characterization, and verified source/destination parity. Phase 4 verified the private Bun source package and clean-consumer distribution. Phase 5 added domain/filesystem safety coverage and scoped milestone lock hardening. Phase 6 added black-box process/distribution coverage. Phase 7 added CI, portability verification, and consumer cutover. Phase 8 completed final clean-checkout validation, clean-consumer artifact validation, operating documentation, line-ending policy, hooks/Changesets checks, lockfile/input/stale-path checks, and final reconciliation. Evidence is stored under the corresponding `docs/evidence/phase-XX-*/` directories.
+Phase 1 directly inspected the CLI source, tests, local instructions, filesystem contracts, live read-only state, disposable mutations, source tooling, and known consumers. Phase 2 established the verified monorepo foundation. Phase 3 recorded the unversioned source baseline, migrated the CLI boundary, added command characterization, and verified source/destination parity. Phase 4 verified the private Bun source package and clean-consumer distribution. Phase 5 added domain/filesystem safety coverage and scoped milestone lock hardening. Phase 6 added black-box process/distribution coverage. Phase 7 added CI, portability verification, and consumer cutover. Phase 8 completed final clean-checkout validation, clean-consumer artifact validation, operating documentation, line-ending policy, hooks/Changesets checks, lockfile/input/stale-path checks, and final reconciliation. The verified maintenance selector update accepts feature slugs, IDs, and full feature directory names through every `--feature` command. Evidence is stored under the corresponding `docs/evidence/` directories.
 
 Remaining limitations:
 
@@ -76,7 +76,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Phase 3 recorded byte sizes and SHA-256 hashes for every top-level non-archive source file immediately before copying; the source still matches all 14 recorded hashes.
 - `[VERIFIED]` `archives/v1/` was excluded, production imports depend only on Node built-ins and sibling modules, and the source checkout remains available for rollback.
 - `[VERIFIED]` Representative source/migrated workflows match for exit codes, output, normalized schema-v2 state, derived issue JSON, and canonical issue bytes.
-- `[VERIFIED]` The migrated suite passes 139 tests across seven suites with 70.36% statement/line coverage; root formatting, package lint, strict typecheck, tests, package validation, workflow validation, and public Windows/Linux CI pass.
+- `[VERIFIED]` The migrated suite passes 144 tests across seven suites. Package formatting, linting, strict typechecking, testing, and strict package validation pass for the verified maintenance selector update; public Windows/Linux CI remains the integration gate after merge.
 - `[VERIFIED]` `.gitattributes` enforces LF checkout for tracked text files on Windows and Linux, preventing clean-checkout formatter drift and byte-sensitive fixture drift.
 - `[VERIFIED]` Phase 5 covers malformed feature and issue JSON, invalid slug mutation safety, stale lock fail-fast behavior, feature-state transaction rollback and fail-closed recovery, direct issue-write partial failure characterization, milestone byte preservation, and shared-lock contention through both module and command boundaries.
 - `[VERIFIED]` Milestone mutation now participates in the same repository-level feature-state lock as feature and issue writers. Stale locks remain manual-recovery fail-fast sentinels, and broader issue-mutation transaction refactors are not implemented.
@@ -101,6 +101,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Hooks and Changesets are operational: lint-staged, commitlint over recent commits, and Changesets status pass.
 - `[VERIFIED]` No mixed lockfiles or unabsorbed input plans are present. Stale source-path references are limited to current-truth provenance, documented rollback, and the frozen legacy usage string.
 - `[VERIFIED]` The user accepted Phase 8 final validation and operating documentation on 2026-07-12. Source CLI deletion remains explicitly not approved.
+- `[VERIFIED]` The user approved public `--feature` selector compatibility on 2026-07-13. Every command accepting `--feature` now accepts an exact slug, a plain or zero-padded positive feature ID, or a matching `ID-slug` directory name; exact slug matching takes precedence, including numeric-only slugs.
 
 ## 4.2 Product context supplied by the user
 
@@ -398,7 +399,7 @@ Required layers:
 4. Distribution tests against the actual package or executable.
 5. Windows and Linux CI for quality and distribution smoke tests.
 
-Current verified coverage includes colocated domain/filesystem suites, an in-process command-characterization suite, and a real-process E2E/distribution suite: 139 tests across seven Jest suites. It covers schema/domain validation, status/review/dependency selection, real temporary filesystem persistence, corrupt JSON rejection, recovery-journal fail-closed behavior, stale and held lock behavior, direct issue-write partial failure characterization, strict `cwd` rooting, paths with spaces and Unicode, milestone byte preservation, real concurrent writer fail-fast behavior, and actual packed-artifact installation/invocation from a clean consumer. Public GitHub Actions verifies the quality workflow on Linux and the process/distribution suite on both Windows and Linux.
+Current verified coverage includes colocated domain/filesystem suites, an in-process command-characterization suite, and a real-process E2E/distribution suite: 144 tests across seven Jest suites. It covers schema/domain validation, slug/ID/full-name feature selection, status/review/dependency selection, real temporary filesystem persistence, corrupt JSON rejection, recovery-journal fail-closed behavior, stale and held lock behavior, direct issue-write partial failure characterization, strict `cwd` rooting, paths with spaces and Unicode, milestone byte preservation, real concurrent writer fail-fast behavior, and actual packed-artifact installation/invocation from a clean consumer. Public GitHub Actions verifies the quality workflow on Linux and the process/distribution suite on both Windows and Linux.
 
 Preserve Jest initially because the existing 109-test suite uses Jest-specific spies, fake timers, and module access. Use Node subprocess APIs in tests to invoke the real Bun executable; do not couple tests to `Bun.spawn` unless production needs it.
 
@@ -420,6 +421,7 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 
 - The invocation `cwd` is the project root; do not add upward root discovery during migration.
 - Preserve command names, flags, human output meaning, JSON shape, and `0/1` exit behavior.
+- `--feature <selector>` accepts an exact slug, a plain or zero-padded positive ID, or a full `ID-slug` feature directory name. Exact slugs take precedence; a full selector must match both the registered ID and slug.
 - Preserve feature state schema version `"2"`, canonical issue Markdown, derived `issues-status.json`, milestone fences, and contract-file derivation.
 - Preserve exact-byte behavior for user-authored Markdown outside intended metadata edits.
 - Preserve one-writer fail-fast locking for the migration release.
@@ -515,6 +517,7 @@ Stop for user approval when reconciliation would:
 | 6     | CLI E2E and Distribution Testing                         | **Complete**   | Real process and clean-consumer confidence           | Satisfied            |
 | 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**   | Verified CI and safe consumer cutover                | Source deletion gate |
 | 8     | Final Validation and Operating Documentation             | **Complete**   | Release-ready verified repository                    | Final acceptance     |
+| M1    | Flexible Feature Selector Compatibility                  | **Verified**   | Compatible public `--feature` selection              | CI after integration |
 
 ---
 
@@ -765,6 +768,21 @@ Complete on 2026-07-12. User final acceptance was received.
 
 ---
 
+## Maintenance update — Flexible Feature Selector Compatibility
+
+## Resulting verified state
+
+- Every `--feature` command shares selector resolution that accepts a slug, plain or zero-padded feature ID, and a matching full `ID-slug` name.
+- Exact slug lookup remains first so a registered numeric-only slug is not reinterpreted as an ID.
+- A full selector with a registered ID but a different slug fails with the expected full name instead of selecting by ID alone.
+- Package formatting, linting, strict typechecking, strict publint package validation, and all 144 tests pass.
+
+## Reconciliation gate
+
+The user approved this public CLI behavior change on 2026-07-13. Integration is complete only after the verified branch is merged and pushed, then the new `master` CI runs are confirmed.
+
+---
+
 # 19. Current Risks
 
 | Risk                                                                                                               | Current status                    | Required resolution                                                                                             |
@@ -858,4 +876,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Decide whether to commit and push the accepted Phase 8 changes. Do not change public behavior, persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval. Source deletion remains a separate explicit gate and is not approved.
+Merge and push the verified flexible feature selector change, then confirm the resulting `master` Quality and Portability workflows. Do not change persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval. Source deletion remains a separate explicit gate and is not approved.

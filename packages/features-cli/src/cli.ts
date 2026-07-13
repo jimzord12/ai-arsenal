@@ -44,16 +44,16 @@ export const FEATURES_CLI_HELP = `features-cli commands:
   init
   create-feature <slug>
   status
-  progress [--feature <slug>] [--json]
-  list-issues [--feature <slug>] [--actionable]
-  get-issue <--next|--next-contract|--resume> [--feature <slug>]
+  progress [--feature <selector>] [--json]
+  list-issues [--feature <selector>] [--actionable]
+  get-issue <--next|--next-contract|--resume> [--feature <selector>]
   get-feature
   update-feature <slug> [--status <status>] [--phase <phase>] [--focus <path|none>] [--pause-current]
-  mark-milestone-decomposed <milestone-slug> [--feature <slug>]
-  sync-issues [--feature <slug>]
-  update-blockers <id> --blockers <none|id[,id...]> [--feature <slug>]
-  update-status <id> --status <status> [--feature <slug>] [--force]
-  reopen-issue <id> --phase <red|green> <--reason <text>|--reason-file <path>> [--feature <slug>] [--force]
+  mark-milestone-decomposed <milestone-slug> [--feature <selector>]
+  sync-issues [--feature <selector>]
+  update-blockers <id> --blockers <none|id[,id...]> [--feature <selector>]
+  update-status <id> --status <status> [--feature <selector>] [--force]
+  reopen-issue <id> --phase <red|green> <--reason <text>|--reason-file <path>> [--feature <selector>] [--force]
   help | --help`;
 
 function parseNewCommandArgs(
@@ -435,7 +435,7 @@ export async function runIssuesManagerCli(
 
       if (!issueIdRaw || !blockersRaw) {
         throw new IssueStateError(
-          'Usage: update-blockers <issue-id> --blockers <none|id[,id...]> [--feature <slug>]',
+          'Usage: update-blockers <issue-id> --blockers <none|id[,id...]> [--feature <selector>]',
         );
       }
 
@@ -629,7 +629,7 @@ export async function runIssuesManagerCli(
 
       if (!issueIdRaw || !status) {
         throw new IssueStateError(
-          'Usage: update-status <issue-id> --status <status> [--feature <slug>] [--force]',
+          'Usage: update-status <issue-id> --status <status> [--feature <selector>] [--force]',
         );
       }
 
@@ -678,7 +678,7 @@ export async function runIssuesManagerCli(
 
       if (!issueIdRaw || issueIdRaw.startsWith('--') || !phase) {
         throw new IssueStateError(
-          'Usage: reopen-issue <issue-id> --phase <red|green> --reason "<finding>" | --reason-file <path> [--feature <slug>] [--force]',
+          'Usage: reopen-issue <issue-id> --phase <red|green> --reason "<finding>" | --reason-file <path> [--feature <selector>] [--force]',
         );
       }
 

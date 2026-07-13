@@ -101,25 +101,28 @@ describe('features CLI progress commands', () => {
     });
   });
 
-  it('emits exact JSON progress for an explicitly selected paused feature', async () => {
-    await seed();
-    const dir = getFeatureDir(cwd, feature.id, feature.slug);
-    await Promise.all(
-      ['PRD.md', 'GRILL_SESSION.md', 'DECISIONS.md'].map((name) =>
-        writeFile(join(dir, name), '# Artifact\n', 'utf8'),
-      ),
-    );
+  it.each([feature.slug, '1', '001', '001-sample-feature'])(
+    'emits exact JSON progress for an explicitly selected paused feature via %s',
+    async (selector) => {
+      await seed();
+      const dir = getFeatureDir(cwd, feature.id, feature.slug);
+      await Promise.all(
+        ['PRD.md', 'GRILL_SESSION.md', 'DECISIONS.md'].map((name) =>
+          writeFile(join(dir, name), '# Artifact\n', 'utf8'),
+        ),
+      );
 
-    const result = await runIssuesManagerCli(
-      ['progress', '--json', '--feature', feature.slug],
-      { cwd },
-    );
-    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
-    expect(JSON.parse(result.stdout)).toMatchObject({
-      feature: { slug: feature.slug, status: 'paused' },
-      frontier: { kind: 'design-ready' },
-    });
-  });
+      const result = await runIssuesManagerCli(
+        ['progress', '--json', '--feature', selector],
+        { cwd },
+      );
+      expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+      expect(JSON.parse(result.stdout)).toMatchObject({
+        feature: { slug: feature.slug, status: 'paused' },
+        frontier: { kind: 'design-ready' },
+      });
+    },
+  );
 
   it('synchronizes canonical issues for an explicit paused feature', async () => {
     await seed();
@@ -136,7 +139,7 @@ describe('features CLI progress commands', () => {
     );
 
     const result = await runIssuesManagerCli(
-      ['sync-issues', '--feature', feature.slug],
+      ['sync-issues', '--feature', '001-sample-feature'],
       { cwd },
     );
     expect(result).toMatchObject({ exitCode: 0, stderr: '' });
