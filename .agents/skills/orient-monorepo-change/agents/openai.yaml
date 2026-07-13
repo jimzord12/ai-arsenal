@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Orient Monorepo Change'
+  short_description: 'Gather evidence for a ready monorepo change before scoping.'
+  default_prompt: 'Create evidence-grounded context for the active ready monorepo work item without scoping or implementation.'
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Implement Monorepo Change'
+  short_description: 'Implement an approved monorepo contract and hand it to verification.'
+  default_prompt: 'Implement the active approved monorepo work item test-first, write its implementation report, and hand it to verification without reconciling.'
+policy:
+  allow_implicit_invocation: true

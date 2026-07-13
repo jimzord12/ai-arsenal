@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Capture Monorepo Change'
+  short_description: 'Register an explicit monorepo change request as a work item.'
+  default_prompt: 'Capture my explicit normal-pipeline monorepo change request as a new work item.'
+policy:
+  allow_implicit_invocation: true

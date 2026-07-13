@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Record Monorepo Approval'
+  short_description: 'Record direct user approval of the active monorepo implementation plan.'
+  default_prompt: 'Record my direct approval of the active ready monorepo implementation plan without implementing it.'
+policy:
+  allow_implicit_invocation: true

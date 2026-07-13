@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Plan Monorepo Change'
+  short_description: 'Create an executable plan for a ready monorepo contract.'
+  default_prompt: 'Plan the active ready monorepo change contract without approving or implementing it.'
+policy:
+  allow_implicit_invocation: true

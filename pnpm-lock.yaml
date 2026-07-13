@@ -59,6 +59,8 @@ importers:
 
   packages/features-cli: {}
 
+  packages/jz-skills: {}
+
 packages:
 
   '@babel/code-frame@7.29.7':

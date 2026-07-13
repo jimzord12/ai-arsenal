@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Orchestrate Monorepo Work'
+  short_description: 'Route the next monorepo work-item action from verified state.'
+  default_prompt: 'Read repository workflow state and return the eight-field routing brief only.'
+policy:
+  allow_implicit_invocation: true

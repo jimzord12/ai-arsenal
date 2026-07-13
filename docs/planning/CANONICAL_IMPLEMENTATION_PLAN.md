@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Private `0.1.0` release globally installed and verified; new `master` CI confirmation pending
+> **Status:** Monorepo work-item pipeline implementation approved and in progress; release CI confirmation deferred
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-13
-> **Current phase:** Maintenance / CI confirmation
+> **Current phase:** Maintenance / monorepo work-item pipeline implementation
 > **Operator view:** `NEXT.md`
 
 ---
@@ -103,6 +103,8 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` The user accepted Phase 8 final validation and operating documentation on 2026-07-12. Source CLI deletion remains explicitly not approved.
 - `[VERIFIED]` The user approved public `--feature` selector compatibility on 2026-07-13. Every command accepting `--feature` now accepts an exact slug, a plain or zero-padded positive feature ID, or a matching `ID-slug` directory name; exact slug matching takes precedence, including numeric-only slugs.
 - `[VERIFIED]` Changesets generated private package version `0.1.0` and `packages/features-cli/CHANGELOG.md` for flexible feature selectors. The actual 10-file `0.1.0` tarball passes strict publint, installs into a clean unrelated pnpm consumer, and is installed in the Windows user's global pnpm environment. The global command resolves both index and full-name feature selectors in the active `ics-vcr` consumer.
+- `[VERIFIED]` `packages/features-cli/AGENTS.md` establishes a self-hosting boundary: use the monorepo living-plan workflow to maintain this package and reserve `features-cli` for consumer-project feature workflows.
+- `[USER-LOCKED]` The approved Monorepo Work-Item Pipeline design and implementation plan define the current maintenance change. The user explicitly approved implementation on 2026-07-13, required subagent-driven execution and independent wide review, prohibited release/distribution automation, and prohibited commits or pushes without separate direction.
 
 ## 4.2 Product context supplied by the user
 
@@ -508,18 +510,19 @@ Stop for user approval when reconciliation would:
 
 # 9. Phase Map
 
-| Phase | Name                                                     | Current status | Main output                                          | Approval gate        |
-| ----- | -------------------------------------------------------- | -------------- | ---------------------------------------------------- | -------------------- |
-| 0     | Workflow Bootstrap and Repository Orientation            | **Complete**   | Valid workflow state and organized inputs            | Satisfied            |
-| 1     | CLI Discovery, Workflow Observation, and Plan Grounding  | **Complete**   | Evidence-grounded canonical plan                     | Satisfied            |
-| 2     | Monorepo Foundation and Developer Workflow               | **Complete**   | pnpm/Turbo root and quality workflow                 | Satisfied            |
-| 3     | CLI Characterization and Migration Boundary              | **Complete**   | Behavior baseline and migrated package boundary      | Satisfied            |
-| 4     | Build, Packaging, and Distribution                       | **Complete**   | Verified distribution artifact                       | Satisfied            |
-| 5     | Domain and Filesystem Test Foundation                    | **Complete**   | Unit/integration confidence and data-safety contract | Satisfied            |
-| 6     | CLI E2E and Distribution Testing                         | **Complete**   | Real process and clean-consumer confidence           | Satisfied            |
-| 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**   | Verified CI and safe consumer cutover                | Source deletion gate |
-| 8     | Final Validation and Operating Documentation             | **Complete**   | Release-ready verified repository                    | Final acceptance     |
-| M1    | Flexible Feature Selector Compatibility                  | **Merged**     | Compatible public `--feature` selection              | CI confirmation      |
+| Phase | Name                                                     | Current status  | Main output                                          | Approval gate        |
+| ----- | -------------------------------------------------------- | --------------- | ---------------------------------------------------- | -------------------- |
+| 0     | Workflow Bootstrap and Repository Orientation            | **Complete**    | Valid workflow state and organized inputs            | Satisfied            |
+| 1     | CLI Discovery, Workflow Observation, and Plan Grounding  | **Complete**    | Evidence-grounded canonical plan                     | Satisfied            |
+| 2     | Monorepo Foundation and Developer Workflow               | **Complete**    | pnpm/Turbo root and quality workflow                 | Satisfied            |
+| 3     | CLI Characterization and Migration Boundary              | **Complete**    | Behavior baseline and migrated package boundary      | Satisfied            |
+| 4     | Build, Packaging, and Distribution                       | **Complete**    | Verified distribution artifact                       | Satisfied            |
+| 5     | Domain and Filesystem Test Foundation                    | **Complete**    | Unit/integration confidence and data-safety contract | Satisfied            |
+| 6     | CLI E2E and Distribution Testing                         | **Complete**    | Real process and clean-consumer confidence           | Satisfied            |
+| 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**    | Verified CI and safe consumer cutover                | Source deletion gate |
+| 8     | Final Validation and Operating Documentation             | **Complete**    | Release-ready verified repository                    | Final acceptance     |
+| M1    | Flexible Feature Selector Compatibility                  | **Merged**      | Compatible public `--feature` selection              | CI confirmation      |
+| M2    | Monorepo Work-Item Pipeline                              | **In progress** | Verified artifact-driven maintenance workflow        | Approved             |
 
 ---
 
@@ -800,6 +803,21 @@ The user approved versioning, changelog generation, release verification, commit
 
 ---
 
+## Maintenance update — Monorepo Work-Item Pipeline
+
+### Approved implementation state
+
+- The approved design defines a read-only router plus eight narrow write-capable stages from request capture through reconciliation.
+- Durable work-item artifacts use explicit revisions, prerequisite revisions, statuses, historical revision retention, and an approval record bound to the exact plan bytes by SHA-256.
+- The pipeline remains separate from consumer `.scratch/features/` workflows and ends before release, packing, publication, global installation, or source deletion.
+- Implementation follows the approved task plan with focused checks, an end-to-end disposable simulation, three independent review lenses, targeted repair, complete verification, and final reconciliation.
+
+### Approval gate
+
+Implementation was explicitly approved on 2026-07-13. Commit and push remain separately approval-controlled. The pending `master` CI confirmation is deferred until this maintenance phase is verified and reconciled.
+
+---
+
 # 19. Current Risks
 
 | Risk                                                                                                               | Current status                    | Required resolution                                                                                             |
@@ -893,4 +911,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Confirm the new `master` Quality and Portability workflows when GitHub exposes them. Do not change persisted schemas, the private Bun source-distribution direction, user `.scratch` data, or the source CLI without approval. Source deletion remains a separate explicit gate and is not approved.
+Implement and verify the approved Monorepo Work-Item Pipeline plan, perform the required independent wide review and targeted repairs, then reconcile the living workflow. Do not add release, packing, publication, global-installation, or source-deletion automation. Do not commit or push without explicit user direction.

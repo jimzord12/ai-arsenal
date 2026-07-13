@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Scope Monorepo Change'
+  short_description: 'Define a bounded contract for a ready monorepo work item.'
+  default_prompt: 'Scope the active ready monorepo work item into a complete change contract without planning or implementation.'
+policy:
+  allow_implicit_invocation: true

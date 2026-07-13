@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Verify Monorepo Change'
+  short_description: 'Record independent monorepo verification evidence and route the result.'
+  default_prompt: 'Verify the active monorepo work item against its contract, record evidence, and route only to reconciliation or repair.'
+policy:
+  allow_implicit_invocation: true

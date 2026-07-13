@@ -3,50 +3,52 @@
 **Workflow version:** 1.0
 **Last reconciled:** 2026-07-13
 **Project:** AI Arsenal monorepo and `features-cli` migration
-**State:** Private `0.1.0` release is globally installed and verified; new `master` CI confirmation is pending
-**Current phase:** Maintenance / CI confirmation
+**State:** Monorepo work-item pipeline design and implementation plan are approved; implementation is in progress
+**Current phase:** Maintenance / monorepo work-item pipeline implementation
 
 ## Next Action
 
-Confirm the new `master` Quality and Portability workflow runs for the flexible feature selector update when GitHub exposes them.
+Implement and verify the approved Monorepo Work-Item Pipeline plan, then reconcile the living workflow.
 
 ## Why This Is Next
 
-- Commit `332cff2` merged the verified selector compatibility behavior into `master`.
-- Changesets generated `@jz/ai-arsenal-features-cli@0.1.0` and its changelog entry.
-- Root quality verification passed with 144 tests; strict publint passed; the actual 10-file tarball installed in a clean temporary consumer and ran `features-cli --help`.
-- The user approved global replacement; pnpm now resolves `@jz/ai-arsenal-features-cli@0.1.0`.
-- The global `features-cli` command successfully resolved both `--feature 3` and `--feature 003-remote-logging-mvp-v2` in the active `ics-vcr` consumer.
+- The user explicitly approved implementation on 2026-07-13 and directed this work to take priority over pending CI confirmation.
+- The approved design and implementation plan define the exact artifact, revision, approval-digest, validation, routing, and self-hosting contracts.
+- The current broad living-plan execution loop must be replaced only after the new pipeline passes focused, integrated, and wide independent review.
+- The previously pending Quality and Portability run confirmation remains deferred follow-up and is not discarded.
 
 ## Requirements
 
-- [x] Selector compatibility is merged and pushed as `332cff2`.
-- [x] Changeset versioning and generated changelog applied at `0.1.0`.
-- [x] Versioned 10-file packed artifact passed strict publint and clean-consumer installation/invocation.
-- [x] User approved global replacement; pnpm globally resolves `@jz/ai-arsenal-features-cli@0.1.0`.
-- [x] The global command passed active-consumer index and full-name selector smoke checks.
-- [ ] New `master` Quality and Portability workflows pass; GitHub has not yet exposed runs for `332cff2`.
+- [x] Approved design and implementation plan are present.
+- [x] The user explicitly approved starting implementation.
+- [x] Existing approved uncommitted work is preserved.
+- [ ] Tasks 1–12 pass their focused and integrated checks.
+- [ ] Three independent wide-review lenses have no unresolved concrete findings.
+- [ ] Final root verification and living-plan reconciliation pass.
 
 ## Blockers / Approval
 
-- No further local-distribution approval is needed. CI visibility is external to the repository and remains the only outstanding release-handoff check.
+- No implementation approval is outstanding for the approved work-item pipeline plan.
+- Do not commit or push without separate user direction.
 - Preserve the source rollback copy, user `.scratch` data, approved Windows/Linux platform target, and LF checkout policy.
 - Persisted schema changes, broader transaction semantics, distribution deviations, and source deletion remain approval-gated.
 
 ## Done When
 
-- Version `0.1.0` and its generated changelog are committed and pushed after successful packed-artifact validation.
-- The globally installed package resolves `0.1.0` and the active consumer smoke checks pass.
-- The new `master` CI workflows have been confirmed when available.
+- The artifact-driven pipeline, validator, router, eight write-capable stage skills, governance integration, and disposable lifecycle simulation match the approved contracts.
+- `pnpm check`, `pnpm validate:workflow`, and `git diff --check` pass after review repairs.
+- Reconciliation evidence records the resulting state and the exact next action.
 
 ## After This
 
-- Return to release handoff and stop at the separate source-deletion gate. The user has explicitly said not to delete the legacy source CLI.
+- Return to the deferred `master` Quality and Portability run confirmation unless verified evidence changes the canonical next action. Source deletion remains unapproved.
 
 ## Source of Truth
 
 - `AGENTS.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
+- `docs/superpowers/specs/2026-07-13-monorepo-work-item-pipeline-design.md`
+- `docs/superpowers/plans/2026-07-13-monorepo-work-item-pipeline.md`
 - `docs/evidence/maintenance-release-policy/`
 - `docs/evidence/maintenance-private-release-0.1.0/`
 - `docs/evidence/maintenance-feature-selector-compatibility/`

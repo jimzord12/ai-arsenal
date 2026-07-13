@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Reconcile Monorepo Change'
+  short_description: 'Reconcile passed monorepo verification and close the active work item.'
+  default_prompt: 'Reconcile the active passed monorepo work item, update current-truth planning records, and close it only after passed reconciliation evidence.'
+policy:
+  allow_implicit_invocation: true
