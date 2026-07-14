@@ -1,0 +1,4 @@
+interface:
+  display_name: 'PDF to Markdown'
+  short_description: 'Convert one PDF to Markdown with Docling'
+  default_prompt: 'Convert this PDF to Markdown with image placeholders using two CPU threads.'
