@@ -154,6 +154,20 @@ describe('getFeatureProgress', () => {
       decomposed: 1,
       pending: 2,
     });
+    expect(progress.milestones?.entries).toEqual([
+      expect.objectContaining({
+        slug: 'capture-and-store',
+        issues: { total: 6, done: 1, actionable: 4, blocked: 1 },
+      }),
+      expect.objectContaining({
+        slug: 'explicit-send',
+        issues: { total: 3, done: 0, actionable: 0, blocked: 3 },
+      }),
+      expect.objectContaining({
+        slug: 'manage-and-gate',
+        issues: { total: 3, done: 0, actionable: 0, blocked: 3 },
+      }),
+    ]);
     expect(progress.issues).toMatchObject({
       total: 12,
       done: 1,

@@ -69,6 +69,12 @@ export type FeatureProgress = {
       dependsOn: string[];
       decomposedAt: string | null;
       issueIds: number[];
+      issues: {
+        total: number;
+        done: number;
+        actionable: number;
+        blocked: number;
+      };
     }>;
   } | null;
   issues: {
@@ -287,6 +293,30 @@ function summarizeIssues(
   };
 }
 
+function summarizeMilestoneIssues(
+  issueIds: number[],
+  allIssues: IssueRecord[],
+): { total: number; done: number; actionable: number; blocked: number } {
+  const selectedIds = new Set(issueIds);
+  const selected = allIssues.filter((issue) => selectedIds.has(issue.id));
+  const allIssuesById = new Map(allIssues.map((issue) => [issue.id, issue]));
+  const terminal = (issue: IssueRecord) =>
+    issue.status === 'done' || issue.status === 'wontfix';
+
+  return {
+    total: selected.length,
+    done: selected.filter((issue) => issue.status === 'done').length,
+    actionable: selected.filter(
+      (issue) =>
+        issue.status === 'ready-for-agent' &&
+        !isIssueBlocked(issue, allIssuesById),
+    ).length,
+    blocked: selected.filter(
+      (issue) => !terminal(issue) && isIssueBlocked(issue, allIssuesById),
+    ).length,
+  };
+}
+
 export async function getFeatureProgress(options: {
   cwd: string;
   feature: FeatureRecord;
@@ -450,6 +480,10 @@ export async function getFeatureProgress(options: {
       dependsOn: entry.dependsOn,
       decomposedAt: entry.decomposedAt,
       issueIds: entry.issueIds,
+      issues: summarizeMilestoneIssues(
+        entry.issueIds,
+        canonicalIssues?.issues ?? [],
+      ),
     })),
   };
 
