@@ -27,7 +27,7 @@ Tracked text files are checked out with LF line endings through `.gitattributes`
 ## Workspace layout
 
 - packages/features-cli: private Bun source package for @jz/ai-arsenal-features-cli.
-- packages/jz-skills: single source of truth for the `jz-*` family of agent skills.
+- packages/jz-skills: single source of truth for the jz-* family of agent skills.
 - docs/planning: canonical living implementation plan.
 - docs/evidence: phase discovery and verification evidence.
 - .agents/skills: repository-scoped workflow skills.
