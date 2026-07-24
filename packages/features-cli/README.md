@@ -89,3 +89,16 @@ The package intentionally packs exactly package metadata, this README, and the e
 `pnpm --filter @jz/ai-arsenal-features-cli validate` runs strict publint against the pnpm-packed view. The real distribution path is still a packed tarball installed into a consumer that has Bun available on `PATH`.
 
 Use the root Changesets workflow for version and changelog updates. Automated npm publication is intentionally not configured.
+
+## Built-in workflow documentation
+
+The CLI includes offline, read-only guidance that does not change feature state:
+
+```powershell
+pnpm exec features-cli docs
+pnpm exec features-cli docs --index
+pnpm exec features-cli docs workflow
+pnpm exec features-cli docs current --feature <selector> --json
+```
+
+docs current embeds the same canonical progress object used by progress --json and adds a safe next-step explanation. It reports the current limits for PRD authoring and feature review rather than inventing an owner.

@@ -101,6 +101,48 @@ describe('features CLI progress commands', () => {
     });
   });
 
+  it('serves static offline documentation without reading repository state', async () => {
+    await expect(runIssuesManagerCli(['docs'], { cwd })).resolves.toMatchObject(
+      {
+        exitCode: 0,
+        stderr: '',
+        stdout: expect.stringContaining('JZ Spec-to-Ship'),
+      },
+    );
+
+    const index = await runIssuesManagerCli(['docs', '--index', '--json'], {
+      cwd,
+    });
+    expect(index).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(JSON.parse(index.stdout)).toMatchObject({
+      schemaVersion: '1',
+      kind: 'docs-index',
+    });
+  });
+
+  it('accepts exact topic names and aliases but rejects unsupported docs forms', async () => {
+    const topic = await runIssuesManagerCli(['docs', '1'], { cwd });
+    expect(topic).toMatchObject({
+      exitCode: 0,
+      stderr: '',
+      stdout: expect.stringContaining('Topic: workflow'),
+    });
+
+    await expect(
+      runIssuesManagerCli(['docs', 'work'], { cwd }),
+    ).resolves.toEqual({
+      exitCode: 1,
+      stdout: '',
+      stderr:
+        'Unknown documentation topic "work". Run "features-cli docs --index".',
+    });
+    await expect(runIssuesManagerCli(['--docs'], { cwd })).resolves.toEqual({
+      exitCode: 1,
+      stdout: '',
+      stderr: 'Unknown command. Run --help for supported commands.',
+    });
+  });
+
   it.each([feature.slug, '1', '001', '001-sample-feature'])(
     'emits exact JSON progress for an explicitly selected paused feature via %s',
     async (selector) => {

@@ -603,8 +603,60 @@ describe('features-cli process E2E', () => {
     });
     const init = await runPnpm(consumerDir, ['exec', 'features-cli', 'init']);
     expect(init).toMatchObject({ exitCode: 0, stderr: '' });
+    const docs = await runPnpm(consumerDir, ['exec', 'features-cli', 'docs']);
+    const index = await runPnpm(consumerDir, [
+      'exec',
+      'features-cli',
+      'docs',
+      '--index',
+      '--json',
+    ]);
+    const topic = await runPnpm(consumerDir, [
+      'exec',
+      'features-cli',
+      'docs',
+      'workflow',
+    ]);
+    const current = await runPnpm(consumerDir, [
+      'exec',
+      'features-cli',
+      'docs',
+      'current',
+      '--json',
+    ]);
+    expect(docs).toMatchObject({
+      exitCode: 0,
+      stderr: '',
+      stdout: expect.stringContaining('JZ Spec-to-Ship'),
+    });
+    expect(JSON.parse(index.stdout)).toMatchObject({ kind: 'docs-index' });
+    expect(topic.stdout).toContain('Topic: workflow');
+    expect(JSON.parse(current.stdout)).toMatchObject({
+      kind: 'docs-current',
+      progress: null,
+    });
     await expect(
       readFile(join(consumerDir, '.scratch', 'features-status.json'), 'utf8'),
     ).resolves.toContain('"version": "2"');
+  });
+  it('runs docs read-only through real Bun processes in a Unicode workspace', async () => {
+    const cwd = await workspace('features cli docs-Δ-');
+    await expectCliSuccess(cwd, ['init']);
+    const statePath = join(cwd, '.scratch', 'features-status.json');
+    const before = await readFile(statePath, 'utf8');
+
+    const overview = await expectCliSuccess(cwd, ['docs']);
+    const index = await expectCliSuccess(cwd, ['docs', '--index', '--json']);
+    const topic = await expectCliSuccess(cwd, ['docs', 'workflow']);
+    const current = await expectCliSuccess(cwd, ['docs', 'current', '--json']);
+
+    expect(overview.stdout).toContain('JZ Spec-to-Ship');
+    expect(JSON.parse(index.stdout)).toMatchObject({ kind: 'docs-index' });
+    expect(topic.stdout).toContain('Topic: workflow');
+    expect(JSON.parse(current.stdout)).toMatchObject({
+      kind: 'docs-current',
+      progress: null,
+    });
+    await expect(readFile(statePath, 'utf8')).resolves.toBe(before);
   });
 });

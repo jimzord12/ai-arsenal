@@ -3,41 +3,34 @@
 **Workflow version:** 1.0
 **Last reconciled:** 2026-07-24
 **Project:** AI Arsenal monorepo and `features-cli` migration
-**State:** Monorepo work-item pipeline is verified and reconciled; authorized publication is pending
-**Current phase:** Maintenance / publication and CI confirmation
+**State:** Built-in offline workflow documentation is implemented and independently verified; no release or distribution action is authorized.
+**Current phase:** Maintenance / verified docs command
 **Active work item:** `none`
 **Pipeline step:** `none`
 
 ## Next Action
 
-Split the verified worktree into logical commits, push the authorized changes, and confirm the resulting GitHub Actions runs.
+Decide whether to authorize a separate release, local/global distribution, or commit/push operation for the verified docs-command change.
 
 ## Why This Is Next
 
-- The pipeline implementation, focused tests, full repository check, independent verification, and reconciliation all passed.
-- The user separately authorized committing and pushing the verified worktree.
-- `master` already contains five local commits not yet present on `origin/master`; the new logical commits must be added without mixing unrelated changes.
-- Quality and Portability CI confirmation remains required after the push.
+- The active work item completed implementation, independent verification, and reconciliation.
+- The docs command changes the public CLI and packed package boundary from 10 to 11 files, while no release, global installation, commit, or push was authorized by this work item.
 
 ## Requirements
 
-- [x] The approved implementation plan and digest-bound approval are recorded.
-- [x] The 30-test workflow suite and full `pnpm check` pass.
-- [x] Independent verification and reconciliation pass.
-- [x] Commit and push authorization is explicit.
-- [ ] Logical commits are created and pushed.
-- [ ] New GitHub Actions Quality and Portability runs pass.
+- [x] Offline/read-only docs overview, index, topics, current guidance, JSON, and help integration are verified.
+- [x] Full repository checks, strict publint, exact 11-file pack, and clean-consumer invocation pass.
+- [ ] Any release, packing for distribution, global installation, commit, or push receives its separate explicit authorization.
 
 ## Blockers / Approval
 
-- No implementation, verification, reconciliation, commit, or push approval is outstanding for the current verified worktree.
-- Preserve the source rollback copy, user `.scratch` data, approved Windows/Linux platform target, and LF checkout policy.
-- Persisted schema changes, broader transaction semantics, distribution deviations, and source deletion remain approval-gated.
+- Release, local/global distribution, commit, and push are not authorized by the completed work item.
+- Preserve the source rollback copy and user `.scratch` data; source deletion remains separately unapproved.
 
 ## Done When
 
-- The approved logical commits are present on the public remote.
-- Quality and Portability workflows pass for the pushed `master` commit.
+- The user chooses whether to retain this verified worktree, authorize commit/push, or authorize a release/distribution operation under its applicable gate.
 
 ## After This
 
@@ -47,10 +40,5 @@ Split the verified worktree into logical commits, push the authorized changes, a
 
 - `AGENTS.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
-- `docs/superpowers/specs/2026-07-13-monorepo-work-item-pipeline-design.md`
-- `docs/superpowers/plans/2026-07-13-monorepo-work-item-pipeline.md`
-- `docs/evidence/maintenance-release-policy/`
-- `docs/evidence/maintenance-private-release-0.1.0/`
-- `docs/evidence/maintenance-feature-selector-compatibility/`
-- `docs/evidence/phase-08-final-validation-operating-documentation/`
+- `docs/work-items/2026-07-24-features-cli-built-in-workflow-docs/`
 - `docs/operations/features-cli-cutover.md`

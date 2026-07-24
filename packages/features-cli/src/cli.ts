@@ -33,6 +33,16 @@ import {
   getContractedIssueIds,
   getFeatureProgress,
 } from './progress-state';
+import {
+  FEATURES_CLI_HELP as WORKFLOW_DOCS_HELP,
+  renderDocsCurrent,
+  renderDocsError,
+  renderDocsIndex,
+  renderDocsNoCurrent,
+  renderDocsOverview,
+  renderDocsTopic,
+  resolveDocsTopic,
+} from './workflow-docs';
 
 export type CliResult = {
   exitCode: number;
@@ -40,21 +50,7 @@ export type CliResult = {
   stdout: string;
 };
 
-export const FEATURES_CLI_HELP = `features-cli commands:
-  init
-  create-feature <slug>
-  status
-  progress [--feature <selector>] [--json]
-  list-issues [--feature <selector>] [--actionable]
-  get-issue <--next|--next-contract|--resume> [--feature <selector>]
-  get-feature
-  update-feature <slug> [--status <status>] [--phase <phase>] [--focus <path|none>] [--pause-current]
-  mark-milestone-decomposed <milestone-slug> [--feature <selector>]
-  sync-issues [--feature <selector>]
-  update-blockers <id> --blockers <none|id[,id...]> [--feature <selector>]
-  update-status <id> --status <status> [--feature <selector>] [--force]
-  reopen-issue <id> --phase <red|green> <--reason <text>|--reason-file <path>> [--feature <selector>] [--force]
-  help | --help`;
+export const FEATURES_CLI_HELP = WORKFLOW_DOCS_HELP;
 
 function parseNewCommandArgs(
   args: string[],
@@ -169,6 +165,117 @@ export async function runIssuesManagerCli(
       return { exitCode: 0, stdout: FEATURES_CLI_HELP, stderr: '' };
     }
 
+    if (args[0] === 'docs' && args[1] === 'current') {
+      const parsed = parseNewCommandArgs(args.slice(1), {
+        positionals: 0,
+        valueFlags: ['--feature'],
+        booleanFlags: ['--json'],
+      });
+      try {
+        const state = await readFeaturesState(options.cwd);
+        const selector = parsed.values.get('--feature');
+        if (
+          !selector &&
+          state.features.every((feature) => feature.status !== 'in-progress')
+        ) {
+          return {
+            exitCode: 0,
+            stderr: '',
+            stdout: renderDocsNoCurrent(
+              parsed.booleans.has('--json'),
+              state.features.length,
+            ),
+          };
+        }
+        const feature = resolveFeatureForIssueRead(state, selector);
+        const progress = await getFeatureProgress({
+          cwd: options.cwd,
+          feature,
+        });
+        return {
+          exitCode: 0,
+          stderr: '',
+          stdout: renderDocsCurrent(
+            progress,
+            selector,
+            parsed.booleans.has('--json'),
+          ),
+        };
+      } catch (error) {
+        if (
+          error instanceof FeatureStateError ||
+          error instanceof IssueStateError
+        ) {
+          if (parsed.booleans.has('--json')) {
+            return {
+              exitCode: 1,
+              stdout: '',
+              stderr: renderDocsError(
+                parsed.values.has('--feature')
+                  ? 'FEATURE_SELECTION_ERROR'
+                  : 'FEATURE_STATE_ERROR',
+                error.message,
+              ),
+            };
+          }
+          return { exitCode: 1, stdout: '', stderr: error.message };
+        }
+        throw error;
+      }
+    }
+    if (args[0] === 'docs') {
+      const flags = new Set<string>();
+      const positionals: string[] = [];
+      for (const token of args.slice(1)) {
+        if (token === '--json' || token === '--index') {
+          if (flags.has(token)) {
+            throw new FeatureStateError(`Duplicate flag ${token}.`);
+          }
+          flags.add(token);
+        } else if (token.startsWith('--')) {
+          throw new FeatureStateError(
+            `Unknown flag ${token}. Run --help for usage.`,
+          );
+        } else {
+          positionals.push(token);
+        }
+      }
+      if (
+        positionals.length > 1 ||
+        (flags.has('--index') && positionals.length > 0)
+      ) {
+        throw new FeatureStateError(
+          'Unexpected arguments. Run --help for usage.',
+        );
+      }
+      if (flags.has('--index')) {
+        return {
+          exitCode: 0,
+          stderr: '',
+          stdout: renderDocsIndex({ json: flags.has('--json') }),
+        };
+      }
+      if (positionals.length === 0) {
+        return {
+          exitCode: 0,
+          stderr: '',
+          stdout: flags.has('--json')
+            ? renderDocsIndex({ json: true })
+            : renderDocsOverview(),
+        };
+      }
+      const topic = resolveDocsTopic(positionals[0]);
+      if (!topic) {
+        throw new FeatureStateError(
+          `Unknown documentation topic "${positionals[0]}". Run "features-cli docs --index".`,
+        );
+      }
+      return {
+        exitCode: 0,
+        stderr: '',
+        stdout: renderDocsTopic(topic, { json: flags.has('--json') }),
+      };
+    }
     if (args[0] === 'list-issues') {
       const featureFlagIndex = args.indexOf('--feature');
       const actionableOnly = args.includes('--actionable');
@@ -760,6 +867,22 @@ export async function runIssuesManagerCli(
       stdout: '',
     };
   } catch (error) {
+    if (
+      args[0] === 'docs' &&
+      args.includes('--json') &&
+      error instanceof FeatureStateError
+    ) {
+      return {
+        exitCode: 1,
+        stdout: '',
+        stderr: renderDocsError(
+          error.message.startsWith('Unknown documentation topic')
+            ? 'DOCS_TOPIC_NOT_FOUND'
+            : 'DOCS_USAGE_ERROR',
+          error.message,
+        ),
+      };
+    }
     if (
       error instanceof FeatureStateError ||
       error instanceof IssueStateError ||

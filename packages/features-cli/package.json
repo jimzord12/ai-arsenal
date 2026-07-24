@@ -1,6 +1,6 @@
 {
   "name": "@jz/ai-arsenal-features-cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Private agent-facing CLI for durable feature workflow state.",
   "type": "module",
@@ -17,6 +17,7 @@
     "src/milestone-state.ts",
     "src/progress-state.ts",
     "src/status-scanner.ts",
+    "src/workflow-docs.ts",
     "README.md"
   ],
   "engines": {

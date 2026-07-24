@@ -1,5 +1,12 @@
 # @jz/ai-arsenal-features-cli
 
+## 0.3.0
+
+### Minor Changes
+
+- Add offline, read-only workflow documentation through the `docs` command,
+  including state-aware current-feature guidance and structured JSON output.
+
 ## 0.2.0
 
 ### Minor Changes

@@ -3,6 +3,7 @@ features-cli commands:
   create-feature <slug>
   status
   progress [--feature <selector>] [--json]
+  docs [--index] [<topic>] [--json]
   list-issues [--feature <selector>] [--actionable]
   get-issue <--next|--next-contract|--resume> [--feature <selector>]
   get-feature

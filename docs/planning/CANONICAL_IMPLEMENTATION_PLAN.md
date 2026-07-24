@@ -72,7 +72,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` The intended monorepo root is `C:\Users\jimzord12\Documents\GitHub\ai-arsenal`.
 - `[VERIFIED]` Git is initialized at the monorepo root with public remote `https://github.com/jimzord12/ai-arsenal`; the public `master` branch contains the Phase 7 reconciliation.
 - `[VERIFIED]` Root formatting, linting, typechecking, testing, commitlint, Husky/lint-staged, Changesets, and publint tooling are pinned and configured.
-- `[VERIFIED]` `packages/features-cli` is a private, self-contained source package boundary for `@jz/ai-arsenal-features-cli` with eight production modules, five migrated source suites, one command-characterization suite, strict TypeScript, Jest 29, linting, coverage, and package documentation.
+- `[VERIFIED]` `packages/features-cli` is a private, self-contained source package boundary for `@jz/ai-arsenal-features-cli` with nine production modules, five migrated source suites, one command-characterization suite, strict TypeScript, Jest 29, linting, coverage, and package documentation.
 - `[VERIFIED]` Phase 3 recorded byte sizes and SHA-256 hashes for every top-level non-archive source file immediately before copying; the source still matches all 14 recorded hashes.
 - `[VERIFIED]` `archives/v1/` was excluded, production imports depend only on Node built-ins and sibling modules, and the source checkout remains available for rollback.
 - `[VERIFIED]` Representative source/migrated workflows match for exit codes, output, normalized schema-v2 state, derived issue JSON, and canonical issue bytes.
@@ -81,7 +81,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Phase 5 covers malformed feature and issue JSON, invalid slug mutation safety, stale lock fail-fast behavior, feature-state transaction rollback and fail-closed recovery, direct issue-write partial failure characterization, milestone byte preservation, and shared-lock contention through both module and command boundaries.
 - `[VERIFIED]` Milestone mutation now participates in the same repository-level feature-state lock as feature and issue writers. Stale locks remain manual-recovery fail-fast sentinels, and broader issue-mutation transaction refactors are not implemented.
 - `[VERIFIED]` Packed artifacts are reproducible and Git-ignored. The current private tarball is installed in the Windows user's global pnpm environment, exposing `features-cli` on `PATH`; it did not mutate user `.scratch` state.
-- `[VERIFIED]` The private package exposes only `bin.features-cli = "src/bin.ts"`, blocks package imports with an empty `exports` map, and packs exactly package metadata, README, and eight production TypeScript modules; tests, coverage, configuration, archives, and unrelated files are excluded.
+- `[VERIFIED]` The private package exposes only `bin.features-cli = "src/bin.ts"`, blocks package imports with an empty `exports` map, and packs exactly package metadata, README, and nine production TypeScript modules; tests, coverage, configuration, archives, and unrelated files are excluded.
 - `[VERIFIED]` The actual tarball passes strict publint, installs into a clean unrelated pnpm consumer, generates a Windows `.CMD` shim that invokes Bun, and completes help plus a disposable schema-v2 feature lifecycle.
 - `[VERIFIED]` Automated black-box process coverage invokes the real Bun entrypoint in isolated temporary workspaces. It covers Bun version/help/parser behavior, feature and issue lifecycles, invalid or corrupt state, strict nested `cwd` behavior through paths with spaces and Unicode, idempotency, recovery journals, stale locks, direct issue-write partial failure, and fail-fast feature, issue, and milestone writer contention.
 - `[VERIFIED]` Automated distribution coverage packs the actual tarball, installs it into an unrelated temporary pnpm consumer, invokes its generated `features-cli` shim, and verifies schema version `"2"`. The package boundary remains exactly 10 files.
@@ -105,6 +105,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Changesets generated private package version `0.1.0` and `packages/features-cli/CHANGELOG.md` for flexible feature selectors. The actual 10-file `0.1.0` tarball passes strict publint, installs into a clean unrelated pnpm consumer, and is installed in the Windows user's global pnpm environment. The global command resolves both index and full-name feature selectors in the active `ics-vcr` consumer.
 - `[VERIFIED]` `packages/features-cli/AGENTS.md` establishes a self-hosting boundary: use the monorepo living-plan workflow to maintain this package and reserve `features-cli` for consumer-project feature workflows.
 - `[VERIFIED]` The monorepo work-item pipeline is fully implemented and independently verified. Its 30-test workflow suite covers strict active registration, direct-user revision requests, contract/plan archive-and-increment recovery, fresh approval binding, failed-verification recovery, skill structure, and disposable lifecycle routing; the full repository check passes.
+- [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[USER-LOCKED]` The approved Monorepo Work-Item Pipeline design and implementation plan define the current maintenance change. The user explicitly approved implementation on 2026-07-13, required subagent-driven execution and independent wide review, prohibited release/distribution automation, and prohibited commits or pushes without separate direction.
 
 ## 4.2 Product context supplied by the user
@@ -417,7 +418,7 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 - Artifact: npm-compatible source package containing TypeScript executed by Bun.
 - Runtime dependencies: none unless migration evidence proves otherwise.
 - Registry: private package; no npm publication or publication automation.
-- Packed boundary: package metadata, README, and the eight production TypeScript modules only.
+- Packed boundary: package metadata, README, and the nine production TypeScript modules only.
 - Validation: strict publint packs with pnpm; Are the Types Wrong remains inapplicable because there is no import surface.
 - Verified consumption: install the tarball into a clean unrelated pnpm consumer and run `features-cli` through the generated Bun-aware command shim. The current artifact is also installed globally on the Windows consumer machine; the stable executable and legacy rollback command pass read-only smoke checks in the two worktrees that mount the shared `.scratch` state.
 - Source CLI and junction remain available for rollback until consumer cutover and explicit deletion approval.
@@ -893,4 +894,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Split the verified worktree into logical commits, push the user-authorized changes, and confirm the resulting GitHub Actions Quality and Portability runs. Source deletion remains unapproved.
+Decide whether to authorize a separate release, local/global distribution, or commit/push operation for the verified docs-command change. Source deletion remains unapproved.
