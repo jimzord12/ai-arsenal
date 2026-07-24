@@ -582,9 +582,10 @@ implementation@1` and status `passed` or `failed`.
 - [ ] **Step 2: Update current-state documents without inventing a work item.**
 
   Add the `NEXT.md` active fields with `none` / `none`; retain the existing CI
-  confirmation as the exact next action. Reconcile the canonical plan to name
-  the new workflow and record that it does not alter the consumer `.scratch`
-  pipeline.
+  confirmation as the deferred follow-up after the approved pipeline
+  implementation is verified and reconciled. Reconcile the canonical plan to
+  name the new workflow and record that it does not alter the consumer
+  `.scratch` pipeline.
 
 - [ ] **Step 3: Update the existing skills.**
 

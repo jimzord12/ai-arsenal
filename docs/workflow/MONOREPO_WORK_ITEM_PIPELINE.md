@@ -9,6 +9,7 @@ the AI Arsenal monorepo and its packages; it never replaces the consumer
 | Order | Skill                       | Required current artifacts                    | Durable output                              |
 | ----- | --------------------------- | --------------------------------------------- | ------------------------------------------- |
 | 0     | `orchestrate-monorepo-work` | Repository and workflow state                 | Read-only routing brief                     |
+| R     | `request-monorepo-revision` | Direct user request; active current target    | `revision-request.md`; owner route          |
 | 1     | `capture-monorepo-change`   | Explicit request; no active work item         | `request.md`; active registration           |
 | 2     | `orient-monorepo-change`    | Ready request                                 | `context.md`                                |
 | 3     | `scope-monorepo-change`     | Ready request and context                     | `change-contract.md`                        |
@@ -39,7 +40,7 @@ order:
 
 ```markdown
 Work item: <YYYY-MM-DD-slug>
-Artifact: <request|context|contract|plan|approval|implementation|verification|reconciliation>
+Artifact: <request|context|contract|plan|approval|implementation|verification|reconciliation|revision-request>
 Revision: <positive integer>
 Prerequisites: <none|artifact@revision,...>
 Status: <draft|ready|approved|passed|failed|superseded>
@@ -62,6 +63,21 @@ Current stage outputs use these identities and states:
 `draft` is available while composing a replacement outside the current
 artifact path. `superseded` is historical. Neither is an eligible current
 pipeline state.
+
+## Direct contract and plan revision
+
+Only a direct user request may enter `request-monorepo-revision`. The stage
+writes `revision-request.md` with exactly one current `contract@N` or
+`plan@N` prerequisite, one `Revision target:` field, and the user's wording in
+one `Revision source:` field. It changes only the pipeline step: contract
+requests route to scope and plan requests route to planning.
+
+Scope consumes a contract request by archiving downstream current artifacts in
+reverse dependency order, then the contract and request, before writing
+`contract@N+1` and routing to planning. Planning similarly archives downstream
+artifacts, then the plan and request, before writing `plan@N+1` and requiring
+fresh explicit approval. Every archive preserves bytes except `Status:
+superseded`.
 
 ## Revisions and invalidation
 
@@ -87,8 +103,15 @@ verification, and reconciliation. The revised plan requires fresh explicit
 approval.
 
 A failed verification permits re-entry only within the current contract and
-approved plan. The repair stage archives and replaces the implementation report
-and invalidates the failed verification before recording fresh verification.
+approved plan. While `NEXT.md` routes to implementation, archive the failed
+current `verification.md` at its existing revision with `Status: superseded`,
+then archive the current `implementation-report.md` the same way. Write the
+next implementation-report revision against the unchanged current
+contract, plan, and approval. After it is complete, set `NEXT.md` to
+`verify-monorepo-change`; fresh verification writes the next verification
+revision against that new implementation revision. This preserves both failed
+attempt records and never overwrites or restores a verification result in
+place.
 
 ## Approval binding
 
@@ -127,6 +150,7 @@ Run from the repository root:
 ```text
 node scripts/validate-monorepo-work-item.mjs --work-item <YYYY-MM-DD-slug>
 node scripts/validate-monorepo-work-item.mjs --work-item <YYYY-MM-DD-slug> --json
+node scripts/validate-monorepo-work-item.mjs --current --json
 ```
 
 The JSON result is:
@@ -165,6 +189,18 @@ conflicting active registration.
 | Failed verification       | `implement-monorepo-change`                                 |
 | Passed verification       | `reconcile-monorepo-change`                                 |
 | Passed reconciliation     | Complete; no next skill                                     |
+
+## Executable lifecycle coverage
+
+`scripts/validate-monorepo-work-item.test.mjs` creates only disposable
+temporary work-item roots. Its complete-lifecycle test validates every normal
+route from request through passed reconciliation, including the explicit
+approval stop. It records failed verification, routes through the active
+implementation registration, archives the failed verification and first
+implementation report, and writes incremented implementation and verification
+revisions before confirming reconciliation routing resumes. The fixture never
+creates or mutates a real `docs/work-items/` artifact or consumer `.scratch`
+state.
 
 ## Structural stop conditions
 

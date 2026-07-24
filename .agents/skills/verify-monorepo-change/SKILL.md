@@ -37,11 +37,15 @@ step value.
    report the JSON blocker and recommend `initializing-living-plan-workflow`.
    Do not repair state, write evidence, or infer a result.
 
-4. Confirm the current contract, plan, and implementation report are revision
-   one with `contract@1`, `plan@1`, and `implementation@1`, and that
-   `verification.md` does not already exist. This forward verification creates
-   revision 1 only; it never overwrites, archives, or invents a later
-   verification revision.
+4. Confirm that `verification.md` does not already exist and select its next
+   revision. With no `revisions/verification.md/` history, forward verification
+   creates revision `1`. After failed-verification recovery, require complete
+   superseded verification archives through revision `N`; fresh verification
+   creates revision `N+1` with the current
+   `contract@<revision>,plan@<revision>,implementation@<revision>`
+   prerequisites. Do not overwrite, archive, or invent a current verification
+   revision; only `implement-monorepo-change` archives a failed record during
+   approved recovery.
 5. Read all applicable scoped instructions before inspecting an affected path.
    Treat a contract gap, implementation deviation, missing required command,
    or inability to observe an acceptance criterion as failed verification
@@ -79,14 +83,14 @@ than retrying it away or reporting a pass.
 
 ## Write the Verification Record
 
-Create only `docs/work-items/<id>/verification.md` from the verification
-template with this exact header:
+Create only the next current `docs/work-items/<id>/verification.md` from the
+verification template with this header shape:
 
 ```markdown
 Work item: <id>
 Artifact: verification
-Revision: 1
-Prerequisites: contract@1,plan@1,implementation@1
+Revision: <next verification revision>
+Prerequisites: contract@<current>,plan@<current>,implementation@<current>
 Status: <passed|failed>
 ```
 
@@ -128,7 +132,7 @@ differs, report the JSON blocker and stop.
 
 ## Boundary
 
-The only permitted durable mutations are the revision-one
+The only permitted durable mutations are the next current
 `docs/work-items/<id>/verification.md` for the active work item and, after the
 complete evidence record exists, the one existing `NEXT.md` pipeline-step
 value. Isolated disposable test output is allowed. Do not edit product source,

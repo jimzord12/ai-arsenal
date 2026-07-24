@@ -11,6 +11,10 @@ Route from verified repository state. This skill is read-only: it reports the
 earliest eligible pipeline action and never writes files, changes Git state,
 advances artifacts, grants approval, or starts a write-capable stage.
 
+The monorepo pipeline is not a consumer workflow. Do not invoke
+`features-cli`, inspect or mutate consumer `.scratch` state, or infer routing
+from consumer state.
+
 ## Read Before Routing
 
 1. Read the root `AGENTS.md`, then every nearer applicable `AGENTS.md` for
@@ -44,6 +48,10 @@ approval has no normal next skill: require explicit user approval, then name
 For a valid no-active-item result, report the current `NEXT.md` action. Do not
 recommend `capture-monorepo-change` until the user has described a new change
 that is within the normal pipeline.
+
+Select `request-monorepo-revision` only for a direct user revision request for
+the active work item's current contract or plan. Do not infer that intent from
+an agent finding, a failed verification, ambiguity, or a request for status.
 
 Release, packing, publishing, global installation, and source deletion are
 outside the normal pipeline. When a user describes one of those actions, do
@@ -82,6 +90,7 @@ input** to the explicit change request.
 | ------------------------------------ | -------------------------------------- |
 | No active item, no new change        | Report `NEXT.md`; do not start capture |
 | No active item, new change described | `capture-monorepo-change`              |
+| Direct user revision request         | `request-monorepo-revision`            |
 | Release/distribution/source deletion | Stop; outside the normal pipeline      |
 | Valid active state                   | Validator `nextSkill`                  |
 | Valid plan awaiting approval         | Stop for explicit approval             |

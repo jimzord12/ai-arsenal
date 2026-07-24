@@ -1,0 +1,6 @@
+interface:
+  display_name: 'Request Monorepo Revision'
+  short_description: 'Record a direct request to revise the active contract or plan.'
+  default_prompt: 'Record my direct request to revise the active monorepo contract or plan.'
+policy:
+  allow_implicit_invocation: false

@@ -31,6 +31,12 @@ scope, approve, implement, or broaden the request.
 
    Continue only when the JSON says `valid: true` and the registration agrees.
 
+## Self-Hosting Boundary
+
+Capture records a monorepo request only. Do not invoke `features-cli`, inspect
+or mutate consumer `.scratch` state, or use consumer state to supplement the
+user's request.
+
 ## Capture Contract
 
 ### 1. Select the identity

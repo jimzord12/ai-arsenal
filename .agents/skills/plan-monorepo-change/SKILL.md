@@ -34,10 +34,21 @@ approves its exact current contents.
    blocker, and recommend `initializing-living-plan-workflow` for structural
    state; do not repair, infer requirements, or write a plan.
 
-4. Confirm `change-contract.md` is the ready revision-one contract with the
-   exact current acceptance-criteria and test-seam sections, and that
-   `implementation-plan.md` does not already exist. This stage creates only
-   revision 1; it never overwrites, archives, or creates a later revision.
+4. Confirm either the revision-one forward state or a validator-routed current
+   plan revision request. Do not overwrite a current artifact.
+
+## Plan revision recovery
+
+When the validated route is a current plan `revision-request.md`, consume it
+rather than using the revision-one flow. Archive existing downstream current
+artifacts in reverse dependency order: reconciliation, verification,
+implementation, and approval. Archive the current plan and consumed request
+under their `revisions/<filename>/v<N>.md` identities with only `Status:`
+changed to `superseded`. Then write `plan@N+1` against the current contract and
+route to `record-monorepo-approval` for fresh explicit approval.
+
+Stop if the preflight is invalid, an archive cannot preserve its bytes except
+for status, or the request target is not the current plan.
 
 ## Write an Executable Plan
 

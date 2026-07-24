@@ -37,7 +37,7 @@ The answer must be understandable in approximately 30 seconds. Do not give a wal
 
 ## Current Project State
 
-This repository is currently an **implemented public monorepo with Phase 8 final validation accepted and maintenance/release handoff pending**.
+This repository is currently an **implemented public monorepo with Phase 8 final validation accepted and an approved monorepo work-item pipeline being integrated**.
 
 Known:
 
@@ -109,45 +109,75 @@ Do not create competing implementation plans.
 
 ## Required Skills
 
+### `orchestrate-monorepo-work`
+
+Use as the normal read-only entry point for monorepo work, resume requests, and
+status routing. It validates active workflow state and selects the earliest
+eligible stage without mutating files or Git state.
+
+### Normal Monorepo Work-Item Stages
+
+Use the router-selected stage only after its prerequisites are valid:
+
+1. `capture-monorepo-change`
+2. `orient-monorepo-change`
+3. `scope-monorepo-change`
+4. `plan-monorepo-change`
+5. `record-monorepo-approval`
+6. `implement-monorepo-change`
+7. `verify-monorepo-change`
+8. `reconcile-monorepo-change`
+
+### Direct Revision Entry
+
+`request-monorepo-revision` is available only when the user directly requests
+revision of the active current contract or plan. It records
+`revision-request.md` and routes to the owning scope or plan stage; it does not
+change product state or infer revision intent.
+
 ### `initializing-living-plan-workflow`
 
-Use when the workflow is first introduced, repository files are unorganized, or `AGENTS.md`, `NEXT.md`, the canonical plan, and their references are inconsistent.
-
-It initializes or repairs workflow state. It does not implement product code.
+Use only for workflow bootstrap or router-reported structural corruption. It
+repairs metadata and returns to `orchestrate-monorepo-work`; it does not
+execute a normal work-item stage.
 
 ### `executing-living-plan-phase`
 
-Use when beginning or resuming one approved phase from the canonical plan.
-
-It verifies prerequisites, executes one phase, verifies acceptance criteria, and requires reconciliation before any next phase.
+Use only as a compatibility wrapper for legacy phase-execution instructions. It
+routes to `orchestrate-monorepo-work` and never broadly executes a phase.
 
 ### `reconciling-living-plan`
 
-Use after a phase is verified or when a discovery materially invalidates the current plan.
-
-It rewrites the canonical plan as current truth, updates `NEXT.md`, and surfaces changes requiring approval.
+Use only for verified legacy-plan repair outside a normal active work item.
+Normal passed work items must use `reconcile-monorepo-change`.
 
 ## Mandatory Workflow
 
 ```text
-Orient from NEXT.md
-→ confirm current phase and prerequisites
-→ execute exactly one phase
-→ verify its acceptance criteria
-→ reconcile the canonical plan and NEXT.md
-→ stop at any required approval gate
-→ only then begin the next phase
+orchestrate-monorepo-work (read-only)
+→ capture-monorepo-change (only for an explicit new request with no active item)
+→ request-monorepo-revision (only for a direct active contract/plan revision request)
+→ orient-monorepo-change
+→ scope-monorepo-change
+→ plan-monorepo-change
+→ explicit user approval
+→ record-monorepo-approval
+→ implement-monorepo-change
+→ verify-monorepo-change
+→ reconcile-monorepo-change
+→ router reports the resulting next action
 ```
 
-A phase is not complete merely because code was written or tests passed.
+The router selects the earliest eligible stage from validator-confirmed
+artifacts. If it reports malformed workflow metadata, stale approval, or other
+structural corruption, stop at `initializing-living-plan-workflow`; do not
+infer a stage or repair user intent.
 
-A phase is complete only after:
+A normal work item is complete only after:
 
-- Its acceptance criteria are verified.
-- Evidence is recorded.
-- The canonical plan reflects the resulting reality.
-- Remaining phases have been corrected for new discoveries.
-- `NEXT.md` points to the correct next action.
+- Passed verification and reconciliation evidence exist.
+- The canonical plan and `NEXT.md` reflect verified current truth.
+- Active work-item fields are cleared and both workflow validators pass.
 - Required user approval has been obtained.
 
 ## Living-Plan Rules
@@ -232,13 +262,14 @@ These are direction and constraints. Exact manifests, commands, architecture, bu
 
 ## Verification Discipline
 
-Before claiming a phase complete:
+Before claiming a normal active work item complete:
 
-- Run the phase’s exact verification commands.
-- Inspect actual output and exit status.
-- Record evidence.
-- Run `reconciling-living-plan`.
-- Run the workflow validator when available:
+- Run its exact verification commands and inspect actual output and exit status.
+- Record verification evidence, then use `reconcile-monorepo-change` only after
+  passed verification.
+- Confirm the completed active-registration state with both workflow validators.
+- Use `reconciling-living-plan` only for a verified legacy-plan repair outside
+  a normal active work item.
 
 ```bash
 node scripts/validate-living-workflow.mjs

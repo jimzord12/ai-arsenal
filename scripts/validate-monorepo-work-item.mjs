@@ -53,13 +53,23 @@ const artifactDefinitions = [
     prerequisites: ['verification'],
   },
 ];
+const revisionRequestDefinition = {
+  key: 'revision-request',
+  file: 'revision-request.md',
+  statuses: ['ready'],
+  prerequisites: [],
+};
 const artifactByKey = new Map(
-  artifactDefinitions.map((definition) => [definition.key, definition]),
+  [...artifactDefinitions, revisionRequestDefinition].map((definition) => [
+    definition.key,
+    definition,
+  ]),
 );
 const workItemPattern = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function parseArguments(argv) {
   let workItem = null;
+  let current = false;
   let json = false;
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -79,17 +89,29 @@ function parseArguments(argv) {
       index += 1;
       continue;
     }
+    if (argument === '--current') {
+      if (current) throw new Error('Duplicate argument: --current');
+      current = true;
+      continue;
+    }
     throw new Error(`Unknown argument: ${argument}`);
   }
 
-  if (workItem === null)
+  if (workItem === null && !current)
     throw new Error('Missing required argument: --work-item');
-  if (workItem !== 'none' && !workItemPattern.test(workItem)) {
+  if (workItem !== null && current) {
+    throw new Error('--work-item and --current cannot be combined');
+  }
+  if (
+    workItem !== null &&
+    workItem !== 'none' &&
+    !workItemPattern.test(workItem)
+  ) {
     throw new Error(
       'Work-item ID must match YYYY-MM-DD-lowercase-kebab-slug or be none',
     );
   }
-  return { workItem, json };
+  return { workItem, current, json };
 }
 
 function result(workItem, valid, nextSkill, blocker, artifacts = {}) {
@@ -98,7 +120,11 @@ function result(workItem, valid, nextSkill, blocker, artifacts = {}) {
 
 function parseActiveState() {
   const nextPath = path.join(root, 'NEXT.md');
-  if (!fs.existsSync(nextPath)) return null;
+  if (!fs.existsSync(nextPath)) {
+    throw new Error(
+      'NEXT.md must contain exactly one active work-item field and one pipeline-step field',
+    );
+  }
 
   const contents = fs.readFileSync(nextPath, 'utf8');
   const activeMatches = [
@@ -108,7 +134,6 @@ function parseActiveState() {
     ...contents.matchAll(/^\*\*Pipeline step:\*\* `([^`]+)`\r?$/gm),
   ];
 
-  if (activeMatches.length === 0 && stepMatches.length === 0) return null;
   if (activeMatches.length !== 1 || stepMatches.length !== 1) {
     throw new Error(
       'NEXT.md must contain exactly one active work-item field and one pipeline-step field',
@@ -276,7 +301,9 @@ function validateArchivedRevisions(workItemDirectory, definition, artifact) {
 function validateActiveRoute(activeState, output) {
   if (!activeState) return output;
 
-  const complete = Boolean(output.artifacts.reconciliation);
+  const complete =
+    Boolean(output.artifacts.reconciliation) &&
+    !output.artifacts.revisionRequest;
   if (complete) {
     if (
       activeState.activeWorkItem !== 'none' ||
@@ -343,6 +370,75 @@ function validateApproval(workItemDirectory, planContents) {
   }
 }
 
+function parseRevisionRequestBody(contents, label) {
+  const targetMatches = [
+    ...contents.matchAll(/^Revision target: `([^`]+)`\r?$/gm),
+  ];
+  const sourceMatches = [
+    ...contents.matchAll(/^Revision source: `([^`]+)`\r?$/gm),
+  ];
+  if (targetMatches.length !== 1 || sourceMatches.length !== 1) {
+    throw new Error(
+      `${label} must contain Revision target and Revision source exactly once`,
+    );
+  }
+  const target = targetMatches[0][1];
+  if (target !== 'contract' && target !== 'plan') {
+    throw new Error(`${label} target must be contract or plan`);
+  }
+  if (sourceMatches[0][1].trim().length === 0) {
+    throw new Error(`${label} Revision source must not be empty`);
+  }
+  return target;
+}
+
+function validateRevisionRequestArchives(workItemDirectory, revisionRequest) {
+  for (let revision = 1; revision < revisionRequest.revision; revision += 1) {
+    const archivePath = path.join(
+      workItemDirectory,
+      'revisions',
+      revisionRequestDefinition.file,
+      `v${revision}.md`,
+    );
+    if (!fs.existsSync(archivePath)) {
+      throw new Error(
+        `revision-request.md revision ${revisionRequest.revision} is missing archived v${revision}`,
+      );
+    }
+    const contents = fs.readFileSync(archivePath, 'utf8');
+    const lines = contents.split(/\r?\n/);
+    if (
+      lines[0] !== `Work item: ${path.basename(workItemDirectory)}` ||
+      lines[1] !== 'Artifact: revision-request' ||
+      lines[2] !== `Revision: ${revision}` ||
+      lines[4] !== 'Status: superseded'
+    ) {
+      throw new Error(
+        `revision-request.md archived v${revision} has inconsistent identity or status`,
+      );
+    }
+    const target = parseRevisionRequestBody(
+      contents,
+      `revision-request.md archived v${revision}`,
+    );
+    const prerequisiteMatch = lines[3]?.match(
+      /^Prerequisites: (contract|plan)@([1-9]\d*)$/,
+    );
+    if (!prerequisiteMatch || prerequisiteMatch[1] !== target) {
+      throw new Error(
+        `revision-request.md archived v${revision} has malformed prerequisites`,
+      );
+    }
+    if (
+      !revisionExists(workItemDirectory, target, Number(prerequisiteMatch[2]))
+    ) {
+      throw new Error(
+        `revision-request.md archived v${revision} references a missing target revision`,
+      );
+    }
+  }
+}
+
 function validateWorkItem(workItem, activeState) {
   const artifacts = {};
   const finish = (output) => validateActiveRoute(activeState, output);
@@ -393,6 +489,38 @@ function validateWorkItem(workItem, activeState) {
     };
   }
 
+  const revisionRequestPath = path.join(
+    workItemDirectory,
+    revisionRequestDefinition.file,
+  );
+  if (fs.existsSync(revisionRequestPath)) {
+    const contents = fs.readFileSync(revisionRequestPath, 'utf8');
+    const revisionRequest = parseArtifact(
+      contents,
+      revisionRequestDefinition,
+      workItem,
+    );
+    validateRevisionRequestArchives(workItemDirectory, revisionRequest);
+    const target = parseRevisionRequestBody(contents, 'revision-request.md');
+    const targetArtifact = artifacts[target];
+    if (!targetArtifact) {
+      throw new Error(
+        `revision-request.md target ${target} does not exist in current state`,
+      );
+    }
+    const expectedPrerequisite = `${target}@${targetArtifact.revision}`;
+    if (revisionRequest.prerequisitesText !== expectedPrerequisite) {
+      throw new Error(
+        `revision-request.md prerequisite is stale; expected ${expectedPrerequisite}`,
+      );
+    }
+    artifacts.revisionRequest = {
+      revision: revisionRequest.revision,
+      status: revisionRequest.status,
+      target,
+    };
+  }
+
   if (artifacts.approval) {
     const planPath = path.join(
       workItemDirectory,
@@ -402,6 +530,20 @@ function validateWorkItem(workItem, activeState) {
   }
   if (artifacts.reconciliation && artifacts.verification.status !== 'passed') {
     throw new Error('reconciliation requires passed verification');
+  }
+
+  if (artifacts.revisionRequest) {
+    return finish(
+      result(
+        workItem,
+        true,
+        artifacts.revisionRequest.target === 'contract'
+          ? 'scope-monorepo-change'
+          : 'plan-monorepo-change',
+        null,
+        artifacts,
+      ),
+    );
   }
 
   if (!artifacts.request) {
@@ -477,10 +619,17 @@ function print(output, asJson) {
   console.log(`Blocker: ${output.blocker ?? 'none'}`);
 }
 
-let parsedArguments = { workItem: null, json: process.argv.includes('--json') };
+let parsedArguments = {
+  workItem: null,
+  current: false,
+  json: process.argv.includes('--json'),
+};
 try {
   parsedArguments = parseArguments(process.argv.slice(2));
   const activeState = parseActiveState();
+  if (parsedArguments.current) {
+    parsedArguments.workItem = activeState.activeWorkItem;
+  }
   let output;
   if (parsedArguments.workItem === 'none') {
     if (activeState && activeState.activeWorkItem !== 'none') {

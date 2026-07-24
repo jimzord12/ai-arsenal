@@ -3,13 +3,30 @@ import path from 'node:path';
 
 const root = process.cwd();
 
+const normalSkills = [
+  'orchestrate-monorepo-work',
+  'capture-monorepo-change',
+  'orient-monorepo-change',
+  'scope-monorepo-change',
+  'plan-monorepo-change',
+  'record-monorepo-approval',
+  'implement-monorepo-change',
+  'verify-monorepo-change',
+  'reconcile-monorepo-change',
+];
+
+const revisionSkill = 'request-monorepo-revision';
+
 const requiredFiles = [
   'AGENTS.md',
   'NEXT.md',
   'docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md',
+  'docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md',
   '.agents/skills/initializing-living-plan-workflow/SKILL.md',
   '.agents/skills/executing-living-plan-phase/SKILL.md',
   '.agents/skills/reconciling-living-plan/SKILL.md',
+  `.agents/skills/${revisionSkill}/SKILL.md`,
+  ...normalSkills.map((skill) => `.agents/skills/${skill}/SKILL.md`),
 ];
 
 const errors = [];
@@ -38,12 +55,28 @@ for (const token of [
   'initializing-living-plan-workflow',
   'executing-living-plan-phase',
   'reconciling-living-plan',
+  revisionSkill,
+  ...normalSkills,
 ]) {
   if (!agents.includes(token)) errors.push(`AGENTS.md missing: ${token}`);
 }
 
+for (const legacyToken of [
+  '→ execute exactly one phase',
+  '→ execute one approved phase',
+  '- Run `reconciling-living-plan`.',
+]) {
+  if (agents.includes(legacyToken)) {
+    errors.push(
+      `AGENTS.md retains legacy broad execution loop: ${legacyToken}`,
+    );
+  }
+}
+
 for (const heading of [
   '# NEXT',
+  '**Active work item:**',
+  '**Pipeline step:**',
   '## Next Action',
   '## Why This Is Next',
   '## Requirements',
@@ -65,7 +98,7 @@ for (const heading of [
   '# 1. Purpose and Authority',
   '# 4. Current Verified State',
   '# 6. Definition of Done',
-  '# 8. Living-Plan Maintenance Contract',
+  '# 8. Monorepo Work-Item Pipeline and Legacy Plan Maintenance',
   '# 9. Phase Map',
   '# 19. Current Risks',
   '# 20. Current Open Decisions',
@@ -91,13 +124,89 @@ for (const skillPath of requiredFiles.filter((f) => f.endsWith('/SKILL.md'))) {
     errors.push(`${skillPath} has no YAML frontmatter.`);
     continue;
   }
-  if (!/^name:\s+[a-z0-9-]+\s*$/m.test(frontmatter[1])) {
+  const name = frontmatter[1].match(/^name:\s+(.+?)\s*$/m)?.[1];
+  if (!name || !/^[a-z0-9-]+$/.test(name)) {
     errors.push(`${skillPath} has an invalid or missing name.`);
+  } else {
+    const expectedName = path.basename(path.dirname(skillPath));
+    if (name !== expectedName) {
+      errors.push(
+        `${skillPath} frontmatter name must equal "${expectedName}"; found "${name}".`,
+      );
+    }
   }
   const description = frontmatter[1].match(/^description:\s+(.+)$/m)?.[1] ?? '';
   if (!description.startsWith('Use when')) {
     errors.push(`${skillPath} description must start with "Use when".`);
   }
+}
+
+for (const { skill, label, tokens } of [
+  {
+    skill: 'orchestrate-monorepo-work',
+    label: 'orchestrate-monorepo-work direct user revision request',
+    tokens: ['request-monorepo-revision', 'direct user revision request'],
+  },
+  {
+    skill: 'scope-monorepo-change',
+    label: 'scope-monorepo-change revision recovery',
+    tokens: [
+      'Contract revision recovery',
+      'revision-request.md',
+      'reverse dependency order',
+      'contract@N+1',
+      'plan-monorepo-change',
+    ],
+  },
+  {
+    skill: 'plan-monorepo-change',
+    label: 'plan-monorepo-change revision recovery',
+    tokens: [
+      'Plan revision recovery',
+      'revision-request.md',
+      'reverse dependency order',
+      'plan@N+1',
+      'record-monorepo-approval',
+    ],
+  },
+  {
+    skill: revisionSkill,
+    label: 'request-monorepo-revision contract',
+    tokens: [
+      'direct user revision request',
+      'revision-request.md',
+      'scope-monorepo-change',
+      'plan-monorepo-change',
+    ],
+  },
+]) {
+  const skillPath = `.agents/skills/${skill}/SKILL.md`;
+  const content = read(skillPath);
+  for (const token of tokens) {
+    if (!content.includes(token)) {
+      errors.push(`${label} missing: ${token}`);
+    }
+  }
+}
+
+const packageManifest = read('package.json');
+try {
+  const workflowCommand =
+    JSON.parse(packageManifest).scripts?.['validate:workflow'];
+  if (
+    typeof workflowCommand !== 'string' ||
+    !/node\s+scripts\/validate-monorepo-work-item\.mjs\s+--current\b/.test(
+      workflowCommand,
+    )
+  ) {
+    errors.push(
+      'package.json validate:workflow must validate the current registration with --current.',
+    );
+  }
+} catch {
+  errors.push(
+    'package.json must be valid JSON with a validate:workflow script.',
+  );
 }
 
 if (/\b(TBD|TODO)\b/.test(next)) {

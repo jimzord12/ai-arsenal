@@ -1,75 +1,50 @@
-# Living Implementation Plan Workflow
+# Monorepo Work-Item Pipeline
 
-## Why It Exists
+## Purpose
 
-AI can produce software faster than a human can retain the context behind it.
+The repository uses a routed, artifact-driven workflow for monorepo changes.
+It preserves resumable context, explicit approval, and independently verifiable
+handoffs without replacing the consumer `.scratch/features/` workflow.
 
-This workflow keeps the project understandable by maintaining three levels of information:
+## Normal Route
 
-1. `NEXT.md` — the 30-second operator view.
-2. `AGENTS.md` — stable rules that Codex loads automatically.
-3. `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md` — the full current truth.
-
-## Core Loop
-
-```text
-Orient
-→ execute one approved phase
-→ verify acceptance criteria
-→ reconcile discoveries into the canonical plan
-→ regenerate NEXT.md
-→ continue only when gates allow
-```
-
-## Skills
-
-- `initializing-living-plan-workflow`: bootstraps or repairs the workflow.
-- `executing-living-plan-phase`: executes one approved phase and requires verification/reconciliation.
-- `reconciling-living-plan`: rewrites the plan and `NEXT.md` from verified reality.
-
-## Canonical Versus Historical Information
-
-Canonical plan:
-
-- Current verified state.
-- Current architecture.
-- Remaining work.
-- Current risks and decisions.
-
-Historical evidence:
-
-- Git history.
-- Phase evidence.
-- ADRs.
-- Archived source plans.
-
-The canonical plan should never become a running diary.
-
-## 30-Second UX Test
-
-After returning days later, ask Codex:
+Start with `orchestrate-monorepo-work`. It is read-only and selects the
+earliest eligible stage from `NEXT.md` and validated work-item artifacts:
 
 ```text
-What is going on?
+capture → orient → scope → plan → explicit approval → record approval
+→ implement → verify → reconcile
 ```
 
-A successful response says:
+A direct user request to revise the active current contract or plan enters
+`request-monorepo-revision`. It records `revision-request.md`, changes no
+product state, and routes to scope or planning; it is never inferred from
+ordinary routing or a failed verification.
 
-- What the project is.
-- Current state.
-- Exact next action.
-- Requirements/blockers.
-- Why that action is next.
-- Whether approval is needed.
+The complete stage contracts, artifacts, revisions, approval digest, and stop
+conditions are normative in
+[`MONOREPO_WORK_ITEM_PIPELINE.md`](MONOREPO_WORK_ITEM_PIPELINE.md).
 
-## When This Workflow Fits
+## Resume and Repair
 
-Use it for:
+`NEXT.md` records one active work item and its pipeline step. A valid active
+item is routed by the validator; no active item remains idle until the user
+describes a new monorepo change.
 
-- Multi-phase implementation.
-- Research/discovery-heavy projects.
-- Agent-driven execution.
-- Projects where architecture and requirements evolve during implementation.
-- Work that may be resumed after context is forgotten.
+Malformed active metadata, stale approval, invalid artifact revisions, or
+other structural corruption route to `initializing-living-plan-workflow`.
+That repair skill preserves history, restores only confirmed metadata, runs
+both validators, and returns to the router. It does not infer user intent or
+advance a stage.
 
-Do not use the full workflow for a trivial one-file change with no meaningful plan.
+## Legacy Compatibility
+
+`executing-living-plan-phase` redirects legacy phase-execution instructions to
+the router. `reconciling-living-plan` is reserved for verified legacy-plan
+repair; normal passed work items use `reconcile-monorepo-change`.
+
+## Boundaries
+
+The normal pipeline ends after reconciliation. Release, packing, publication,
+global installation, source deletion, and consumer `.scratch` work remain
+outside it and keep their existing approval rules.

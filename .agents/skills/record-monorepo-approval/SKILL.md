@@ -1,6 +1,6 @@
 ---
 name: record-monorepo-approval
-description: Record a user's direct current-conversation approval of the active ready monorepo implementation plan.
+description: Use when a user directly approves the current active AI Arsenal monorepo implementation plan and its approval digest must be recorded.
 ---
 
 # Record Monorepo Approval
@@ -37,10 +37,13 @@ durable, digest-bound planning artifact; it does not implement the plan.
    `initializing-living-plan-workflow` for structural state; do not repair,
    write, or change the active registration.
 
-5. Confirm `implementation-plan.md` is the ready revision-one plan with
-   `contract@1`, and that `approval.md` does not already exist. This stage
-   creates only approval revision 1; it never overwrites, archives, or creates
-   a later revision.
+5. Confirm `implementation-plan.md` is the current ready plan, its contract
+   prerequisite names the current contract revision, and `approval.md` does
+   not already exist. Determine the next approval revision from the complete
+   archived approval history: use revision `1` when no approval archive exists,
+   otherwise use one more than the highest contiguous archived revision. Stop
+   if the archive is missing, malformed, or non-contiguous; never overwrite an
+   approval or invent a revision gap.
 
 ## Record the Direct Approval
 
@@ -57,8 +60,8 @@ this exact header:
 ```markdown
 Work item: <id>
 Artifact: approval
-Revision: 1
-Prerequisites: plan@1
+Revision: <next approval revision>
+Prerequisites: plan@<current plan revision>
 Status: approved
 ```
 
@@ -101,7 +104,7 @@ later stage from this skill.
 
 ## Boundary
 
-The only permitted mutations are the revision-one
+The only permitted mutations are the next current
 `docs/work-items/<id>/approval.md` for the active work item and, after the
 approval artifact is complete, the one existing `NEXT.md` pipeline-step value.
 Do not edit product source, tests, package metadata, product documentation,
@@ -117,8 +120,9 @@ push, or otherwise mutate Git history.
   objection, or a prior-plan approval as direct approval.
 - Hashing normalized text instead of the exact current plan bytes, or changing
   the plan after computing the digest.
-- Writing an approval header other than revision 1, `plan@1`, and `approved`,
-  or writing any approval field more than once.
+- Writing an approval header with a non-contiguous revision, a stale plan
+  prerequisite, a status other than `approved`, or any approval field more
+  than once.
 - Advancing `NEXT.md` before a complete approval record and valid validator
   result, or changing anything other than its existing pipeline-step value.
 - Implementing the plan, writing another artifact, or making release,

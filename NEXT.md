@@ -1,47 +1,47 @@
 # NEXT
 
 **Workflow version:** 1.0
-**Last reconciled:** 2026-07-13
+**Last reconciled:** 2026-07-24
 **Project:** AI Arsenal monorepo and `features-cli` migration
-**State:** Monorepo work-item pipeline design and implementation plan are approved; implementation is in progress
-**Current phase:** Maintenance / monorepo work-item pipeline implementation
+**State:** Monorepo work-item pipeline is verified and reconciled; authorized publication is pending
+**Current phase:** Maintenance / publication and CI confirmation
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Implement and verify the approved Monorepo Work-Item Pipeline plan, then reconcile the living workflow.
+Split the verified worktree into logical commits, push the authorized changes, and confirm the resulting GitHub Actions runs.
 
 ## Why This Is Next
 
-- The user explicitly approved implementation on 2026-07-13 and directed this work to take priority over pending CI confirmation.
-- The approved design and implementation plan define the exact artifact, revision, approval-digest, validation, routing, and self-hosting contracts.
-- The current broad living-plan execution loop must be replaced only after the new pipeline passes focused, integrated, and wide independent review.
-- The previously pending Quality and Portability run confirmation remains deferred follow-up and is not discarded.
+- The pipeline implementation, focused tests, full repository check, independent verification, and reconciliation all passed.
+- The user separately authorized committing and pushing the verified worktree.
+- `master` already contains five local commits not yet present on `origin/master`; the new logical commits must be added without mixing unrelated changes.
+- Quality and Portability CI confirmation remains required after the push.
 
 ## Requirements
 
-- [x] Approved design and implementation plan are present.
-- [x] The user explicitly approved starting implementation.
-- [x] Existing approved uncommitted work is preserved.
-- [ ] Tasks 1–12 pass their focused and integrated checks.
-- [ ] Three independent wide-review lenses have no unresolved concrete findings.
-- [ ] Final root verification and living-plan reconciliation pass.
+- [x] The approved implementation plan and digest-bound approval are recorded.
+- [x] The 30-test workflow suite and full `pnpm check` pass.
+- [x] Independent verification and reconciliation pass.
+- [x] Commit and push authorization is explicit.
+- [ ] Logical commits are created and pushed.
+- [ ] New GitHub Actions Quality and Portability runs pass.
 
 ## Blockers / Approval
 
-- No implementation approval is outstanding for the approved work-item pipeline plan.
-- Do not commit or push without separate user direction.
+- No implementation, verification, reconciliation, commit, or push approval is outstanding for the current verified worktree.
 - Preserve the source rollback copy, user `.scratch` data, approved Windows/Linux platform target, and LF checkout policy.
 - Persisted schema changes, broader transaction semantics, distribution deviations, and source deletion remain approval-gated.
 
 ## Done When
 
-- The artifact-driven pipeline, validator, router, eight write-capable stage skills, governance integration, and disposable lifecycle simulation match the approved contracts.
-- `pnpm check`, `pnpm validate:workflow`, and `git diff --check` pass after review repairs.
-- Reconciliation evidence records the resulting state and the exact next action.
+- The approved logical commits are present on the public remote.
+- Quality and Portability workflows pass for the pushed `master` commit.
 
 ## After This
 
-- Return to the deferred `master` Quality and Portability run confirmation unless verified evidence changes the canonical next action. Source deletion remains unapproved.
+- Source deletion remains separately approval-controlled and unapproved.
 
 ## Source of Truth
 

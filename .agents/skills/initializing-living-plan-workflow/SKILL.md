@@ -1,51 +1,58 @@
 ---
 name: initializing-living-plan-workflow
-description: Use when a repository is adopting or repairing the canonical living-plan workflow and AGENTS.md, NEXT.md, plan files, skills, or input-document organization are missing, stale, or inconsistent.
+description: Use when the monorepo-work-item router reports structural workflow corruption, or when canonical living-plan metadata and required workflow files need bootstrap or repair.
 ---
 
-# Initializing the Living-Plan Workflow
+# Repair the Living-Plan Workflow
 
-## Goal
+## Role
 
-Create or repair a coherent workflow state without beginning product implementation.
+This is the bootstrap and structural-repair path, not the normal executor for
+a monorepo change. Normal work starts with `orchestrate-monorepo-work` and
+uses its validator-backed route. Use this skill only when the router stops for
+missing, malformed, duplicated, or inconsistent workflow metadata, or when a
+repository is first adopting the living-plan workflow.
 
-## Required Outputs
+## Inspect Before Repair
 
-- Root `AGENTS.md`
-- Root `NEXT.md`
-- `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
-- `.agents/skills/`
-- Organized input/evidence/decision/archive locations
+1. Read root and scoped `AGENTS.md` files, `NEXT.md`, the referenced canonical
+   plan section, `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`, the router's
+   stopped brief, and `git status --short`.
+2. Identify the exact structural defect: required workflow file, active-item
+   block, pipeline step, current artifact header, prerequisite revision,
+   archive, or approval metadata.
+3. Inventory affected workflow metadata before changing it. Preserve unrelated
+   user instructions, work-item artifacts, evidence, and historical revisions.
 
-## Rules
+## Repair Boundary
 
-- Inventory before moving.
-- Preserve user instructions and inputs.
-- Never overwrite an existing `AGENTS.md` wholesale.
-- Maintain or add the `living-plan-workflow` managed section.
-- Do not scaffold product code, install dependencies, or migrate source code.
-- Do not archive a plan until its requirements are represented in the canonical plan.
+Repair only the confirmed workflow structure needed to make the existing state
+readable and internally consistent. Do not guess a work-item ID, infer user
+approval, change product scope, overwrite or discard an artifact, create a new
+work item, edit product code, or invoke `features-cli`. If intent is required
+to choose between valid repairs, stop and ask the user.
 
-## Procedure
+For initial bootstrap, create only missing workflow structure and preserve
+existing user-provided files. Do not begin product implementation, install
+dependencies, migrate source, or archive a plan before its requirements are
+represented in the canonical plan.
 
-1. Resolve the intended repository root and inspect Git status.
-2. Read all active instruction files and inventory every existing file.
-3. Confirm required workflow files and repository skills exist.
-4. Merge missing workflow guidance into `AGENTS.md`; preserve unrelated rules.
-5. Create missing files from this skill’s `assets/`, adapting them to known project facts.
-6. Place unabsorbed references under `docs/input/`; preserve provenance.
-7. Validate all references and run `node scripts/validate-living-workflow.mjs` when available.
-8. Record initialization evidence.
-9. Invoke **REQUIRED SUB-SKILL:** `reconciling-living-plan`.
-10. Update `NEXT.md` to the first real discovery/implementation phase.
-11. Report what changed, remaining blockers, and the exact next action.
+## Validate and Return to the Router
 
-## Git Root
+After repair, run the applicable checks from the repository root:
 
-If no Git repository exists, confirm the folder is the intended project root before running `git init`.
+```powershell
+node scripts/validate-living-workflow.mjs
+node scripts/validate-monorepo-work-item.mjs --work-item <repaired-id|none> --json
+```
+
+Both commands must confirm a valid state. Then invoke
+`orchestrate-monorepo-work` to obtain the next stage. Do not select or execute
+a write-capable normal stage from this skill, reconcile the canonical plan, or
+manufacture a next action.
 
 ## Completion
 
-Initialization is complete only when the workflow is internally consistent, all inputs are preserved, and `NEXT.md` points to the correct next phase.
-
-Stop after initialization. Do not begin the next phase.
+Report the repaired defect, preserved artifacts, both observed validation
+results, and the router-selected next skill. Stop after the repair route is
+valid.

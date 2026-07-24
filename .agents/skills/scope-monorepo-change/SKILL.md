@@ -33,8 +33,21 @@ with the user.
    and recommend `initializing-living-plan-workflow` for structural state; do
    not repair, infer intent, or write a contract.
 
-4. Confirm `change-contract.md` does not already exist. This stage creates
-   revision 1 only; it never overwrites, archives, or creates a later revision.
+4. Confirm either the revision-one forward state or a validator-routed current
+   contract revision request. Do not overwrite a current artifact.
+
+## Contract revision recovery
+
+When the validated route is a current contract `revision-request.md`, consume
+it rather than using the revision-one flow. Archive existing downstream current
+artifacts in reverse dependency order: reconciliation, verification,
+implementation, approval, and plan. Archive the current contract and consumed
+request under their `revisions/<filename>/v<N>.md` identities with only
+`Status:` changed to `superseded`. Then write `contract@N+1` using the current
+request and context prerequisites, and route to `plan-monorepo-change`.
+
+Stop if the preflight is invalid, an archive cannot preserve its bytes except
+for status, or the request target is not the current contract.
 
 ## Write the Complete Contract
 
@@ -66,10 +79,11 @@ Do not invent a requirement to fill a gap. If the request or evidence cannot
 support a complete bounded contract, identify the exact unanswered question and
 stop before the successful handoff.
 
-## Approval Stop
+## Approval Stop Before Contract Creation
 
-Before committing the contract to a decision, stop and ask the user when it
-would change any of these:
+Before creating or updating a current contract, stop and ask the user when
+reliable contract scope depends on an unanswered decision in any of these
+areas:
 
 - public CLI or other public behavior;
 - a persisted schema;
@@ -79,11 +93,15 @@ would change any of these:
 - source deletion; or
 - user data.
 
-Record the unanswered decision in the contract's `## Approval required` section
-as `Yes — user decision pending: <exact decision>`, preserving any supplied
-user-locked wording verbatim. Ask one direct approval question. Do not select a
-default, write a plan, change product files, update `NEXT.md`, run the
-post-write handoff validator, or represent this as a successful scope handoff.
+Identify the exact unanswered decision and ask one direct user question. Do
+not select a default, create or update `change-contract.md`, write a plan,
+change product files, update `NEXT.md`, run the post-write handoff validator,
+or represent this as a successful scope handoff. The active work item therefore
+remains routed to `scope-monorepo-change` until the user answers directly.
+
+After the user resolves the decision, resume normal contract creation from the
+template and complete the successful-handoff validation below. Preserve any
+supplied user-locked wording verbatim in the completed contract.
 
 ## Successful Handoff
 

@@ -1,6 +1,6 @@
 ---
 name: implement-monorepo-change
-description: Implement one approved, digest-bound AI Arsenal monorepo work-item contract and hand it to verification.
+description: Use when an active AI Arsenal monorepo work item has a digest-bound approved plan and needs contract-scoped implementation before verification.
 ---
 
 # Implement Monorepo Change
@@ -37,11 +37,26 @@ or perform consumer or Git-history operations.
    `initializing-living-plan-workflow` for structural state. Do not repair,
    edit, or begin implementation.
 
-4. Confirm the current contract, plan, and approval are revision one with
-   `contract@1`, `plan@1`, and `approval@1` as the implementation-report
-   prerequisites. Confirm that `implementation-report.md` does not already
-   exist. This forward implementation creates revision 1 only; it does not
-   overwrite, archive, or invent a later report revision.
+4. Select exactly one valid implementation mode:
+
+   - **Forward implementation:** `implementation-report.md` and
+     `verification.md` do not exist. Create implementation-report revision `1`
+     with the current `contract@<revision>,plan@<revision>,approval@<revision>`
+     prerequisites.
+   - **Failed-verification recovery:** the current verification status is
+     `failed`, the current implementation report exists, and the validator
+     routes here. Remain within the unchanged current contract and approved
+     plan. Before product repair, copy the failed verification to
+     `revisions/verification.md/v<N>.md` and change only its header status to
+     `superseded`, then remove the current verification. Copy the current
+     implementation report to
+     `revisions/implementation-report.md/v<M>.md` with only that status change,
+     then replace it with revision `M+1` using the current contract, plan, and
+     approval revisions. Do not overwrite either attempt in place.
+
+   Stop for the appropriate earlier planning stage if the repair requires a
+   contract or plan change; a failed verification is not renewed approval.
+
 5. Compare every intended change against the contract's goal, hard walls,
    acceptance criteria, test seams, and affected paths in the approved plan.
    Stop before an out-of-contract change, ambiguity, missing prerequisite, or
@@ -76,15 +91,16 @@ do not claim verification or continue into a later stage.
 ## Write the Implementation Report
 
 Only after the approved work is complete and its required implementation
-checks have been run, create
+checks have been run, create the next current
 `docs/work-items/<id>/implementation-report.md` from the implementation-report
-template with this exact header:
+template. Use revision `1` for forward implementation or `M+1` after archiving
+recovery report revision `M`, with this header shape:
 
 ```markdown
 Work item: <id>
 Artifact: implementation
-Revision: 1
-Prerequisites: contract@1,plan@1,approval@1
+Revision: <next implementation revision>
+Prerequisites: contract@<current>,plan@<current>,approval@<current>
 Status: ready
 ```
 
@@ -124,14 +140,17 @@ reconcile planning records, or advance another pipeline step.
 ## Boundary
 
 Permitted mutations are the contract- and approved-plan-scoped source, test,
-and product-documentation changes; the revision-one
+and product-documentation changes; the current
 `docs/work-items/<id>/implementation-report.md`; and, after a complete report,
-the one existing `NEXT.md` pipeline-step value. Do not edit the canonical plan,
-the request, context, contract, implementation plan, approval, verification,
-or reconciliation artifacts, or any other `NEXT.md` content. Do not invoke
-`features-cli`, inspect or mutate consumer `.scratch` state, perform release,
-packing, publishing, global-install, or source-deletion actions, or commit,
-amend, push, or otherwise mutate Git history.
+the one existing `NEXT.md` pipeline-step value. Failed-verification recovery
+also permits only the required archival and removal of the failed current
+`verification.md` and archival of the replaced current implementation report,
+as described above. Do not edit the canonical plan, the request, context,
+contract, implementation plan, approval, reconciliation artifact, or any
+other `NEXT.md` content. Do not invoke `features-cli`, inspect or mutate
+consumer `.scratch` state, perform release, packing, publishing,
+global-install, or source-deletion actions, or commit, amend, push, or
+otherwise mutate Git history.
 
 ## Common Mistakes
 

@@ -17,10 +17,10 @@
     "lint:root": "eslint .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "test:workflow": "node --test scripts/validate-monorepo-work-item.test.mjs",
+    "test:workflow": "node --test scripts/validate-living-workflow.test.mjs scripts/validate-monorepo-work-item.test.mjs",
     "pack": "turbo run pack",
     "validate": "turbo run validate",
-    "validate:workflow": "node scripts/validate-living-workflow.mjs && node scripts/validate-monorepo-work-item.mjs --work-item none --json",
+    "validate:workflow": "node scripts/validate-living-workflow.mjs && node scripts/validate-monorepo-work-item.mjs --current --json",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm test:workflow && pnpm validate:workflow",
     "changeset": "changeset",
     "version-packages": "changeset version"

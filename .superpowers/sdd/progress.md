@@ -13,3 +13,7 @@ Task 7: complete (uncommitted working tree, validator suite and focused format/d
 Task 8: complete (uncommitted working tree, disposable implementation-to-verification route fixture and focused format/diff checks passed; independent review clean after forward-use evidence repair).
 Task 9: complete (uncommitted working tree, independent passed-to-reconciliation and failed-to-implementation validator routes, focused validator/workflow/format/diff checks passed; independent review clean).
 Task 10: complete (uncommitted working tree, revision-aware reconciliation-stage guidance, completed-state validator route, focused format/workflow/diff checks passed; independent review clean after revision-handling repair).
+
+Task 11: complete (governance, operator-view, canonical-plan, workflow-overview, legacy-skill, and validator integration; focused validator tests plus workflow, format, and diff checks passed; independent follow-up routing scenarios clean).
+
+Task 12: complete (isolated full-lifecycle and failed-verification recovery simulation plus normative coverage documentation; focused lifecycle test and full `pnpm check` passed).
