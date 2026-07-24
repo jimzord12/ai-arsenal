@@ -1,0 +1,225 @@
+# Review package: 1b75263513f2e97bab9dc86fe1e7e911b187c440..9b40873
+
+## Commits
+9b40873 feat(jz-resume-feature): report current milestone progress
+df1255d feat(features-cli): summarize milestone issues in progress
+
+## Files changed
+ packages/features-cli/src/progress-state.test.ts | 14 +++++++++
+ packages/features-cli/src/progress-state.ts      | 34 +++++++++++++++++++++
+ packages/jz-skills/jz-resume-feature/SKILL.md    | 39 +++++++++++++++++++++---
+ 3 files changed, 82 insertions(+), 5 deletions(-)
+
+## Diff
+diff --git a/packages/features-cli/src/progress-state.test.ts b/packages/features-cli/src/progress-state.test.ts
+index 8aa74ec..1b68648 100644
+--- a/packages/features-cli/src/progress-state.test.ts
++++ b/packages/features-cli/src/progress-state.test.ts
+@@ -147,20 +147,34 @@ describe('getFeatureProgress', () => {
+
+     expect(progress.frontier).toMatchObject({
+       kind: 'contract-issue',
+       issueId: 6,
+     });
+     expect(progress.milestones).toMatchObject({
+       planned: 3,
+       decomposed: 1,
+       pending: 2,
+     });
++    expect(progress.milestones?.entries).toEqual([
++      expect.objectContaining({
++        slug: 'capture-and-store',
++        issues: { total: 6, done: 1, actionable: 4, blocked: 1 },
++      }),
++      expect.objectContaining({
++        slug: 'explicit-send',
++        issues: { total: 3, done: 0, actionable: 0, blocked: 3 },
++      }),
++      expect.objectContaining({
++        slug: 'manage-and-gate',
++        issues: { total: 3, done: 0, actionable: 0, blocked: 3 },
++      }),
++    ]);
+     expect(progress.issues).toMatchObject({
+       total: 12,
+       done: 1,
+       pending: 11,
+       actionable: 4,
+       blocked: 7,
+       contracted: 1,
+       nextIssueId: 6,
+       resumableIssueId: null,
+     });
+diff --git a/packages/features-cli/src/progress-state.ts b/packages/features-cli/src/progress-state.ts
+index e587826..8a81a6d 100644
+--- a/packages/features-cli/src/progress-state.ts
++++ b/packages/features-cli/src/progress-state.ts
+@@ -62,20 +62,26 @@ export type FeatureProgress = {
+   };
+   milestones: {
+     planned: number;
+     decomposed: number;
+     pending: number;
+     entries: Array<{
+       slug: string;
+       dependsOn: string[];
+       decomposedAt: string | null;
+       issueIds: number[];
++      issues: {
++        total: number;
++        done: number;
++        actionable: number;
++        blocked: number;
++      };
+     }>;
+   } | null;
+   issues: {
+     total: number;
+     done: number;
+     wontfix: number;
+     pending: number;
+     ready: number;
+     actionable: number;
+     blocked: number;
+@@ -280,20 +286,44 @@ function summarizeIssues(
+     readyForHuman: state.issues.filter(
+       (issue) => issue.status === 'ready-for-human',
+     ).length,
+     contracted,
+     nextIssueId: next.kind === 'winner' ? next.issue.id : null,
+     resumableIssueId: resumable.kind === 'winner' ? resumable.issue.id : null,
+     byStatus,
+   };
+ }
+
++function summarizeMilestoneIssues(
++  issueIds: number[],
++  allIssues: IssueRecord[],
++): { total: number; done: number; actionable: number; blocked: number } {
++  const selectedIds = new Set(issueIds);
++  const selected = allIssues.filter((issue) => selectedIds.has(issue.id));
++  const allIssuesById = new Map(allIssues.map((issue) => [issue.id, issue]));
++  const terminal = (issue: IssueRecord) =>
++    issue.status === 'done' || issue.status === 'wontfix';
++
++  return {
++    total: selected.length,
++    done: selected.filter((issue) => issue.status === 'done').length,
++    actionable: selected.filter(
++      (issue) =>
++        issue.status === 'ready-for-agent' &&
++        !isIssueBlocked(issue, allIssuesById),
++    ).length,
++    blocked: selected.filter(
++      (issue) => !terminal(issue) && isIssueBlocked(issue, allIssuesById),
++    ).length,
++  };
++}
++
+ export async function getFeatureProgress(options: {
+   cwd: string;
+   feature: FeatureRecord;
+ }): Promise<FeatureProgress> {
+   const { cwd, feature } = options;
+   const featureDir = getFeatureDir(cwd, feature.id, feature.slug);
+   const names = [
+     'PRD.md',
+     'GRILL_SESSION.md',
+     'DECISIONS.md',
+@@ -443,20 +473,24 @@ export async function getFeatureProgress(options: {
+       (entry) => entry.decomposedAt !== null,
+     ).length,
+     pending: reconciliation.milestones.filter(
+       (entry) => entry.decomposedAt === null,
+     ).length,
+     entries: reconciliation.milestones.map((entry) => ({
+       slug: entry.slug,
+       dependsOn: entry.dependsOn,
+       decomposedAt: entry.decomposedAt,
+       issueIds: entry.issueIds,
++      issues: summarizeMilestoneIssues(
++        entry.issueIds,
++        canonicalIssues?.issues ?? [],
++      ),
+     })),
+   };
+
+   if (milestones.planned === 0) {
+     return {
+       ...base,
+       frontier: {
+         kind: 'plan-milestones',
+         summary: 'Add the milestone plan to SPEC.md.',
+         artifactPath: 'SPEC.md',
+diff --git a/packages/jz-skills/jz-resume-feature/SKILL.md b/packages/jz-skills/jz-resume-feature/SKILL.md
+index 3717e44..9b2c280 100644
+--- a/packages/jz-skills/jz-resume-feature/SKILL.md
++++ b/packages/jz-skills/jz-resume-feature/SKILL.md
+@@ -41,33 +41,62 @@ or stale artifacts.
+
+ Use this shape, omitting only the conditional lines noted below:
+
+ ```markdown
+ ## Feature status
+
+ Feature: #<id> `<slug>` — <status>, <phase> phase
+ Current position: `<frontier.kind>` — <frontier.summary>
+ Focus: `<focusPath>`
+ Design artifacts: PRD=<yes/no>, grill=<yes/no>, decisions=<yes/no>, SPEC=<yes/no>
+-Milestones: <decomposed>/<planned> decomposed, <pending> remaining
+-Issues: <done>/<total> done, <pending> remaining, <actionable> actionable, <blocked> blocked, <contracted> contracted
++Milestones: <decomposed>/<planned> decomposed
++Current milestone: `<milestone-slug>`
++Current milestone issues: <done>/<total> done · <actionable> actionable · <blocked> blocked
+ Active/next work: #<id> — <title> (<active/resumable/next>)
+ Warnings: <none, or every warning code, message, and path>
+
+ Recommended next skill: `<skill>` — <reason tied to the frontier>.
+ ```
+
++- When `frontier.issueId` is present, select the milestone entry whose
++  `issueIds` contains that ID.
++- Otherwise, when `frontier.milestoneSlug` is present, select the entry with
++  that slug.
++- When neither lookup identifies an entry, write both `Current milestone`
++  lines with `not identified`.
++- For a selected entry, populate `Current milestone issues` from that entry's
++  `issues` values.
++- Show `Milestones` only when the progress JSON provides a `milestones` object.
++  The two current-milestone lines always appear; when `milestones` is null,
++  both use `not identified`.
++
++Examples:
++
++```text
++Milestones: 2/4 decomposed
++Current milestone: `capture-and-store`
++Current milestone issues: 1/6 done · 4 actionable · 1 blocked
++```
++
++```text
++Milestones: 1/3 decomposed
++Current milestone: `explicit-send`
++Current milestone issues: 0/3 done · 0 actionable · 3 blocked
++```
++
++```text
++Current milestone: not identified
++Current milestone issues: not identified
++```
++
+ - Omit `Focus` when `focusPath` is null.
+ - Show `Design artifacts` during design or whenever any artifact is missing.
+-- Show `Milestones` and `Issues` only when their JSON objects are non-null.
+-- `remaining` issues means `issues.pending`; show `wontfix` separately when
+-  nonzero.
+ - If no issue is selected, write `Active/next work: none`.
+ - Keep the report compact. Give exactly one next recommendation; do not add a
+   follow-on workflow after it.
+
+ ## Route the frontier
+
+ | `frontier.kind`                   | Recommended next skill                                                                 |
+ | --------------------------------- | -------------------------------------------------------------------------------------- |
+ | `write-prd`                       | `jz-feature-grilling`                                                                  |
+ | `grill-and-consolidate-decisions` | `jz-feature-grilling`                                                                  |
