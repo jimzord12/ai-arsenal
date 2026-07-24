@@ -20,14 +20,7 @@ type ProcessResult = {
 const packageRoot = resolve(__dirname, '..');
 const binPath = join(packageRoot, 'src', 'bin.ts');
 const bunCommand = process.platform === 'win32' ? 'bun.exe' : 'bun';
-const pnpmCommand = process.platform === 'win32' ? process.execPath : 'pnpm';
-const pnpmEntrypoint = join(
-  dirname(process.execPath),
-  'node_modules',
-  'corepack',
-  'dist',
-  'pnpm.js',
-);
+const pnpmCommand = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 
 jest.setTimeout(120_000);
 
@@ -36,11 +29,13 @@ function runProcess(
   args: string[],
   cwd: string,
   env = process.env,
+  shell = false,
 ): Promise<ProcessResult> {
   return new Promise((resolvePromise, reject) => {
     const child = spawn(command, args, {
       cwd,
       env,
+      shell,
       windowsHide: true,
     });
     let stdout = '';
@@ -71,12 +66,16 @@ function runCli(cwd: string, args: string[]): Promise<ProcessResult> {
 }
 
 function runPnpm(cwd: string, args: string[]): Promise<ProcessResult> {
-  const commandArgs =
-    process.platform === 'win32' ? [pnpmEntrypoint, ...args] : args;
-  return runProcess(pnpmCommand, commandArgs, cwd, {
-    ...process.env,
-    COREPACK_ENABLE_DOWNLOAD_PROMPT: '0',
-  });
+  return runProcess(
+    pnpmCommand,
+    args,
+    cwd,
+    {
+      ...process.env,
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: '0',
+    },
+    process.platform === 'win32',
+  );
 }
 
 async function createWorkspace(
