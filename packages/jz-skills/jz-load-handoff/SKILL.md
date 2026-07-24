@@ -48,9 +48,9 @@ bash "/home/me/.../jz-load-handoff/scripts/resolve.sh" "/home/me/work notes/hand
 bash "/home/me/.../jz-load-handoff/scripts/resolve.sh" --enumeration 1
 ```
 
-Consume the single JSON object on stdout. Its `path` must be an absolute path to the selected handoff. Matching generated files follow the strict name pattern `<five lowercase letters-or-digits>-<two-or-more digits>-handoff.md`; unrelated files do not participate.
+Consume the single JSON object on stdout. Its `path` must be an absolute path to the selected handoff. Matching generated files follow the strict name pattern `hand-<NN>-<five lowercase letters-or-digits>.md` (example: `hand-01-f1dsn.md`); unrelated files do not participate. JSON `id` is the five-character segment; `enumeration` / `enumeration_text` come from the numeric `<NN>` segment.
 
-If resolution exits non-zero, reports an error, returns invalid output, finds no match, or finds multiple matches, stop and report the concise failure. Do not guess from timestamps, choose among duplicates, relax selectors, search another location, or fall back to a repository path. Manually created duplicate IDs or enumerations remain ambiguous unless the supplied selectors identify one intersection.
+If resolution exits non-zero, reports an error, returns invalid output, finds no match, or finds multiple matches, stop and report the concise failure. Do not guess from timestamps, choose among duplicates, relax selectors, search another location, or fall back to a repository path. With no selectors, the highest enumeration wins; if two or more files share that maximum enumeration (different IDs), fail with multiple matches rather than guessing. Manually created duplicate IDs or enumerations remain ambiguous unless the supplied selectors identify one intersection.
 
 If no arguments are given at all, the default behavior is to resolve the latest handoff (highest enumeration) from the OS temporary directory's `jz-handoffs` subdirectory.
 

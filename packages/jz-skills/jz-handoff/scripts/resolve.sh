@@ -1,17 +1,37 @@
 #!/usr/bin/env bash
+# Resolves one handoff file under a directory (or an exact .md path).
+# Generated names: hand-<NN>-<5-random-char>.md
+# Usage:
+#   bash resolve.sh [location] [--id ID] [--enumeration N]
 set -euo pipefail
 
-location="${1:-}"
+location=""
 id_arg=""
 enum_arg=""
 
-# parse args (simple for now: location first, then --id --enumeration)
-shift || true
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --id) id_arg="$2"; shift 2;;
-        --enumeration) enum_arg="$2"; shift 2;;
-        *) shift;;
+        --id|-id)
+            id_arg="${2:-}"
+            shift 2
+            ;;
+        --enumeration|-enumeration)
+            enum_arg="${2:-}"
+            shift 2
+            ;;
+        -*)
+            echo '{"error": "unknown argument: '"$1"'"}' >&2
+            exit 1
+            ;;
+        *)
+            if [[ -z "$location" ]]; then
+                location="$1"
+                shift
+            else
+                echo '{"error": "unexpected positional argument: '"$1"'"}' >&2
+                exit 1
+            fi
+            ;;
     esac
 done
 
@@ -38,47 +58,61 @@ if [[ ! -d "$directory" ]]; then
     exit 1
 fi
 
+# hand-<NN>-<5-random-char>.md
 declare -a matches=()
-max_enum=0
+max_enum=-1
 while IFS= read -r -d '' file; do
     name=$(basename "$file")
-    if [[ "$name" =~ ^([a-z0-9]{5})-([0-9]+)-handoff\.md$ ]]; then
-        fid="${BASH_REMATCH[1]}"
-        fenum="${BASH_REMATCH[2]}"
+    if [[ "$name" =~ ^hand-([0-9]+)-([a-z0-9]{5})\.md$ ]]; then
+        fenum="${BASH_REMATCH[1]}"
+        fid="${BASH_REMATCH[2]}"
         include=true
-        if [[ -n "$id_arg" && "$fid" != "$id_arg" ]]; then include=false; fi
-        if [[ -n "$enum_arg" && "$fenum" != "$enum_arg" ]]; then include=false; fi
+        if [[ -n "$id_arg" && "$fid" != "$id_arg" ]]; then
+            include=false
+        fi
+        if [[ -n "$enum_arg" ]]; then
+            # Numeric compare so 1, 01, 001 match enumeration 1
+            if (( 10#$fenum != 10#$enum_arg )); then
+                include=false
+            fi
+        fi
         if $include; then
             matches+=("$fid:$fenum:$file")
-            if (( fenum > max_enum )); then max_enum=$fenum; fi
+            if (( 10#$fenum > max_enum )); then
+                max_enum=$((10#$fenum))
+            fi
         fi
     fi
-done < <(find "$directory" -maxdepth 1 -type f -name '*-handoff.md' -print0 2>/dev/null || true)
+done < <(find "$directory" -maxdepth 1 -type f -name 'hand-*.md' -print0 2>/dev/null || true)
 
 if [[ ${#matches[@]} -eq 0 ]]; then
     echo '{"error": "no matching handoff found"}' >&2
     exit 1
 fi
 
+declare -a final=()
 if [[ -z "$id_arg" && -z "$enum_arg" && ${#matches[@]} -gt 1 ]]; then
-    # pick highest
-    chosen=""
     for m in "${matches[@]}"; do
         IFS=: read -r fid fenum fpath <<< "$m"
-        if (( fenum == max_enum )); then
-            chosen="$fid:$fenum:$fpath"
-            break
+        if (( 10#$fenum == max_enum )); then
+            final+=("$m")
         fi
     done
 else
-    chosen="${matches[0]}"
+    final=("${matches[@]}")
 fi
 
-if [[ -z "$chosen" ]]; then
+if [[ ${#final[@]} -eq 0 ]]; then
+    echo '{"error": "no matching handoff found"}' >&2
+    exit 1
+fi
+
+if [[ ${#final[@]} -gt 1 ]]; then
     echo '{"error": "multiple matching handoffs found; add selectors"}' >&2
     exit 1
 fi
 
-IFS=: read -r cid cenum cpath <<< "$chosen"
-cenum_text=$(printf "%02d" "$cenum")
-echo '{"path":"'"$cpath"'","id":"'"$cid"'","enumeration":'"$cenum"',"enumeration_text":"'"$cenum_text"'"}'
+IFS=: read -r cid cenum cpath <<< "${final[0]}"
+cenum_num=$((10#$cenum))
+cenum_text=$(printf "%02d" "$cenum_num")
+echo '{"path":"'"$cpath"'","id":"'"$cid"'","enumeration":'"$cenum_num"',"enumeration_text":"'"$cenum_text"'"}'

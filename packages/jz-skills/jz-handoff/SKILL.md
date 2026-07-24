@@ -46,7 +46,7 @@ bash "/home/me/.../jz-handoff/scripts/allocate.sh"
 
 Consume the single JSON object on stdout. Its absolute `path` is the only permitted write target.
 
-Report `id` as the random ID and `enumeration_text` as the enumeration. Directory/default allocations produce `<random-id>-<enumeration>-handoff.md`; exact-file allocations return `null` selectors.
+Report `id` as the random ID and `enumeration_text` as the enumeration. Directory/default allocations produce `hand-<NN>-<five-random-char>.md` (example: `hand-01-f1dsn.md`); exact-file allocations return `null` selectors.
 
 If allocation exits non-zero, reports an error, returns invalid or ambiguous output, or selects an existing exact file, stop and report the failure. Do not guess another interpretation, fall back to a repository path, or overwrite anything. If a generated path appears after allocation but before the write, run allocate again. If an exact destination appears in that interval, stop rather than replacing it.
 

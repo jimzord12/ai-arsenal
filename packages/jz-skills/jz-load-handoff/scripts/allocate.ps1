@@ -1,5 +1,11 @@
+# Allocates a new handoff path under a directory (or validates an exact .md path).
+# Generated names: hand-<NN>-<5-random-char>.md
+# Usage:
+#   pwsh allocate.ps1 [location]
+
 param(
-    [string]$Location
+    [Parameter(Position = 0)]
+    [string]$Location = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -22,9 +28,9 @@ if ($base -like '*.md') {
         throw "refusing to overwrite existing handoff: $path"
     }
     $obj = @{
-        path = $path
-        id = $null
-        enumeration = $null
+        path             = $path
+        id               = $null
+        enumeration      = $null
         enumeration_text = $null
     }
     $obj | ConvertTo-Json -Compress
@@ -36,15 +42,16 @@ if (-not (Test-Path $directory)) {
     New-Item -ItemType Directory -Path $directory -Force | Out-Null
 }
 
-$pattern = '^[a-z0-9]{5}-(\d+)-handoff\.md$'
-$files = Get-ChildItem -Path $directory -Filter '*-handoff.md' -File | Where-Object { $_.Name -match $pattern }
+# hand-<NN>-<5-random-char>.md
+$pattern = '^hand-(\d+)-([a-z0-9]{5})\.md$'
+$files = Get-ChildItem -Path $directory -Filter 'hand-*.md' -File | Where-Object { $_.Name -match $pattern }
 
 $maxEnum = 0
 $usedIds = @{}
 foreach ($f in $files) {
     if ($f.Name -match $pattern) {
-        $id = $matches[1]
-        $enum = [int]$matches[2]
+        $enum = [int]$Matches[1]
+        $id = $Matches[2]
         if (-not $usedIds.ContainsKey($id)) { $usedIds[$id] = $true }
         if ($enum -gt $maxEnum) { $maxEnum = $enum }
     }
@@ -66,11 +73,11 @@ if (-not $id) {
     throw "unable to allocate a unique handoff ID"
 }
 
-$fullPath = Join-Path $directory "$id-$enumText-handoff.md"
+$fullPath = Join-Path $directory "hand-$enumText-$id.md"
 $obj = @{
-    path = $fullPath
-    id = $id
-    enumeration = $nextEnum
+    path             = $fullPath
+    id               = $id
+    enumeration      = $nextEnum
     enumeration_text = $enumText
 }
 $obj | ConvertTo-Json -Compress

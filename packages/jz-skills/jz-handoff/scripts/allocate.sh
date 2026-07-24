@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# Allocates a new handoff path under a directory (or validates an exact .md path).
+# Generated names: hand-<NN>-<5-random-char>.md
+# Usage:
+#   bash allocate.sh [location]
 set -euo pipefail
 
 location="${1:-}"
@@ -19,31 +23,31 @@ fi
 mkdir -p "$base"
 directory=$(realpath "$base")
 
-# Find existing
+# hand-<NN>-<5-random-char>.md
 max_enum=0
 declare -A used_ids
 while IFS= read -r -d '' file; do
     name=$(basename "$file")
-    if [[ "$name" =~ ^([a-z0-9]{5})-([0-9]+)-handoff\.md$ ]]; then
-        id="${BASH_REMATCH[1]}"
-        enum="${BASH_REMATCH[2]}"
+    if [[ "$name" =~ ^hand-([0-9]+)-([a-z0-9]{5})\.md$ ]]; then
+        enum="${BASH_REMATCH[1]}"
+        id="${BASH_REMATCH[2]}"
         used_ids["$id"]=1
-        if (( enum > max_enum )); then
-            max_enum=$enum
+        if (( 10#$enum > max_enum )); then
+            max_enum=$((10#$enum))
         fi
     fi
-done < <(find "$directory" -maxdepth 1 -type f -name '*-handoff.md' -print0 2>/dev/null || true)
+done < <(find "$directory" -maxdepth 1 -type f -name 'hand-*.md' -print0 2>/dev/null || true)
 
 next_enum=$((max_enum + 1))
 enum_text=$(printf "%02d" "$next_enum")
 
-# generate id
 id=""
 for i in {1..100}; do
     id=$(LC_ALL=C tr -dc 'a-z0-9' < /dev/urandom | head -c 5)
     if [[ ! -v used_ids["$id"] ]]; then
         break
     fi
+    id=""
 done
 
 if [[ -z "$id" ]]; then
@@ -51,5 +55,5 @@ if [[ -z "$id" ]]; then
     exit 1
 fi
 
-full_path="$directory/$id-$enum_text-handoff.md"
+full_path="$directory/hand-$enum_text-$id.md"
 echo '{"path":"'"$full_path"'","id":"'"$id"'","enumeration":'"$next_enum"',"enumeration_text":"'"$enum_text"'"}'
