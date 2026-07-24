@@ -1,0 +1,33 @@
+# Review package: 9b40873babbc7f23cfd701a878609feef5bef393..67543cbb894b2a2a1617d162c7294762492f1ca9
+
+## Commits
+67543cb docs(features-cli): define local release
+
+## Files changed
+ packages/features-cli/GLOSSARY.md | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+## Diff
+diff --git a/packages/features-cli/GLOSSARY.md b/packages/features-cli/GLOSSARY.md
+new file mode 100644
+index 0000000..7f68777
+--- /dev/null
++++ b/packages/features-cli/GLOSSARY.md
+@@ -0,0 +1,17 @@
++# Glossary
++
++## Local Release
++
++A Local Release of `@jz/ai-arsenal-features-cli` means all of the following:
++
++1. Choose the appropriate SemVer bump: major, minor, or patch.
++2. Create a Changeset and run `pnpm version-packages` so the package manifest
++   version and generated `CHANGELOG.md` advance together.
++3. Validate the release artifact required by the release scope.
++4. Ask the user immediately before packing for, installing into, or replacing
++   the Windows user's global pnpm `features-cli` package.
++5. After the user confirms, perform the global local update and run the
++   required smoke checks.
++
++A source change is not a Local Release unless the user explicitly requests a
++Local Release.
