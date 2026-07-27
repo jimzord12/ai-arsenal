@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ai-arsenal/work-unit-metadata.schema.json",
+  "title": "Trello Work Unit Metadata V1.1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "trello_card_id",
+    "title",
+    "type",
+    "status",
+    "priority",
+    "complexity",
+    "engineering_depth",
+    "risk",
+    "owner",
+    "parent",
+    "blocked_by",
+    "labels",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "id": { "type": ["string", "null"], "pattern": "^WU-[1-9][0-9]*$" },
+    "trello_card_id": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-fA-F]{24}$"
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "type": { "enum": ["chore", "task", "slice"] },
+    "status": {
+      "enum": ["inbox", "ready", "in_progress", "review", "blocked", "done"]
+    },
+    "priority": { "enum": ["critical", "high", "normal", "low"] },
+    "complexity": { "enum": ["low", "medium", "high"] },
+    "engineering_depth": {
+      "enum": ["exploratory", "production-pragmatic", "hardened"]
+    },
+    "risk": { "enum": ["low", "medium", "high"] },
+    "owner": { "type": ["string", "null"], "minLength": 1 },
+    "parent": {
+      "type": ["string", "null"],
+      "pattern": "^WU-[1-9][0-9]*$"
+    },
+    "blocked_by": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^WU-[1-9][0-9]*$" },
+      "uniqueItems": true
+    },
+    "labels": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "created_at": { "type": ["string", "null"], "format": "date-time" },
+    "updated_at": { "type": ["string", "null"], "format": "date-time" }
+  }
+}

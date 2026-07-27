@@ -1,0 +1,286 @@
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import type { WorkConfig } from './config';
+import {
+  doctor,
+  getWorkUnit,
+  listWorkUnits,
+  validateLocalWorkUnit,
+  validateRemoteWorkUnit,
+  type ReadCommandClient,
+} from './read-commands';
+import type { TrelloCard, TrelloList } from './trello-types';
+import { parseWorkUnit, renderWorkUnit } from './work-unit';
+
+const cardId = '0123456789abcdef01234567';
+const draftPath = resolve(
+  __dirname,
+  '..',
+  'test',
+  'fixtures',
+  'valid-draft.md',
+);
+
+async function persistedDescription(
+  overrides: Record<string, unknown> = {},
+): Promise<string> {
+  const draft = parseWorkUnit(await readFile(draftPath, 'utf8'));
+  return renderWorkUnit({
+    ...draft,
+    metadata: {
+      ...draft.metadata,
+      id: 'WU-42',
+      trello_card_id: cardId,
+      created_at: '2026-07-26T12:00:00.000Z',
+      updated_at: '2026-07-26T12:00:00.000Z',
+      ...overrides,
+    },
+  });
+}
+
+function config(overrides: Partial<WorkConfig> = {}): WorkConfig {
+  return {
+    credentials: { apiKey: 'present', apiToken: 'present' },
+    boardId: 'board-1',
+    listIds: { inbox: 'list-inbox', ready: 'list-ready' },
+    transitionGraph: null,
+    reconcileSource: null,
+    loadedHermesEnv: false,
+    hermesEnvPath: null,
+    ...overrides,
+  };
+}
+
+function fakeClient(
+  cards: TrelloCard[],
+  lists: TrelloList[] = [],
+): ReadCommandClient & {
+  calls: string[];
+} {
+  const calls: string[] = [];
+  return {
+    calls,
+    async getMemberMe() {
+      calls.push('getMemberMe');
+      return { id: 'member-1', username: 'jim' };
+    },
+    async getBoard(id) {
+      calls.push(`getBoard:${id}`);
+      return { id, name: 'Work' };
+    },
+    async listBoardLists(id) {
+      calls.push(`listBoardLists:${id}`);
+      return lists;
+    },
+    async listBoardCards(id) {
+      calls.push(`listBoardCards:${id}`);
+      return cards;
+    },
+    async getCard(reference) {
+      calls.push(`getCard:${reference}`);
+      const card = cards.find(
+        (candidate) =>
+          candidate.id === reference || candidate.shortUrl.includes(reference),
+      );
+      if (!card) throw new Error('missing fake card');
+      return card;
+    },
+  };
+}
+
+async function card(overrides: Partial<TrelloCard> = {}): Promise<TrelloCard> {
+  return {
+    id: cardId,
+    idShort: 42,
+    name: 'Ship a safe Trello Work Unit CLI',
+    desc: await persistedDescription(),
+    idList: 'list-inbox',
+    dateLastActivity: '2026-07-26T12:01:00.000Z',
+    shortUrl: 'https://trello.com/c/AbCd1234/work-unit',
+    ...overrides,
+  };
+}
+
+describe('read-only commands', () => {
+  it('validates a local draft without a client', async () => {
+    const source = await readFile(draftPath, 'utf8');
+    expect(validateLocalWorkUnit(source)).toMatchObject({
+      valid: true,
+      kind: 'draft',
+    });
+  });
+
+  it('resolves WU IDs, normalizes get results, and validates remote cards', async () => {
+    const remote = await card();
+    const client = fakeClient([remote]);
+
+    await expect(getWorkUnit('WU-42', config(), client)).resolves.toMatchObject(
+      {
+        version: remote.dateLastActivity,
+        metadata: { id: 'WU-42', trello_card_id: cardId },
+      },
+    );
+    await expect(
+      validateRemoteWorkUnit(cardId, config(), client),
+    ).resolves.toMatchObject({
+      valid: true,
+      kind: 'persisted',
+      findings: [],
+    });
+    expect(client.calls).toEqual([
+      'listBoardCards:board-1',
+      `getCard:${cardId}`,
+    ]);
+  });
+
+  it('returns deterministic structured remote validation findings without writes', async () => {
+    const drifted = await card({
+      idShort: 43,
+      name: 'Wrong title',
+      idList: 'list-ready',
+    });
+    await expect(
+      validateRemoteWorkUnit(cardId, config(), fakeClient([drifted])),
+    ).resolves.toMatchObject({
+      valid: false,
+      findings: [
+        { code: 'REMOTE_ID_PAIRING_MISMATCH' },
+        { code: 'REMOTE_TITLE_MISMATCH' },
+        { code: 'REMOTE_STATUS_LIST_DRIFT' },
+      ],
+    });
+    const malformed = await card({ desc: '# Work Unit\n' });
+    await expect(
+      validateRemoteWorkUnit(cardId, config(), fakeClient([malformed])),
+    ).resolves.toMatchObject({
+      valid: false,
+      findings: [{ code: 'REMOTE_STRUCTURE_INVALID' }],
+    });
+  });
+
+  it('fails closed for malformed or mismatched remote cards', async () => {
+    const malformed = await card({ desc: '# Work Unit\n' });
+    await expect(
+      getWorkUnit(cardId, config(), fakeClient([malformed])),
+    ).rejects.toMatchObject({ code: 'INVALID_REMOTE_WORK_UNIT' });
+
+    const mismatched = await card({ idShort: 43 });
+    await expect(
+      getWorkUnit(cardId, config(), fakeClient([mismatched])),
+    ).rejects.toMatchObject({ code: 'INVALID_REMOTE_WORK_UNIT' });
+  });
+
+  it('serializes all supported list filters against normalized metadata', async () => {
+    const matching = await card();
+    const other = await card({
+      id: 'abcdefabcdefabcdefabcdef',
+      idShort: 43,
+      desc: await persistedDescription({
+        id: 'WU-43',
+        trello_card_id: 'abcdefabcdefabcdefabcdef',
+        priority: 'low',
+        labels: ['other'],
+      }),
+    });
+    const result = await listWorkUnits(
+      {
+        status: 'inbox',
+        type: 'task',
+        priority: 'normal',
+        owner: null,
+        parent: null,
+        label: 'trello',
+      },
+      config(),
+      fakeClient([matching, other]),
+    );
+    expect(result.items.map((item) => item.metadata.id)).toEqual(['WU-42']);
+    expect(result.filters).toEqual({
+      status: 'inbox',
+      type: 'task',
+      priority: 'normal',
+      owner: null,
+      parent: null,
+      label: 'trello',
+    });
+  });
+
+  it('fails board-dependent reads before any client call when unconfigured', async () => {
+    const client = fakeClient([]);
+    await expect(
+      listWorkUnits({}, config({ boardId: null }), client),
+    ).rejects.toMatchObject({ code: 'TRELLO_CONFIGURATION_MISSING' });
+    await expect(
+      getWorkUnit('WU-9', config({ boardId: null }), client),
+    ).rejects.toMatchObject({
+      code: 'TRELLO_CONFIGURATION_MISSING',
+    });
+    expect(client.calls).toEqual([]);
+  });
+
+  it('reports doctor diagnostics read-only and never includes secret values', async () => {
+    const client = fakeClient(
+      [],
+      [
+        { id: 'list-inbox', name: 'Inbox', closed: false },
+        { id: 'list-ready', name: 'Ready', closed: false },
+      ],
+    );
+    const result = await doctor(config(), client);
+    expect(result).toMatchObject({
+      credentials: { available: true },
+      authentication: { reachable: true },
+      board: { configured: true, reachable: true },
+      mappings: {
+        valid: false,
+        missing: ['in_progress', 'review', 'blocked', 'done'],
+      },
+    });
+    expect(JSON.stringify(result)).not.toContain('present');
+    expect(client.calls).toEqual([
+      'getMemberMe',
+      'getBoard:board-1',
+      'listBoardLists:board-1',
+    ]);
+  });
+
+  it('marks doctor mappings valid only when every required list is unique, present, and open', async () => {
+    const listIds = {
+      inbox: 'li',
+      ready: 'lr',
+      in_progress: 'lp',
+      review: 'lv',
+      blocked: 'lb',
+      done: 'ld',
+    };
+    const lists = Object.values(listIds).map((id) => ({
+      id,
+      name: id,
+      closed: false,
+    }));
+    await expect(
+      doctor(config({ listIds }), fakeClient([], lists)),
+    ).resolves.toMatchObject({
+      mappings: { valid: true, missing: [], invalid: [] },
+    });
+    await expect(
+      doctor(
+        config({ listIds: { ...listIds, done: 'li' } }),
+        fakeClient([], lists),
+      ),
+    ).resolves.toMatchObject({
+      mappings: { valid: false, invalid: ['duplicate-list-id'] },
+    });
+    await expect(
+      doctor(
+        config({ listIds }),
+        fakeClient(
+          [],
+          lists.map((list) =>
+            list.id === 'ld' ? { ...list, closed: true } : list,
+          ),
+        ),
+      ),
+    ).resolves.toMatchObject({ mappings: { valid: false, invalid: ['ld'] } });
+  });
+});

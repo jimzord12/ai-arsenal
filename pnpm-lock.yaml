@@ -61,6 +61,8 @@ importers:
 
   packages/jz-skills: {}
 
+  packages/trello-work-cli: {}
+
 packages:
 
   '@babel/code-frame@7.29.7':

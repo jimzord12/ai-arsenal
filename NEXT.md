@@ -1,44 +1,45 @@
 # NEXT
 
 **Workflow version:** 1.0
-**Last reconciled:** 2026-07-24
-**Project:** AI Arsenal monorepo and `features-cli` migration
-**State:** Built-in offline workflow documentation is implemented and independently verified; no release or distribution action is authorized.
-**Current phase:** Maintenance / verified docs command
+**Last reconciled:** 2026-07-27
+**Project:** AI Arsenal monorepo
+**State:** Trello Work Unit CLI V1 is implemented and independently verified offline; no live Trello, release, distribution, commit, or push action is authorized.
+**Current phase:** Maintenance / verified Trello Work Unit CLI V1
 **Active work item:** `none`
 **Pipeline step:** `none`
 
 ## Next Action
 
-Decide whether to authorize a separate release, local/global distribution, or commit/push operation for the verified docs-command change.
+Decide whether to authorize a separate commit and push of the verified `feat/trello-work-unit-cli` worktree.
 
 ## Why This Is Next
 
-- The active work item completed implementation, independent verification, and reconciliation.
-- The docs command changes the public CLI and packed package boundary from 10 to 11 files, while no release, global installation, commit, or push was authorized by this work item.
+- Work item `2026-07-26-trello-work-unit-cli` completed implementation, independent verification, provenance normalization, and reconciliation.
+- Product code and workflow evidence remain intentionally uncommitted; release, distribution, and live Trello integration were outside the approved work item.
 
 ## Requirements
 
-- [x] Offline/read-only docs overview, index, topics, current guidance, JSON, and help integration are verified.
-- [x] Full repository checks, strict publint, exact 11-file pack, and clean-consumer invocation pass.
-- [ ] Any release, packing for distribution, global installation, commit, or push receives its separate explicit authorization.
+- [x] Offline Work Unit V1 behavior and recovery-aware mutation semantics are independently verified.
+- [x] Trello CLI 15 suites/159 tests, features CLI 9 suites/154 tests, and 30 workflow tests pass.
+- [x] The canonical plan records live Trello configuration and atomic production ID allocation as deferred.
+- [ ] Commit and push receive separate explicit authorization.
 
 ## Blockers / Approval
 
-- Release, local/global distribution, commit, and push are not authorized by the completed work item.
-- Preserve the source rollback copy and user `.scratch` data; source deletion remains separately unapproved.
+- No technical blocker remains for commit/push.
+- Release, publication, local/global distribution, credential access, live Trello integration or mutation, and source deletion remain separately gated and unapproved.
 
 ## Done When
 
-- The user chooses whether to retain this verified worktree, authorize commit/push, or authorize a release/distribution operation under its applicable gate.
+- The user chooses whether to retain the verified worktree uncommitted or authorize a separate commit/push operation.
 
 ## After This
 
-- Source deletion remains separately approval-controlled and unapproved.
+- Board/list configuration, credential source, safe live integration, and production atomic ID allocation remain future approval-controlled work.
 
 ## Source of Truth
 
 - `AGENTS.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
-- `docs/work-items/2026-07-24-features-cli-built-in-workflow-docs/`
-- `docs/operations/features-cli-cutover.md`
+- `docs/work-items/2026-07-26-trello-work-unit-cli/`
+- `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`
