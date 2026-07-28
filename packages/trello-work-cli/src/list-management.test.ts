@@ -363,6 +363,44 @@ describe('board-scoped list management', () => {
     );
   });
 
+  it('plans a new open canonical list when only an archived namesake exists', async () => {
+    const api = new FakeListClient(storedList({ name: 'Inbox', closed: true }));
+
+    await expect(
+      initializeBoardWorkflow(
+        boardId,
+        { listNames: canonicalNames, listIds: {} },
+        api,
+        { operationId: 'workflow-archived-only', dryRun: true },
+      ),
+    ).resolves.toMatchObject({
+      outcome: 'planned',
+      plan: { missing: expect.arrayContaining(['inbox']) },
+    });
+    expect(api.calls.some((call) => call.startsWith('createList:'))).toBe(
+      false,
+    );
+  });
+
+  it('creates a new open canonical list when only an archived namesake exists', async () => {
+    const api = new FakeListClient(storedList({ name: 'Inbox', closed: true }));
+
+    await expect(
+      initializeBoardWorkflow(
+        boardId,
+        { listNames: canonicalNames, listIds: {} },
+        api,
+        { operationId: 'workflow-archived-only-write' },
+      ),
+    ).resolves.toMatchObject({
+      outcome: 'verified',
+      value: { listIds: { inbox: expect.any(String) } },
+    });
+    expect(
+      api.lists.filter((list) => list.name === 'Inbox' && !list.closed),
+    ).toHaveLength(1);
+  });
+
   it('lists open and closed lists with stable board identity and position', async () => {
     const api = new FakeListClient(
       storedList(),

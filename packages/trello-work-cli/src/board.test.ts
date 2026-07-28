@@ -184,6 +184,63 @@ describe('stateless board discovery and resolution', () => {
     ).rejects.toMatchObject({ code: 'WORKFLOW_LIST_AMBIGUOUS' });
   });
 
+  it('resolves an open canonical list when an archived namesake exists', async () => {
+    const boardId = '111111111111111111111111';
+    const names = {
+      inbox: 'Inbox',
+      in_design: 'In Design',
+      ready: 'Ready',
+      in_progress: 'In Progress',
+      review: 'Review',
+      blocked: 'Blocked',
+      done: 'Done',
+    } as const;
+    const lists = Object.entries(names).map(([status, name], index) => ({
+      id: `${status}-open`,
+      idBoard: boardId,
+      name,
+      pos: index + 1,
+      closed: false,
+    }));
+    lists.push({
+      id: 'done-archived',
+      idBoard: boardId,
+      name: 'Done',
+      pos: 99,
+      closed: true,
+    });
+
+    await expect(
+      resolveWorkflowListMappings(boardId, {}, names, {
+        async listBoardLists() {
+          return lists;
+        },
+      }),
+    ).resolves.toMatchObject({ done: 'done-open' });
+  });
+
+  it('rejects an archived configured status list for active mapping', async () => {
+    await expect(
+      validateBoardListMappings(
+        '111111111111111111111111',
+        { done: 'done-archived' },
+        {
+          async listBoardLists() {
+            return [
+              {
+                id: 'done-archived',
+                idBoard: '111111111111111111111111',
+                name: 'Done',
+                pos: 1,
+                closed: true,
+              },
+            ];
+          },
+        },
+      ),
+    ).rejects.toMatchObject({ code: 'WORKFLOW_LIST_CLOSED' });
+  });
+
   it('rejects configured status-list IDs outside the resolved board before mutation', async () => {
     await expect(
       validateBoardListMappings(

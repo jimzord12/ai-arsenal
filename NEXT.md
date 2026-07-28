@@ -3,45 +3,46 @@
 **Workflow version:** 1.0
 **Last reconciled:** 2026-07-28
 **Project:** AI Arsenal monorepo
-**State:** Revised Trello Work CLI intake/design lifecycle is independently verified offline; repository capture and authorized TestingBoard validation remain.
-**Current phase:** Maintenance / Trello Work CLI post-verification capture
+**State:** Archived-list canonical resolution is implemented, independently verified, and reconciled; Git/CI capture remains before installation or live TestingBoard retry.
+**Current phase:** Maintenance / Trello archived-list resolution Git and CI capture
 **Active work item:** `none`
 **Pipeline step:** `none`
 
 ## Next Action
 
-Commit and push the exact verified snapshot, then verify the remote commit and Quality/Portability CI.
+Commit and push the exact verified archived-list canonical-resolution snapshot, then confirm required GitHub Actions pass for that commit.
 
 ## Why This Is Next
 
-- The revised CLI passes 230 offline tests, package/root/workflow gates, strict package validation, affected-path audit, and independent review with no Critical or High findings.
-- Repository stages correctly performed no global installation or Trello mutation.
-- The user approved capture before installing and exercising the exact captured package.
+- Active canonical mapping now ignores archived namesakes and rejects archived configured targets before active handlers.
+- Offline package/root/workflow gates and fresh independent review pass.
+- Git/CI capture is required before installing the exact package or retrying the live workbook.
 
 ## Requirements
 
-- [x] Keep credentials process-environment-only and out of repository evidence.
-- [x] Preserve zero retained `.tgz` files and the exact reviewed snapshot.
-- [ ] Commit and push the verified snapshot; verify remote commit and CI.
-- [ ] After capture, globally install only the captured local package and run the authorized workbook only on TestingBoard `6a16bbf1fea5389eb39636b7`.
+- [ ] Commit only the reconciled work-item, Trello source/test, canonical-plan, and `NEXT.md` paths.
+- [ ] Push `master` without rewriting history and verify `origin/master` contains the commit.
+- [ ] Confirm required Quality and Portability GitHub Actions pass for the exact commit.
+- [ ] Preserve the exact captured package provenance for the later installation gate.
 
 ## Blockers / Approval
 
-- No blocker to the approved repository capture.
-- Publication, production-board access, source deletion, and any board other than TestingBoard remain unapproved.
+- No global installation or live workbook retry until the pushed commit is CI-green.
+- Live access remains restricted to TestingBoard `6a16bbf1fea5389eb39636b7`.
+- Publication, production-board access, source deletion, and any other board remain unapproved.
 
 ## Done When
 
-- The verified snapshot is present on `origin/master` with Quality and Portability CI passing.
+- The exact verified snapshot is committed, pushed, contained in `origin/master`, and required CI is green.
 
 ## After This
 
-- Install the captured local Trello CLI globally and execute the separately authorized TestingBoard onboarding workbook with credential-free evidence and complete cleanup.
+- Install the exact captured local package and resume the separately authorized TestingBoard onboarding workbook from a fresh preflight.
 
 ## Source of Truth
 
 - `AGENTS.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`
-- `docs/work-items/2026-07-28-trello-cli-onboarding-fixes/`
-- `docs/operations/trello-work-cli-onboarding-workbook.md`
+- `docs/work-items/2026-07-28-ignore-archived-lists-in-canonical-resolution/verification.md`
+- `docs/work-items/2026-07-28-ignore-archived-lists-in-canonical-resolution/reconciliation.md`

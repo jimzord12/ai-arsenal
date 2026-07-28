@@ -1,0 +1,113 @@
+Work item: 2026-07-28-ignore-archived-lists-in-canonical-resolution
+Artifact: plan
+Revision: 2
+Prerequisites: contract@1
+Status: ready
+
+# Preconditions
+
+- `request@1`, `context@1`, and `contract@1` are current, ready, and validated for this work item.
+- `HEAD`, `master`, and fetched `origin/master` remain based on `e8d5bc2f6808ac3146f487998283444d94533e87`, with the pre-existing `NEXT.md` continuation preserved and all new work-item paths attributable.
+- Root `AGENTS.md`, the canonical-plan sections cited by `context@1`, `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`, and package evidence paths remain authoritative; no nearer package `AGENTS.md` exists.
+- TDD is mandatory: focused regressions must fail for the archived-list defect before production source is changed.
+- Tests and repository verification must run credential-free; live Trello mutation, live workbook execution, packing for installation, global installation, publication, production-board access, and source deletion remain prohibited.
+- Product/test implementation is blocked until the user explicitly approves these exact plan bytes and `record-monorepo-approval` creates the digest-bound approval artifact.
+
+## Ordered tasks
+
+### 1. Add failing active-resolution and initialization regressions
+
+- Paths: `packages/trello-work-cli/src/board.test.ts`, `packages/trello-work-cli/src/list-management.test.ts`
+- Inputs: Acceptance criteria for open-plus-archived resolution, two-open ambiguity, archived-only initialization, archived override rejection, preserved open/closed listing, and explicit archived-ID recovery; pure mapping, initialization, and list lifecycle test seams.
+- Output: Focused tests that demonstrate the current defect without changing production behavior, including expected no-write assertions.
+- Test command: `pnpm --filter @jz/ai-arsenal-trello-work-cli exec jest --runInBand --coverage=false --runTestsByPath src/board.test.ts src/list-management.test.ts`
+- Expected result: The new archived-list regressions fail for the intended behavioral reasons while existing focused assertions remain otherwise valid; the RED output is retained in `implementation-report.md`.
+- Rollback: Not applicable.
+
+### 2. Add failing public placement and transition regressions
+
+- Paths: `packages/trello-work-cli/src/cli.test.ts`, `packages/trello-work-cli/src/transition.test.ts`
+- Inputs: Acceptance criteria that active mappings reject archived IDs and card creation, design placement, and transitions never target archived lists; public command/handler and transition test seams.
+- Output: Public-boundary regression coverage proving an archived canonical target is rejected before any card/list mutation and that a valid open target still works.
+- Test command: `pnpm --filter @jz/ai-arsenal-trello-work-cli exec jest --runInBand --coverage=false --runTestsByPath src/cli.test.ts src/transition.test.ts`
+- Expected result: At least one new archived-target regression fails because the current active mapping accepts or selects an archived list, with mutation spies showing the unsafe path; existing focused assertions remain otherwise valid. RED evidence is retained in `implementation-report.md`.
+- Rollback: Not applicable.
+
+### 3. Implement open-only active canonical resolution
+
+- Paths: `packages/trello-work-cli/src/board.ts`, `packages/trello-work-cli/src/list-management.ts`
+- Inputs: All acceptance criteria and RED evidence from tasks 1–2; evidence that `listBoardLists` must continue returning all lists and explicit ID-based list CRUD/replay/audit must remain supported.
+- Output: The minimal active-resolution rules that ignore archived lists for canonical name matching and guarded initialization, reject archived active mapping overrides, permit initialization to create an open canonical list when only archived namesakes exist, and leave explicit list-ID reads/recovery and all-list audit behavior intact.
+- Test command: `pnpm --filter @jz/ai-arsenal-trello-work-cli exec jest --runInBand --coverage=false --runTestsByPath src/board.test.ts src/list-management.test.ts src/cli.test.ts src/transition.test.ts`
+- Expected result: All focused regressions and existing tests in the four suites pass; no test performs network access or Trello mutation.
+- Rollback: Not applicable.
+
+### 4. Refactor only if needed and run package gates
+
+- Paths: `packages/trello-work-cli/src/board.ts`, `packages/trello-work-cli/src/board.test.ts`, `packages/trello-work-cli/src/list-management.ts`, `packages/trello-work-cli/src/list-management.test.ts`, `packages/trello-work-cli/src/cli.test.ts`, `packages/trello-work-cli/src/transition.test.ts`
+- Inputs: Green focused behavior from task 3, existing package conventions, and the non-goal against generalized filtering infrastructure.
+- Output: A minimal maintainable final package snapshot with no unrelated refactor and no globally hidden archived lists.
+- Test command: `pnpm --filter @jz/ai-arsenal-trello-work-cli format && pnpm --filter @jz/ai-arsenal-trello-work-cli lint && pnpm --filter @jz/ai-arsenal-trello-work-cli typecheck && pnpm --filter @jz/ai-arsenal-trello-work-cli test && pnpm --filter @jz/ai-arsenal-trello-work-cli validate`
+- Expected result: Formatting, lint, strict typecheck, all offline package tests with coverage, and strict package validation pass.
+- Rollback: Not applicable.
+
+### 5. Record implementation evidence and hand off to verification
+
+- Paths: `docs/work-items/2026-07-28-ignore-archived-lists-in-canonical-resolution/implementation-report.md`, `NEXT.md`
+- Inputs: Approved `contract@1` and `plan@1`, captured RED/GREEN command results, final changed-path inventory, package-gate results, and safety evidence.
+- Output: A revision-1 implementation report recording exact evidence and a pipeline-step-only handoff to `verify-monorepo-change`; no source distribution or live operation occurs.
+- Test command: `node scripts/validate-monorepo-work-item.mjs --work-item 2026-07-28-ignore-archived-lists-in-canonical-resolution --json`
+- Expected result: Validation reports `valid: true` and `nextSkill: "verify-monorepo-change"`.
+- Rollback: Not applicable.
+
+### 6. Independently verify, reconcile, and deliver through Git/CI only
+
+- Paths: `docs/work-items/2026-07-28-ignore-archived-lists-in-canonical-resolution/verification.md`, `docs/work-items/2026-07-28-ignore-archived-lists-in-canonical-resolution/reconciliation.md`, `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`, `NEXT.md`
+- Inputs: Exact implementation snapshot, package/root/workflow gates, independent-review requirement, Git/push authority in the direct request, and the prohibition on installation/live retry.
+- Output: Passed independent verification on a frozen snapshot, truthful current-plan/NEXT reconciliation, a bounded verified commit pushed to `master`, and green required GitHub Actions for that commit; stop before package installation or Trello workbook execution.
+- Test command: `pnpm check && node scripts/validate-monorepo-work-item.test.mjs && node scripts/validate-living-workflow.mjs && git diff --check`
+- Expected result: Root aggregate checks, 30-test work-item workflow suite, living-plan validation, and whitespace checks pass; fresh independent review has no blocking finding; the work-item validator passes after reconciliation; the pushed commit is contained in `origin/master`; required GitHub Actions conclude successfully.
+- Rollback: If Git delivery has not occurred, restore only task-owned source/test/planning paths to the captured base. If the pushed commit must be reversed, use a new normal revert commit after reporting the blocker; never rewrite shared history. No Trello rollback is needed because this plan authorizes no Trello mutation.
+
+## Affected paths
+
+### Create
+
+- `docs/work-items/2026-07-28-ignore-archived-lists-in-canonical-resolution/implementation-report.md`
+- `docs/work-items/2026-07-28-ignore-archived-lists-in-canonical-resolution/verification.md`
+- `docs/work-items/2026-07-28-ignore-archived-lists-in-canonical-resolution/reconciliation.md`
+
+### Modify
+
+- `packages/trello-work-cli/src/board.ts`
+- `packages/trello-work-cli/src/board.test.ts`
+- `packages/trello-work-cli/src/list-management.ts`
+- `packages/trello-work-cli/src/list-management.test.ts`
+- `packages/trello-work-cli/src/cli.test.ts`
+- `packages/trello-work-cli/src/transition.test.ts`
+- `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
+- `NEXT.md`
+
+### Delete
+
+- None.
+
+## Verification commands
+
+- `pnpm --filter @jz/ai-arsenal-trello-work-cli exec jest --runInBand --coverage=false --runTestsByPath src/board.test.ts src/list-management.test.ts` — first records expected RED failures, then passes after implementation.
+- `pnpm --filter @jz/ai-arsenal-trello-work-cli exec jest --runInBand --coverage=false --runTestsByPath src/cli.test.ts src/transition.test.ts` — first records the unsafe archived-target RED, then passes after implementation.
+- `pnpm --filter @jz/ai-arsenal-trello-work-cli format` — exits 0 with no formatting drift.
+- `pnpm --filter @jz/ai-arsenal-trello-work-cli lint` — exits 0 with no lint finding.
+- `pnpm --filter @jz/ai-arsenal-trello-work-cli typecheck` — exits 0 under strict TypeScript checking.
+- `pnpm --filter @jz/ai-arsenal-trello-work-cli test` — all offline package suites and coverage gates pass with no live Trello access.
+- `pnpm --filter @jz/ai-arsenal-trello-work-cli validate` — strict publint package validation passes without installation or publication.
+- `pnpm check` — repository aggregate quality gates pass.
+- `node scripts/validate-monorepo-work-item.test.mjs` — all disposable workflow-pipeline tests pass.
+- `node scripts/validate-living-workflow.mjs` — living-workflow structure passes.
+- `git diff --check` — no whitespace errors.
+- `node scripts/validate-monorepo-work-item.mjs --work-item 2026-07-28-ignore-archived-lists-in-canonical-resolution --json` — reports the stage-authoritative valid route at each handoff and a valid completed state after reconciliation.
+- GitHub Actions checks for the exact pushed commit — required Quality and Portability workflows conclude successfully before any separately controlled installation or live retry.
+
+## Rollback
+
+No Trello or installation rollback is applicable because this plan authorizes no live mutation or distribution action. Before Git delivery, revert only task-owned repository paths to the captured base while preserving unrelated work. After push, use a normal revert commit if rollback is required; do not amend, force-push, or rewrite shared history.

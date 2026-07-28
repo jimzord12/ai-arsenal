@@ -330,12 +330,21 @@ export async function initializeBoardWorkflow(
           },
         );
       }
+      if (match.closed) {
+        throw new WorkCliError(
+          'WORKFLOW_LIST_CLOSED',
+          `Configured ${status} list is archived and cannot be used for active workflow operations.`,
+          { recovery: { boardId, listId: override, status } },
+        );
+      }
       resolved[status] = override;
       continue;
     }
     const matches = lists.filter(
       (list) =>
-        list.idBoard === boardId && list.name === workflow.listNames[status],
+        list.idBoard === boardId &&
+        !list.closed &&
+        list.name === workflow.listNames[status],
     );
     if (matches.length > 1) {
       throw new WorkCliError(
@@ -469,7 +478,9 @@ export async function createBoardList(
     );
   }
   const duplicate = (await client.listBoardLists(boardId)).find(
-    (list) => list.name === request.requested.name,
+    (list) =>
+      list.name === request.requested.name &&
+      (!options.parentRecord || !list.closed),
   );
   if (duplicate) {
     throw new WorkCliError(

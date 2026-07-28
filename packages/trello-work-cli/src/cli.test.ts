@@ -468,6 +468,42 @@ function routingFixture() {
 }
 
 describe('mutation family CLI outcomes', () => {
+  it('rejects an archived transition target before card access or mutation', async () => {
+    const { config, client } = routingFixture();
+    const lists = await client.listBoardLists();
+    const archived = lists.map((list) =>
+      list.id === config.listIds.done ? { ...list, closed: true } : list,
+    );
+    const guardedClient = {
+      ...client,
+      listBoardLists: async () => archived,
+      getCard: jest.fn(),
+      updateCard: jest.fn(),
+    };
+
+    const result = await runWorkCli(
+      [
+        'transition',
+        'WU-42',
+        'done',
+        '--board',
+        'Testing',
+        '--operation-id',
+        'archived-transition-target',
+        '--output',
+        'json',
+      ],
+      { config, client: guardedClient as never },
+    );
+
+    expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      error: { code: 'WORKFLOW_LIST_CLOSED' },
+    });
+    expect(guardedClient.getCard).not.toHaveBeenCalled();
+    expect(guardedClient.updateCard).not.toHaveBeenCalled();
+  });
+
   it.each([
     'create',
     'metadata-update',

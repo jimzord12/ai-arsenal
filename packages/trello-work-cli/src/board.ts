@@ -74,17 +74,25 @@ export async function validateBoardListMappings(
   );
   if (configured.length === 0) return;
   const boardLists = await client.listBoardLists(boardId);
-  const readable = new Set(
+  const onBoard = new Map(
     boardLists
       .filter((list) => list.idBoard === boardId)
-      .map((list) => list.id),
+      .map((list) => [list.id, list] as const),
   );
-  const outside = configured.filter((id) => !readable.has(id));
+  const outside = configured.filter((id) => !onBoard.has(id));
   if (outside.length > 0) {
     throw new WorkCliError(
       'LIST_BOARD_MISMATCH',
       'One or more configured status lists do not belong to the resolved board.',
       { recovery: { boardId, listIds: outside } },
+    );
+  }
+  const closed = configured.filter((id) => onBoard.get(id)?.closed);
+  if (closed.length > 0) {
+    throw new WorkCliError(
+      'WORKFLOW_LIST_CLOSED',
+      'One or more configured status lists are archived and cannot be used for active workflow operations.',
+      { recovery: { boardId, listIds: closed } },
     );
   }
 }
@@ -110,11 +118,19 @@ export async function resolveWorkflowListMappings(
           },
         );
       }
+      if (list.closed) {
+        throw new WorkCliError(
+          'WORKFLOW_LIST_CLOSED',
+          `Configured ${status} list is archived and cannot be used for active workflow operations.`,
+          { recovery: { boardId, listId: override, status } },
+        );
+      }
       result[status] = override;
       continue;
     }
     const matches = lists.filter(
-      (list) => list.idBoard === boardId && list.name === names[status],
+      (list) =>
+        list.idBoard === boardId && !list.closed && list.name === names[status],
     );
     if (matches.length > 1) {
       throw new WorkCliError(
