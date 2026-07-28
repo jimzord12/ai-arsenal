@@ -18,7 +18,7 @@ export const DOCS_TOPICS: DocsTopic[] = [
     id: 'concepts',
     title: 'Concepts and canonical Work Units',
     content:
-      'A Work Unit is one Trello card whose description is a canonical # Work Unit Markdown document. WU-N comes from Trello idShort after creation. Draft IDs and timestamps are null; persisted identifiers and timestamps are paired. parent and blocked_by always use WU-N identifiers. work list accepts at most one --label filter and requires that label to be present.',
+      'A Work Unit is one Trello card whose description is a canonical # Work Unit Markdown document. WU-N comes from Trello idShort after creation. Draft IDs and timestamps are null; persisted identifiers and timestamps are paired. parent and blocked_by always use WU-N identifiers. jz-trello-flow list accepts at most one --label filter and requires that label to be present.',
   },
   {
     id: 'configuration',
@@ -30,7 +30,7 @@ export const DOCS_TOPICS: DocsTopic[] = [
     id: 'workflows',
     title: 'Recommended workflows',
     content:
-      'Recommended human workflow: validate a draft, inspect work create --dry-run, then execute once with an operation ID and preserve the recovery result. Recommended agent workflow: prefer --output json, pass --if-version from the latest read, use a durable operation ID, and call work reconcile after a partial or ambiguous outcome.',
+      'Recommended human workflow: validate a draft, inspect jz-trello-flow create --dry-run, then execute once with an operation ID and preserve the recovery result. Recommended agent workflow: prefer --output json, pass --if-version from the latest read, use a durable operation ID, and call jz-trello-flow reconcile after a partial or ambiguous outcome.',
   },
   {
     id: 'safety',
@@ -48,19 +48,19 @@ export const DOCS_TOPICS: DocsTopic[] = [
     id: 'recovery',
     title: 'Recovery and reconciliation',
     content:
-      'A partial or ambiguous mutation is not blindly retried. Preserve its operation ID, card/reference data, expected version, and recovery payload. Run work get and then work reconcile --dry-run. Reconciliation detects description/metadata and status/list drift and applies only an explicitly configured source-of-truth policy.',
+      'A partial or ambiguous mutation is not blindly retried. Preserve its operation ID, card/reference data, expected version, and recovery payload. Run jz-trello-flow get and then jz-trello-flow reconcile --dry-run. Reconciliation detects description/metadata and status/list drift and applies only an explicitly configured source-of-truth policy.',
   },
   {
     id: 'doctor',
     title: 'Doctor diagnostics',
     content:
-      'work doctor is read-only. It reports credential availability, Trello authentication reachability, board/list configuration, required-list presence, and mapping validity. It does not print credential values and does not create, update, move, or delete cards.',
+      'jz-trello-flow doctor is read-only. It reports credential availability, Trello authentication reachability, board/list configuration, required-list presence, and mapping validity. It does not print credential values and does not create, update, move, or delete cards.',
   },
   {
     id: 'lists',
     title: 'Board discovery and guarded list management',
     content:
-      'work boards list is read-only. work workflow init creates only missing canonical lists after full ambiguity and override preflight, preserving every existing list. work lists list includes open and closed lists with stable IDs, positions, and state. work lists create, work lists update, and work lists close require --board plus dry-run and operation identity. Exact replay verifies the recorded postcondition; collisions and ambiguous or partial outcomes return recovery evidence and are not blindly retried.',
+      'jz-trello-flow boards list is read-only. jz-trello-flow workflow init creates only missing canonical lists after full ambiguity and override preflight, preserving every existing list. jz-trello-flow lists list includes open and closed lists with stable IDs, positions, and state. jz-trello-flow lists create, jz-trello-flow lists update, and jz-trello-flow lists close require --board plus dry-run and operation identity. Exact replay verifies the recorded postcondition; collisions and ambiguous or partial outcomes return recovery evidence and are not blindly retried.',
   },
   {
     id: 'live-e2e',
@@ -72,18 +72,18 @@ export const DOCS_TOPICS: DocsTopic[] = [
     id: 'examples',
     title: 'Examples',
     content:
-      'Examples: work boards list --output json; work lists create --board Testing --name Disposable --dry-run --operation-id list-42; work validate --file draft.md --output json; work create --board Testing --file draft.md --dry-run --operation-id planning-42; work get WU-42 --board Testing --output json; work transition WU-42 ready --board Testing --if-version <version> --operation-id transition-42; work reconcile WU-42 --board Testing --dry-run.',
+      'Examples: jz-trello-flow boards list --output json; jz-trello-flow lists create --board Testing --name Disposable --dry-run --operation-id list-42; jz-trello-flow validate --file draft.md --output json; jz-trello-flow create --board Testing --file draft.md --dry-run --operation-id planning-42; jz-trello-flow get WU-42 --board Testing --output json; jz-trello-flow transition WU-42 ready --board Testing --if-version <version> --operation-id transition-42; jz-trello-flow reconcile WU-42 --board Testing --dry-run.',
   },
 ];
 
 export function renderShortHelp(): string {
   return [
-    'work commands:',
+    'jz-trello-flow commands:',
     ...COMMAND_CATALOG.map(
       (command) => `  ${command.syntax}\n      ${command.summary}`,
     ),
     '',
-    'Every command supports --output json. Run work docs for the offline guide.',
+    'Every command supports --output json. Run jz-trello-flow docs for the offline guide.',
     '',
   ].join('\n');
 }

@@ -1,6 +1,6 @@
 # `@jz/ai-arsenal-trello-work-cli`
 
-Private TypeScript/Bun CLI for deterministic Work Units backed by Trello REST API v1. The package exposes the `work` executable and no import surface.
+Private TypeScript/Bun CLI for deterministic Work Units backed by Trello REST API v1. The package exposes the `jz-trello-flow` executable and no import surface.
 
 ## Responsibility boundary
 
@@ -8,7 +8,7 @@ The planning skill extracts and presents human-facing Work Unit drafts. This CLI
 
 The canonical document is one `# Work Unit` heading, one immediately following fenced `yaml` metadata block in canonical field order, and the required ordered sections. `parent` and `blocked_by` use `WU-N`; Trello card IDs are separate 24-character hexadecimal identifiers.
 
-Inbox supports two intake paths: ordinary Trello cards listed by `work inbox list`, and agent-prepared Draft Work Units created by `work draft create`. `work create` remains a deprecated warning-emitting alias. `work design start` converts the selected card in place to In Design, preserving its Trello identity and history. In Design requires every canonical section and permits explicit `Pending:` content and `Open Questions`; transition to Ready is rejected until both are resolved.
+Inbox supports two intake paths: ordinary Trello cards listed by `jz-trello-flow inbox list`, and agent-prepared Draft Work Units created by `jz-trello-flow draft create`. `jz-trello-flow create` remains a deprecated warning-emitting alias. `jz-trello-flow design start` converts the selected card in place to In Design, preserving its Trello identity and history. In Design requires every canonical section and permits explicit `Pending:` content and `Open Questions`; transition to Ready is rejected until both are resolved.
 
 ## Safety boundaries
 
@@ -32,13 +32,13 @@ verified. Board-name matching is exact: zero matches fail, and duplicate exact
 matches require a board ID. `TRELLO_BOARD_ID` is not used as a fallback and no
 selected-board state is persisted.
 
-Use `work boards list` to enumerate authenticated readable boards. Guarded list
+Use `jz-trello-flow boards list` to enumerate authenticated readable boards. Guarded list
 commands are:
 
-- `work lists list --board <id-or-exact-name>`
-- `work lists create --board <id-or-exact-name> --name <name>`
-- `work lists update <list-id> --board <id-or-exact-name> --name <name> --position <top|bottom|number>`
-- `work lists close <list-id> --board <id-or-exact-name>`
+- `jz-trello-flow lists list --board <id-or-exact-name>`
+- `jz-trello-flow lists create --board <id-or-exact-name> --name <name>`
+- `jz-trello-flow lists update <list-id> --board <id-or-exact-name> --name <name> --position <top|bottom|number>`
+- `jz-trello-flow lists close <list-id> --board <id-or-exact-name>`
 
 List mutations support `--dry-run`, `--if-version`, and `--operation-id`,
 verify board ownership and read-back state, preserve durable operation evidence
@@ -58,7 +58,7 @@ Status-specific list variables remain configuration inputs:
 
 Without those overrides, statuses resolve by exact canonical names: `Inbox`,
 `In Design`, `Ready`, `In Progress`, `Review`, `Blocked`, and `Done`. Run
-`work workflow init --board <id-or-exact-name> --operation-id <durable-id>` to
+`jz-trello-flow workflow init --board <id-or-exact-name> --operation-id <durable-id>` to
 dry-run or create only missing canonical lists. Existing lists are preserved;
 duplicates and wrong-board overrides fail before writes. The built-in transition
 graph is Inbox → In Design; In Design → Ready; Ready → In Progress; In Progress → Review or Blocked;
@@ -69,15 +69,15 @@ to `description`; `TRELLO_RECONCILE_SOURCE` replaces it.
 ## Offline help
 
 ```text
-work --help
-work docs
-work docs --list
-work docs --topic safety
-work docs --search recovery
-work docs --output json
+jz-trello-flow --help
+jz-trello-flow docs
+jz-trello-flow docs --list
+jz-trello-flow docs --topic safety
+jz-trello-flow docs --search recovery
+jz-trello-flow docs --output json
 ```
 
-`work docs` is packaged, offline, and version-matched. It covers the complete command contract, recommended human and agent workflows, configuration, credential safety, outputs, exit codes, examples, expected failures, and recovery.
+`jz-trello-flow docs` is packaged, offline, and version-matched. It covers the complete command contract, recommended human and agent workflows, configuration, credential safety, outputs, exit codes, examples, expected failures, and recovery.
 
 ## Development
 

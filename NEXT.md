@@ -3,14 +3,14 @@
 **Workflow version:** 1.0
 **Last reconciled:** 2026-07-28
 **Project:** AI Arsenal monorepo
-**State:** Trello Work CLI `0.1.0` and its generated changelog are independently verified; Git/CI capture and exact global installation remain.
-**Current phase:** Maintenance / Trello Work CLI 0.1.0 capture and installation
+**State:** Trello Flow CLI `0.2.0` executable rename is independently verified; Git/CI capture, exact global installation, and the TestingBoard workbook remain.
+**Current phase:** Maintenance / Trello Flow CLI 0.2.0 rename, installation, and live workbook
 **Active work item:** `none`
 **Pipeline step:** `none`
 
 ## Next Action
 
-Commit and push the exact verified `0.1.0` snapshot, confirm required GitHub Actions pass, then globally install that exact local package and run `work --help`.
+Complete independent verification of the exact `0.2.0` snapshot, commit and push it, confirm required GitHub Actions pass, globally install that exact package, then run the authorized onboarding workbook only on TestingBoard until it passes.
 
 ## Why This Is Next
 
@@ -22,8 +22,8 @@ Commit and push the exact verified `0.1.0` snapshot, confirm required GitHub Act
 - [ ] Commit only task-owned version/changelog, work-item, planning, and `NEXT.md` paths.
 - [ ] Push `master` and verify `origin/master` contains the exact commit.
 - [ ] Confirm Quality and Portability CI pass for that SHA.
-- [ ] Globally install `@jz/ai-arsenal-trello-work-cli@0.1.0` from that exact checkout.
-- [ ] Verify global package registration and read-only `work --help`.
+- [ ] Globally install `@jz/ai-arsenal-trello-work-cli@0.2.0` from that exact checkout.
+- [ ] Verify global package registration and read-only `jz-trello-flow --help`.
 
 ## Blockers / Approval
 
@@ -33,7 +33,7 @@ Commit and push the exact verified `0.1.0` snapshot, confirm required GitHub Act
 
 ## Done When
 
-- Exact commit is remote and CI-green; global pnpm reports version `0.1.0`; `work --help` exits successfully without credentials.
+- Exact commit is remote and CI-green; global pnpm reports version `0.2.0`; `jz-trello-flow --help` exits successfully without credentials; the TestingBoard onboarding workbook passes.
 
 ## After This
 

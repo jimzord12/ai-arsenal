@@ -1,11 +1,11 @@
 {
   "name": "@jz/ai-arsenal-trello-work-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Private Trello REST API v1 Work Unit CLI.",
   "type": "module",
   "bin": {
-    "work": "src/bin.ts"
+    "jz-trello-flow": "src/bin.ts"
   },
   "exports": {},
   "files": [

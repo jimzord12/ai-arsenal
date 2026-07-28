@@ -1,6 +1,9 @@
 import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { gunzipSync } from 'node:zlib';
 import { mutationCliResult, runWorkCli } from './cli';
 import type { WorkConfig } from './config';
 import { WorkCliError } from './errors';
@@ -39,7 +42,7 @@ function runCli(args: string[]): Promise<ProcessResult> {
     child.once('error', reject);
     child.once('close', (exitCode) => {
       if (exitCode === null) {
-        reject(new Error('work exited without an exit code.'));
+        reject(new Error('jz-trello-flow exited without an exit code.'));
         return;
       }
       resolvePromise({ exitCode, stderr, stdout });
@@ -47,36 +50,88 @@ function runCli(args: string[]): Promise<ProcessResult> {
   });
 }
 
-describe('work process command contract', () => {
+describe('jz-trello-flow process command contract', () => {
+  it('packs only the jz-trello-flow executable', () => {
+    const packDirectory = mkdtempSync(join(tmpdir(), 'trello-flow-pack-'));
+    try {
+      if (process.platform === 'win32') {
+        execFileSync(
+          process.env.ComSpec ?? 'cmd.exe',
+          ['/d', '/s', '/c', `pnpm pack --pack-destination ${packDirectory}`],
+          { cwd: packageRoot, stdio: 'pipe' },
+        );
+      } else {
+        execFileSync('pnpm', ['pack', '--pack-destination', packDirectory], {
+          cwd: packageRoot,
+          stdio: 'pipe',
+        });
+      }
+      const tarball = join(
+        packDirectory,
+        readdirSync(packDirectory).find((name) => name.endsWith('.tgz'))!,
+      );
+      const archive = gunzipSync(readFileSync(tarball));
+      let packedManifest: { bin: Record<string, string> } | undefined;
+      for (let offset = 0; offset + 512 <= archive.length;) {
+        const header = archive.subarray(offset, offset + 512);
+        const name = header
+          .subarray(0, 100)
+          .toString('utf8')
+          .replace(/\0.*$/, '');
+        const sizeText = header
+          .subarray(124, 136)
+          .toString('ascii')
+          .replace(/\0.*$/, '')
+          .trim();
+        const size = Number.parseInt(sizeText || '0', 8);
+        offset += 512;
+        if (name === 'package/package.json') {
+          packedManifest = JSON.parse(
+            archive.subarray(offset, offset + size).toString('utf8'),
+          ) as { bin: Record<string, string> };
+          break;
+        }
+        offset += Math.ceil(size / 512) * 512;
+      }
+
+      expect(packedManifest?.bin).toEqual({
+        'jz-trello-flow': 'src/bin.ts',
+      });
+      expect(packedManifest?.bin).not.toHaveProperty('work');
+    } finally {
+      rmSync(packDirectory, { recursive: true, force: true });
+    }
+  });
+
   it('lists every approved V1 command family in short help', async () => {
     const result = await runCli(['--help']);
 
     expect(result).toMatchObject({ exitCode: 0, stderr: '' });
     for (const syntax of [
-      'work get <reference>',
-      'work list',
-      'work inbox list',
-      'work draft create',
-      'work design start',
-      'work create',
-      'work metadata update',
-      'work description replace',
-      'work description patch',
-      'work transition',
-      'work reconcile',
-      'work validate',
-      'work checklist list',
-      'work checklist create',
-      'work checklist update',
-      'work checklist item set',
-      'work doctor',
-      'work docs',
-      'work boards list',
-      'work workflow init',
-      'work lists list',
-      'work lists create',
-      'work lists update',
-      'work lists close',
+      'jz-trello-flow get <reference>',
+      'jz-trello-flow list',
+      'jz-trello-flow inbox list',
+      'jz-trello-flow draft create',
+      'jz-trello-flow design start',
+      'jz-trello-flow create',
+      'jz-trello-flow metadata update',
+      'jz-trello-flow description replace',
+      'jz-trello-flow description patch',
+      'jz-trello-flow transition',
+      'jz-trello-flow reconcile',
+      'jz-trello-flow validate',
+      'jz-trello-flow checklist list',
+      'jz-trello-flow checklist create',
+      'jz-trello-flow checklist update',
+      'jz-trello-flow checklist item set',
+      'jz-trello-flow doctor',
+      'jz-trello-flow docs',
+      'jz-trello-flow boards list',
+      'jz-trello-flow workflow init',
+      'jz-trello-flow lists list',
+      'jz-trello-flow lists create',
+      'jz-trello-flow lists update',
+      'jz-trello-flow lists close',
     ]) {
       expect(result.stdout).toContain(syntax);
     }
@@ -352,7 +407,7 @@ describe('work process command contract', () => {
       expect(JSON.parse(result.stdout)).toMatchObject({ outcome: 'planned' });
       expect(result.stderr).toBe(
         command[0] === 'create'
-          ? 'DEPRECATED: work create; use work draft create.\n'
+          ? 'DEPRECATED: jz-trello-flow create; use jz-trello-flow draft create.\n'
           : '',
       );
     },

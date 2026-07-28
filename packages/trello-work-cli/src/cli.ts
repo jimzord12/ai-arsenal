@@ -659,7 +659,8 @@ export async function runWorkCli(
       return args[0] === 'create'
         ? {
             ...result,
-            stderr: 'DEPRECATED: work create; use work draft create.\n',
+            stderr:
+              'DEPRECATED: jz-trello-flow create; use jz-trello-flow draft create.\n',
           }
         : result;
     }
