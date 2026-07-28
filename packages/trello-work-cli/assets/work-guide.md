@@ -18,11 +18,40 @@ A `<reference>` is exactly one of `WU-N`, a 24-character Trello card ID, or an H
 
 ### work get <reference>
 
-Read and normalize one Work Unit. Use `--output json` for automation.
+Read and normalize one Work Unit. Use `--board <id-or-exact-name>` on every
+invocation and `--output json` for automation.
 
 ### work list
 
-List normalized Work Units. Filters: `--status`, `--type`, `--priority`, `--owner`, `--parent`, and one `--label`. Duplicate options are rejected.
+List normalized Work Units on the explicitly selected board. Filters:
+`--status`, `--type`, `--priority`, `--owner`, `--parent`, and one `--label`.
+Duplicate options are rejected.
+
+### work boards list
+
+List authenticated readable boards without mutation. A board is never created,
+renamed, closed, archived, or deleted by this CLI.
+
+### work lists list --board <id-or-exact-name>
+
+List open and closed lists on the resolved board with stable ID, name, position,
+and closed state.
+
+### work lists create --board <id-or-exact-name> --name <name>
+
+Create and read back one list on the resolved board. `--position` accepts
+`top`, `bottom`, or a non-negative numeric position.
+
+### work lists update <list-id> --board <id-or-exact-name>
+
+Rename and/or reposition a list only after verifying that it belongs to the
+resolved board.
+
+### work lists close <list-id> --board <id-or-exact-name>
+
+Close/archive an empty list after board-ownership and card-occupancy preflight.
+This is Trello's list-deletion semantic; the CLI never permanently deletes a
+list and never closes a list containing cards.
 
 ### work create --file <work-unit.md> | --stdin
 
@@ -95,7 +124,12 @@ Normal API requests use `TRELLO_API_KEY` and `TRELLO_API_TOKEN`. `TRELLO_API_SEC
 
 Process environment variables take precedence. A working-directory `.env` is never assumed. Use the explicit `--hermes-env <path>` path when Hermes-managed credentials should be loaded.
 
-Remote board operations require `TRELLO_BOARD_ID`. Status/list synchronization uses:
+Every board-dependent invocation requires `--board <id-or-exact-name>`. A
+24-character ID is verified directly. Board-name matching is exact: zero
+matches fail without mutation and duplicate exact names require a board ID.
+`TRELLO_BOARD_ID` is ignored for selection, and no board selection is persisted.
+
+Status/list synchronization uses:
 
 - `TRELLO_LIST_INBOX_ID`
 - `TRELLO_LIST_READY_ID`
@@ -104,14 +138,46 @@ Remote board operations require `TRELLO_BOARD_ID`. Status/list synchronization u
 - `TRELLO_LIST_BLOCKED_ID`
 - `TRELLO_LIST_DONE_ID`
 
-The optional transition graph is supplied through `TRELLO_TRANSITIONS_JSON`. Reconciliation requires `TRELLO_RECONCILE_SOURCE=description` or `list`. Missing values fail before mutation.
+Each variable independently overrides one status. Missing values resolve exact
+canonical names: `Inbox`, `Ready`, `In Progress`, `Review`, `Blocked`, and
+`Done`. `work workflow init --board <id-or-exact-name> --operation-id <id>`
+creates only missing canonical lists after a complete ambiguity and override
+preflight; use `--dry-run` to inspect the aggregate plan. Existing lists are
+never renamed, closed, replaced, or reopened.
+
+The built-in transition graph is Inbox → Ready; Ready → In Progress; In Progress
+→ Review or Blocked; Review → Done or In Progress; Blocked → Ready or In
+Progress; Done → none. `TRELLO_TRANSITIONS_JSON` replaces the complete graph.
+Reconciliation defaults to `description`; `TRELLO_RECONCILE_SOURCE=description`
+or `list` replaces that default.
+
+## Explicit live E2E
+
+The real Trello scenario runs only through the separate `test:live` script and
+requires `TRELLO_LIVE_E2E=1`. Before access it also requires:
+
+- `TRELLO_LIVE_CREDENTIAL_SOURCE=process-env`
+- `TRELLO_LIVE_BOARD_SELECTOR`
+- an exact 24-character `TRELLO_LIVE_BOARD_ID` allowlist
+
+Per-list, transition-graph, and reconciliation-source overrides are optional.
+
+Preflight authenticates, resolves the selector, confirms the exact allowlisted
+board, validates all supplied overrides, and uses effective built-in-or-
+overridden workflow policy. Guarded initialization creates only missing
+canonical lists. Each run uses a unique marker. Cleanup performs status
+transitions only, verifies disposable cards in Done, verifies run-created lists
+empty, then closes those lists.
+Cards, checklists, and checklist items are never archived or deleted. A card
+not verified in Done or a nonempty/unclosed run list remains visible and is
+reported with a credential-free recovery record.
 
 ## Recommended human workflow
 
 1. Draft the canonical Work Unit.
 2. Run `work validate --file draft.md`.
 3. Run `work create --file draft.md --dry-run --operation-id <durable-id>`.
-4. Confirm the configured board/list and plan.
+4. Confirm the explicit board selector, resolved board ID, list, and plan.
 5. Execute once with the same operation ID.
 6. Preserve JSON output and recovery data.
 
@@ -127,7 +193,11 @@ The optional transition graph is supplied through `TRELLO_TRANSITIONS_JSON`. Rec
 
 Mutations validate current and proposed state, reject missing configuration and unsupported policy before writing, perform minimum Trello REST API v1 calls, and read back before reporting success.
 
-A partial or ambiguous mutation returns stable recovery data. Preserve the operation ID, reference/card data, expected version, and reported postcondition. Do not recreate a card merely because the create response was lost. `work reconcile` is the explicit recovery boundary.
+A partial or ambiguous mutation returns stable recovery data. Preserve the
+operation ID, board ID, resource ID, requested postcondition, and recovery
+action. Do not recreate a card or list merely because a response was lost.
+List operation identity remains discoverable through board-scoped Trello list
+action history. `work reconcile` is the Work Unit recovery boundary.
 
 ## Output and Exit codes
 
@@ -145,13 +215,14 @@ Every failure has a stable code. JSON errors contain an `error` object and may i
 
 ```text
 work validate --file draft.md --output json
-work create --file draft.md --dry-run --operation-id planning-42
-work get WU-42 --output json
-work list --status ready --priority high --output json
-work metadata update WU-42 --json '{"priority":"high"}' --dry-run --operation-id priority-42
-work transition WU-42 ready --if-version <version> --operation-id transition-42
-work reconcile WU-42 --dry-run
-work checklist item set WU-42 <checklist-id> <item-id> --checked --dry-run
-work doctor --output json
+work boards list --output json
+work lists create --board "Testing" --name Disposable --dry-run --operation-id list-42
+work create --board "Testing" --file draft.md --dry-run --operation-id planning-42
+work get WU-42 --board "Testing" --output json
+work list --board "Testing" --status ready --priority high --output json
+work metadata update WU-42 --board "Testing" --json '{"priority":"high"}' --dry-run --operation-id priority-42
+work transition WU-42 ready --board "Testing" --if-version <version> --operation-id transition-42
+work reconcile WU-42 --board "Testing" --dry-run
+work doctor --board "Testing" --output json
 work docs --topic recovery
 ```

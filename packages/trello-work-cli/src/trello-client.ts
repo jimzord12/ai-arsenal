@@ -8,6 +8,7 @@ import type {
   TrelloChecklist,
   TrelloChecklistItem,
   TrelloList,
+  TrelloListAction,
   TrelloTransport,
 } from './trello-types';
 
@@ -105,10 +106,26 @@ function normalizeList(value: unknown): TrelloList {
       'Trello list response is missing closed.',
     );
   }
+  if (typeof list.pos !== 'number' || !Number.isFinite(list.pos)) {
+    throw new WorkCliError(
+      'TRELLO_RESPONSE_INVALID',
+      'Trello list response is missing pos.',
+    );
+  }
   return {
     id: requireString(list, 'id', 'list response'),
+    idBoard: requireString(list, 'idBoard', 'list response'),
     name: requireString(list, 'name', 'list response'),
+    pos: list.pos,
     closed: list.closed,
+  };
+}
+
+function normalizeBoard(value: unknown): TrelloBoard {
+  const board = requireObject(value, 'board response');
+  return {
+    id: requireString(board, 'id', 'board response'),
+    name: requireString(board, 'name', 'board response'),
   };
 }
 
@@ -266,12 +283,23 @@ export class TrelloClient {
       'GET',
       `/boards/${encodeURIComponent(boardId)}`,
       { fields: 'id,name' },
+      normalizeBoard,
+    );
+  }
+
+  listMemberBoards(): Promise<TrelloBoard[]> {
+    return this.request(
+      'GET',
+      '/members/me/boards',
+      { fields: 'id,name', filter: 'all' },
       (value) => {
-        const board = requireObject(value, 'board response');
-        return {
-          id: requireString(board, 'id', 'board response'),
-          name: requireString(board, 'name', 'board response'),
-        };
+        if (!Array.isArray(value)) {
+          throw new WorkCliError(
+            'TRELLO_RESPONSE_INVALID',
+            'Trello returned an invalid board collection.',
+          );
+        }
+        return value.map(normalizeBoard);
       },
     );
   }
@@ -280,7 +308,7 @@ export class TrelloClient {
     return this.request(
       'GET',
       `/boards/${encodeURIComponent(boardId)}/lists`,
-      { fields: 'id,name,closed' },
+      { fields: 'id,idBoard,name,pos,closed', filter: 'all' },
       (value) => {
         if (!Array.isArray(value)) {
           throw new WorkCliError(
@@ -289,6 +317,109 @@ export class TrelloClient {
           );
         }
         return value.map(normalizeList);
+      },
+    );
+  }
+
+  getList(listId: string): Promise<TrelloList> {
+    return this.request(
+      'GET',
+      `/lists/${encodeURIComponent(listId)}`,
+      { fields: 'id,idBoard,name,pos,closed' },
+      normalizeList,
+    );
+  }
+
+  createList(input: {
+    idBoard: string;
+    name: string;
+    pos?: string | number;
+  }): Promise<TrelloList> {
+    return this.request('POST', '/lists', input, normalizeList);
+  }
+
+  updateList(
+    listId: string,
+    input: { name?: string; pos?: string | number; closed?: boolean },
+  ): Promise<TrelloList> {
+    return this.request(
+      'PUT',
+      `/lists/${encodeURIComponent(listId)}`,
+      input,
+      normalizeList,
+    );
+  }
+
+  async listBoardListActions(boardId: string): Promise<TrelloListAction[]> {
+    const actions: TrelloListAction[] = [];
+    let before: string | undefined;
+    for (;;) {
+      const page = await this.request(
+        'GET',
+        `/boards/${encodeURIComponent(boardId)}/actions`,
+        { filter: 'createList,updateList', limit: 1000, before },
+        (value) => {
+          if (!Array.isArray(value)) {
+            throw new WorkCliError(
+              'TRELLO_RESPONSE_INVALID',
+              'Trello returned an invalid list action collection.',
+            );
+          }
+          const items = value.map((entry) => {
+            const action = requireObject(entry, 'list action');
+            const data = requireObject(action.data, 'list action data');
+            const list = requireObject(data.list, 'list action list');
+            const old =
+              typeof data.old === 'object' &&
+              data.old !== null &&
+              !Array.isArray(data.old)
+                ? (data.old as Record<string, unknown>)
+                : {};
+            const names = [list.name, old.name].filter(
+              (name): name is string => typeof name === 'string',
+            );
+            return {
+              actionId: typeof action.id === 'string' ? action.id : null,
+              value: {
+                listId: requireString(list, 'id', 'list action'),
+                names: [...new Set(names)],
+              },
+            };
+          });
+          return {
+            values: items.map((item) => item.value),
+            cursor: items.at(-1)?.actionId ?? null,
+          };
+        },
+      );
+      actions.push(...page.values);
+      if (page.values.length < 1000) return actions;
+      if (!page.cursor) {
+        throw new WorkCliError(
+          'TRELLO_RESPONSE_INVALID',
+          'Trello list action pagination is missing an action cursor.',
+        );
+      }
+      before = page.cursor;
+    }
+  }
+
+  listListCards(listId: string): Promise<Array<Pick<TrelloCard, 'id'>>> {
+    return this.request(
+      'GET',
+      `/lists/${encodeURIComponent(listId)}/cards`,
+      { fields: 'id', filter: 'all' },
+      (value) => {
+        if (!Array.isArray(value)) {
+          throw new WorkCliError(
+            'TRELLO_RESPONSE_INVALID',
+            'Trello returned an invalid list card collection.',
+          );
+        }
+        return value.map((entry) => {
+          const card = requireObject(entry, 'list card');
+          return { id: requireString(card, 'id', 'list card') };
+        });
       },
     );
   }
@@ -364,6 +495,18 @@ export class TrelloClient {
       '/checklists',
       { idCard: cardId, name },
       normalizeChecklist,
+    );
+  }
+
+  createChecklistItem(
+    checklistId: string,
+    name: string,
+  ): Promise<TrelloChecklistItem> {
+    return this.request(
+      'POST',
+      `/checklists/${encodeURIComponent(checklistId)}/checkItems`,
+      { name, checked: false },
+      normalizeChecklistItem,
     );
   }
 

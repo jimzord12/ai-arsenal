@@ -1,6 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import type { WorkConfig } from './config';
+import {
+  CANONICAL_LIST_NAMES,
+  DEFAULT_TRANSITION_GRAPH,
+  type WorkConfig,
+} from './config';
 import type { TrelloCard } from './trello-types';
 import {
   descriptionPatch,
@@ -24,8 +28,9 @@ function config(): WorkConfig {
     credentials: { apiKey: 'key', apiToken: 'token' },
     boardId: 'board-1',
     listIds: { inbox: 'list-inbox' },
-    transitionGraph: null,
-    reconcileSource: null,
+    listNames: { ...CANONICAL_LIST_NAMES },
+    transitionGraph: structuredClone(DEFAULT_TRANSITION_GRAPH),
+    reconcileSource: 'description',
     loadedHermesEnv: false,
     hermesEnvPath: null,
   };

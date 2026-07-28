@@ -10,8 +10,9 @@ export type WorkConfig = {
   credentials: TrelloCredentials;
   boardId: string | null;
   listIds: Partial<Record<WorkUnitStatus, string>>;
-  transitionGraph: Partial<Record<WorkUnitStatus, WorkUnitStatus[]>> | null;
-  reconcileSource: 'description' | 'list' | null;
+  listNames: Record<WorkUnitStatus, string>;
+  transitionGraph: Record<WorkUnitStatus, WorkUnitStatus[]>;
+  reconcileSource: 'description' | 'list';
   loadedHermesEnv: boolean;
   hermesEnvPath: string | null;
 };
@@ -31,6 +32,25 @@ const LIST_VARIABLES: Record<WorkUnitStatus, string> = {
   done: 'TRELLO_LIST_DONE_ID',
 };
 const STATUSES = Object.keys(LIST_VARIABLES) as WorkUnitStatus[];
+export const CANONICAL_LIST_NAMES: Record<WorkUnitStatus, string> = {
+  inbox: 'Inbox',
+  ready: 'Ready',
+  in_progress: 'In Progress',
+  review: 'Review',
+  blocked: 'Blocked',
+  done: 'Done',
+};
+export const DEFAULT_TRANSITION_GRAPH: Record<
+  WorkUnitStatus,
+  WorkUnitStatus[]
+> = {
+  inbox: ['ready'],
+  ready: ['in_progress'],
+  in_progress: ['review', 'blocked'],
+  review: ['done', 'in_progress'],
+  blocked: ['ready', 'in_progress'],
+  done: [],
+};
 
 function invalidTransitionGraph(detail: string): never {
   throw new Error(`TRELLO_TRANSITIONS_JSON_INVALID: ${detail}`);
@@ -76,7 +96,14 @@ function optionalValue(
 function parseTransitionGraph(
   value: string | null,
 ): WorkConfig['transitionGraph'] {
-  if (value === null) return null;
+  if (value === null) {
+    return Object.fromEntries(
+      Object.entries(DEFAULT_TRANSITION_GRAPH).map(([status, targets]) => [
+        status,
+        [...targets],
+      ]),
+    ) as WorkConfig['transitionGraph'];
+  }
   let parsed: unknown;
   try {
     parsed = JSON.parse(value);
@@ -150,12 +177,15 @@ export async function loadWorkConfig(
       apiKey: optionalValue(merged, 'TRELLO_API_KEY'),
       apiToken: optionalValue(merged, 'TRELLO_API_TOKEN'),
     },
-    boardId: optionalValue(merged, 'TRELLO_BOARD_ID'),
+    // Board selection is deliberately per invocation. The CLI resolves --board
+    // and injects the verified ID into this runtime-only field.
+    boardId: null,
     listIds,
+    listNames: { ...CANONICAL_LIST_NAMES },
     transitionGraph: parseTransitionGraph(
       optionalValue(merged, 'TRELLO_TRANSITIONS_JSON'),
     ),
-    reconcileSource: source,
+    reconcileSource: source ?? 'description',
     loadedHermesEnv: Boolean(options.hermesEnvPath),
     hermesEnvPath: options.hermesEnvPath ?? null,
   };

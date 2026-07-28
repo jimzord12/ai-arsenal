@@ -10,13 +10,20 @@ export type TrelloCard = {
 
 export type TrelloList = {
   id: string;
+  idBoard: string;
   name: string;
+  pos: number;
   closed: boolean;
 };
 
 export type TrelloBoard = {
   id: string;
   name: string;
+};
+
+export type TrelloListAction = {
+  listId: string;
+  names: string[];
 };
 
 export type TrelloChecklistItem = {

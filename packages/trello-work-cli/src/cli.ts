@@ -1,6 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import {
+  listReadableBoards,
+  resolveBoardSelector,
+  resolveWorkflowListMappings,
+  validateBoardListMappings,
+} from './board';
+import {
   checklistCreate,
   checklistItemSet,
   checklistList,
@@ -15,6 +21,14 @@ import {
 import { createWorkUnit } from './create';
 import { renderDocs, renderShortHelp } from './docs';
 import { asWorkCliError, formatWorkError, WorkCliError } from './errors';
+import {
+  closeBoardList,
+  createBoardList,
+  initializeBoardWorkflow,
+  listManagedLists,
+  updateBoardList,
+  type ListPosition,
+} from './list-management';
 import {
   doctor,
   getWorkUnit,
@@ -58,6 +72,8 @@ const VALUE_OPTIONS = new Set([
   '--parent',
   '--label',
   '--name',
+  '--board',
+  '--position',
   '--topic',
   '--search',
 ]);
@@ -68,7 +84,7 @@ function usage(message: string): never {
 
 function commandOptions(command: string, positionals: string[]): Set<string> {
   const common = ['--output'];
-  const configured = ['--hermes-env', ...common];
+  const configured = ['--board', '--hermes-env', ...common];
   const mutation = [
     '--dry-run',
     '--if-version',
@@ -78,6 +94,19 @@ function commandOptions(command: string, positionals: string[]): Set<string> {
   if (command === 'docs')
     return new Set(['--list', '--topic', '--search', ...common]);
   if (command === 'doctor') return new Set(configured);
+  if (command === 'boards')
+    return new Set(
+      positionals[0] === 'list' ? ['--hermes-env', ...common] : common,
+    );
+  if (command === 'workflow') return new Set(mutation);
+  if (command === 'lists') {
+    if (positionals[0] === 'list') return new Set(configured);
+    if (positionals[0] === 'create' || positionals[0] === 'update') {
+      return new Set(['--name', '--position', ...mutation]);
+    }
+    if (positionals[0] === 'close') return new Set(mutation);
+    return new Set(common);
+  }
   if (command === 'create') return new Set(['--file', '--stdin', ...mutation]);
   if (command === 'validate') {
     return new Set(
@@ -116,13 +145,22 @@ function expectedPositionals(
   command: string,
   positionals: string[],
 ): number | undefined {
-  if (
-    command === 'docs' ||
-    command === 'doctor' ||
-    command === 'create' ||
-    command === 'list'
-  )
+  if (command === 'docs' || command === 'create' || command === 'list')
     return 0;
+  if (command === 'doctor') return 0;
+  if (command === 'boards') {
+    if (positionals[0] !== 'list') usage('Unknown boards command.');
+    return 1;
+  }
+  if (command === 'workflow') {
+    if (positionals[0] !== 'init') usage('Unknown workflow command.');
+    return 1;
+  }
+  if (command === 'lists') {
+    if (positionals[0] === 'list' || positionals[0] === 'create') return 1;
+    if (positionals[0] === 'update' || positionals[0] === 'close') return 2;
+    usage('Unknown lists command.');
+  }
   if (command === 'validate') return positionals.length === 0 ? 0 : 1;
   if (command === 'get' || command === 'reconcile') return 1;
   if (command === 'metadata') {
@@ -318,6 +356,21 @@ function mutationOptions(args: string[]): {
   };
 }
 
+function listPosition(args: string[]): ListPosition | undefined {
+  const value = valueAfter(args, '--position');
+  if (value === undefined || value === 'top' || value === 'bottom')
+    return value;
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric < 0) {
+    throw new WorkCliError(
+      'USAGE_ERROR',
+      '--position must be top, bottom, or a non-negative number.',
+      { exitCode: 2 },
+    );
+  }
+  return numeric;
+}
+
 async function defaultReadStdin(): Promise<string> {
   return new Promise((resolve, reject) => {
     let source = '';
@@ -444,26 +497,129 @@ export async function runWorkCli(
       );
     }
 
+    if (
+      !new Set([
+        'boards',
+        'workflow',
+        'lists',
+        'doctor',
+        'create',
+        'validate',
+        'get',
+        'list',
+        'metadata',
+        'description',
+        'transition',
+        'reconcile',
+        'checklist',
+      ]).has(args[0])
+    ) {
+      throw new WorkCliError('USAGE_ERROR', `Unknown command: ${args[0]}.`, {
+        exitCode: 2,
+      });
+    }
+
     const config = await configuration(args, dependencies);
     secrets = credentialSecrets(config);
 
-    if (args[0] === 'doctor') {
-      const client =
-        dependencies.client ??
-        (config.credentials.apiKey && config.credentials.apiToken
-          ? remoteClient(config, dependencies)
-          : undefined);
-      return success(await doctor(config, client), json, secrets);
+    if (args[0] === 'boards' && args[1] === 'list') {
+      return success(
+        await listReadableBoards(remoteClient(config, dependencies)),
+        json,
+        secrets,
+      );
     }
+
+    const boardSelector = requiredValue(args, '--board');
+    if (
+      args[0] === 'doctor' &&
+      (!config.credentials.apiKey || !config.credentials.apiToken) &&
+      !dependencies.client
+    ) {
+      return success(await doctor(config), json, secrets);
+    }
+    const client = remoteClient(config, dependencies);
+    const board = await resolveBoardSelector(boardSelector, client);
+    const selectedConfig: WorkConfig = { ...config, boardId: board.id };
+
+    if (args[0] === 'doctor') {
+      return success(await doctor(selectedConfig, client), json, secrets);
+    }
+
+    if (args[0] === 'lists' && args[1] === 'list') {
+      return success(await listManagedLists(board.id, client), json, secrets);
+    }
+    if (args[0] === 'lists' && args[1] === 'create') {
+      const pos = listPosition(args);
+      return mutationCliResult(
+        await createBoardList(
+          board.id,
+          {
+            name: requiredValue(args, '--name'),
+            ...(pos === undefined ? {} : { pos }),
+          },
+          client,
+          mutationOptions(args),
+        ),
+        json,
+        secrets,
+      );
+    }
+    if (args[0] === 'lists' && args[1] === 'update') {
+      const name = valueAfter(args, '--name');
+      const pos = listPosition(args);
+      if (name === undefined && pos === undefined) {
+        usage('List update requires --name and/or --position.');
+      }
+      return mutationCliResult(
+        await updateBoardList(
+          board.id,
+          args[2],
+          {
+            ...(name === undefined ? {} : { name }),
+            ...(pos === undefined ? {} : { pos }),
+          },
+          client,
+          mutationOptions(args),
+        ),
+        json,
+        secrets,
+      );
+    }
+    if (args[0] === 'lists' && args[1] === 'close') {
+      return mutationCliResult(
+        await closeBoardList(board.id, args[2], client, mutationOptions(args)),
+        json,
+        secrets,
+      );
+    }
+
+    if (args[0] === 'workflow' && args[1] === 'init') {
+      return mutationCliResult(
+        await initializeBoardWorkflow(
+          board.id,
+          selectedConfig,
+          client,
+          mutationOptions(args),
+        ),
+        json,
+        secrets,
+      );
+    }
+
+    await validateBoardListMappings(board.id, selectedConfig.listIds, client);
+    selectedConfig.listIds = await resolveWorkflowListMappings(
+      board.id,
+      selectedConfig.listIds,
+      selectedConfig.listNames,
+      client,
+    );
 
     if (args[0] === 'create') {
       const source = await sourceFromFileOrStdin(args, dependencies);
       const options = mutationOptions(args);
-      const client = options.dryRun
-        ? (dependencies.client ?? ({} as TrelloClient))
-        : remoteClient(config, dependencies);
       return mutationCliResult(
-        await createWorkUnit(source, config, client, options),
+        await createWorkUnit(source, selectedConfig, client, options),
         json,
         secrets,
       );
@@ -478,24 +634,27 @@ export async function runWorkCli(
       'transition',
       'reconcile',
       'checklist',
+      'lists',
     ]);
     if (!remoteFamilies.has(args[0])) {
       throw new WorkCliError('USAGE_ERROR', `Unknown command: ${args[0]}.`, {
         exitCode: 2,
       });
     }
-    const client = remoteClient(config, dependencies);
-
     if (args[0] === 'validate') {
       return success(
-        await validateRemoteWorkUnit(referenceAt(args, 1), config, client),
+        await validateRemoteWorkUnit(
+          referenceAt(args, 1),
+          selectedConfig,
+          client,
+        ),
         json,
         secrets,
       );
     }
     if (args[0] === 'get') {
       return success(
-        await getWorkUnit(referenceAt(args, 1), config, client),
+        await getWorkUnit(referenceAt(args, 1), selectedConfig, client),
         json,
         secrets,
       );
@@ -515,7 +674,7 @@ export async function runWorkCli(
           (filters as Record<string, string>)[key] = value;
       }
       return success(
-        await listWorkUnits(filters, config, client),
+        await listWorkUnits(filters, selectedConfig, client),
         json,
         secrets,
       );
@@ -538,7 +697,7 @@ export async function runWorkCli(
         await metadataUpdate(
           referenceAt(args, 2),
           patch,
-          config,
+          selectedConfig,
           client,
           mutationOptions(args),
         ),
@@ -551,7 +710,7 @@ export async function runWorkCli(
         await descriptionReplace(
           referenceAt(args, 2),
           await readText(requiredValue(args, '--file')),
-          config,
+          selectedConfig,
           client,
           mutationOptions(args),
         ),
@@ -565,7 +724,7 @@ export async function runWorkCli(
           referenceAt(args, 2),
           requiredValue(args, '--section'),
           await readText(requiredValue(args, '--file')),
-          config,
+          selectedConfig,
           client,
           mutationOptions(args),
         ),
@@ -584,7 +743,7 @@ export async function runWorkCli(
         await transitionWorkUnit(
           referenceAt(args, 1),
           target,
-          config,
+          selectedConfig,
           client,
           mutationOptions(args),
         ),
@@ -596,7 +755,7 @@ export async function runWorkCli(
       return mutationCliResult(
         await reconcileWorkUnit(
           referenceAt(args, 1),
-          config,
+          selectedConfig,
           client,
           mutationOptions(args),
         ),
@@ -606,7 +765,7 @@ export async function runWorkCli(
     }
     if (args[0] === 'checklist' && args[1] === 'list') {
       return success(
-        await checklistList(referenceAt(args, 2), config, client),
+        await checklistList(referenceAt(args, 2), selectedConfig, client),
         json,
         secrets,
       );
@@ -616,7 +775,7 @@ export async function runWorkCli(
         await checklistCreate(
           referenceAt(args, 2),
           requiredValue(args, '--name'),
-          config,
+          selectedConfig,
           client,
           mutationOptions(args),
         ),
@@ -636,7 +795,7 @@ export async function runWorkCli(
           referenceAt(args, 2),
           checklistId,
           requiredValue(args, '--name'),
-          config,
+          selectedConfig,
           client,
           mutationOptions(args),
         ),
@@ -662,7 +821,7 @@ export async function runWorkCli(
           checklistId,
           itemId,
           checked,
-          config,
+          selectedConfig,
           client,
           mutationOptions(args),
         ),

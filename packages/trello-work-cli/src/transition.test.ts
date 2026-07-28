@@ -1,6 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import type { WorkConfig } from './config';
+import {
+  CANONICAL_LIST_NAMES,
+  DEFAULT_TRANSITION_GRAPH,
+  type WorkConfig,
+} from './config';
 import type { TrelloCard } from './trello-types';
 import { transitionWorkUnit, type TransitionClient } from './transition';
 import { parseWorkUnit, renderWorkUnit } from './work-unit';
@@ -40,9 +44,21 @@ function config(configured = true): WorkConfig {
   return {
     credentials: { apiKey: 'key', apiToken: 'token' },
     boardId: configured ? 'board-1' : null,
-    listIds: configured ? { inbox: 'list-inbox', ready: 'list-ready' } : {},
-    transitionGraph: configured ? { inbox: ['ready'] } : null,
-    reconcileSource: null,
+    listIds: configured
+      ? {
+          inbox: 'list-inbox',
+          ready: 'list-ready',
+          in_progress: 'list-in-progress',
+          review: 'list-review',
+          blocked: 'list-blocked',
+          done: 'list-done',
+        }
+      : {},
+    listNames: { ...CANONICAL_LIST_NAMES },
+    transitionGraph: configured
+      ? { ...structuredClone(DEFAULT_TRANSITION_GRAPH), inbox: ['ready'] }
+      : structuredClone(DEFAULT_TRANSITION_GRAPH),
+    reconcileSource: 'description',
     loadedHermesEnv: false,
     hermesEnvPath: null,
   };
@@ -133,7 +149,7 @@ describe('configured transitions', () => {
         operationId: 'transition-42',
       }),
     ).rejects.toMatchObject({ code: 'TRANSITION_UNSUPPORTED' });
-    expect(unsupported.calls).toEqual([]);
+    expect(unsupported.calls).toEqual(['get']);
   });
 
   it('reports a partial outcome when read-back does not match', async () => {
@@ -179,5 +195,23 @@ describe('configured transitions', () => {
       }),
     ).resolves.toMatchObject({ outcome: 'recovered' });
     expect(client.calls).toEqual(['get']);
+  });
+
+  it('supports sequential transitions after rendering ready status', async () => {
+    const client = new FakeTransitionClient();
+    client.card = await card();
+
+    await expect(
+      transitionWorkUnit(cardId, 'ready', config(), client, {
+        operationId: 'sequential-ready',
+        now: '2026-07-26T12:05:00.000Z',
+      }),
+    ).resolves.toMatchObject({ outcome: 'verified' });
+    await expect(
+      transitionWorkUnit(cardId, 'in_progress', config(), client, {
+        operationId: 'sequential-in-progress',
+        now: '2026-07-26T12:06:00.000Z',
+      }),
+    ).resolves.toMatchObject({ outcome: 'verified' });
   });
 });

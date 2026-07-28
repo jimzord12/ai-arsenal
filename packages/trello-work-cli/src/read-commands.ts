@@ -79,10 +79,27 @@ export async function resolveCard(
   client: Pick<ReadCommandClient, 'getCard' | 'listBoardCards'>,
 ): Promise<TrelloCard> {
   const reference = parseReference(referenceInput);
-  if (reference.kind === 'cardId') return client.getCard(reference.value);
-  if (reference.kind === 'cardUrl') return client.getCard(reference.shortLink);
-
   const boardId = requireBoard(config);
+  if (reference.kind === 'cardId' || reference.kind === 'cardUrl') {
+    const card = await client.getCard(
+      reference.kind === 'cardId' ? reference.value : reference.shortLink,
+    );
+    const configuredListIds = new Set(Object.values(config.listIds));
+    const belongsToBoard =
+      configuredListIds.has(card.idList) ||
+      (await client.listBoardCards(boardId)).some(
+        (candidate) => candidate.id.toLowerCase() === card.id.toLowerCase(),
+      );
+    if (!belongsToBoard) {
+      throw new WorkCliError(
+        'CARD_BOARD_MISMATCH',
+        `Card ${card.id} does not belong to the resolved board.`,
+        { recovery: { boardId, cardId: card.id } },
+      );
+    }
+    return card;
+  }
+
   const idShort = Number(reference.value.slice(3));
   const cards = await client.listBoardCards(boardId);
   const matches = cards.filter((card) => card.idShort === idShort);

@@ -31,7 +31,18 @@ describe('offline Work CLI documentation', () => {
       'Recommended agent workflow',
       'TRELLO_API_KEY',
       'TRELLO_API_TOKEN',
-      'TRELLO_BOARD_ID',
+      '--board',
+      'exact board name',
+      'work boards list',
+      'work lists create',
+      'work workflow init',
+      'Inbox',
+      'In Progress',
+      'reconciliation defaults to description',
+      'close/archive',
+      'TRELLO_LIVE_E2E',
+      'cards to Done',
+      'empty run-created lists',
       'dry-run',
       'optimistic concurrency',
       'operation ID',
@@ -89,13 +100,20 @@ describe('offline Work CLI documentation', () => {
 
   it('documents global Hermes env support and single-label filtering consistently', () => {
     for (const command of COMMAND_CATALOG.filter(
-      (command) => command.id !== 'validate-file' && command.id !== 'docs',
+      (command) =>
+        command.id !== 'validate-file' &&
+        command.id !== 'docs' &&
+        command.id !== 'boards-list',
     )) {
       expect(command.options).toContain('--hermes-env');
+      expect(command.options).toContain('--board');
     }
     const guide = renderDocs({ mode: 'default', output: 'text' });
     expect(guide).toContain('--hermes-env');
     expect(guide).toContain('one --label');
     expect(guide).not.toContain('repeatable --label');
+    expect(guide).not.toContain(
+      'Remote board operations require TRELLO_BOARD_ID',
+    );
   });
 });

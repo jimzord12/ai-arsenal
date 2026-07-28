@@ -1,6 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import type { WorkConfig } from './config';
+import {
+  CANONICAL_LIST_NAMES,
+  DEFAULT_TRANSITION_GRAPH,
+  type WorkConfig,
+} from './config';
 import { runWorkCli } from './cli';
 import { WorkCliError } from './errors';
 import type { TrelloClient } from './trello-client';
@@ -12,9 +16,11 @@ import {
   type ChecklistClient,
 } from './checklist';
 import type {
+  TrelloBoard,
   TrelloCard,
   TrelloChecklist,
   TrelloChecklistItem,
+  TrelloList,
 } from './trello-types';
 import { parseWorkUnit, renderWorkUnit } from './work-unit';
 
@@ -53,9 +59,19 @@ function config(configured = true): WorkConfig {
   return {
     credentials: { apiKey: 'key', apiToken: 'token' },
     boardId: configured ? 'board-1' : null,
-    listIds: configured ? { inbox: 'list-inbox' } : {},
-    transitionGraph: null,
-    reconcileSource: null,
+    listIds: configured
+      ? {
+          inbox: 'list-inbox',
+          ready: 'list-ready',
+          in_progress: 'list-in-progress',
+          review: 'list-review',
+          blocked: 'list-blocked',
+          done: 'list-done',
+        }
+      : {},
+    listNames: { ...CANONICAL_LIST_NAMES },
+    transitionGraph: structuredClone(DEFAULT_TRANSITION_GRAPH),
+    reconcileSource: 'description',
     loadedHermesEnv: false,
     hermesEnvPath: null,
   };
@@ -68,6 +84,21 @@ class FakeChecklistClient implements ChecklistClient {
   mismatch = false;
   failReadBack = false;
   createError?: WorkCliError;
+
+  async getBoard(id: string): Promise<TrelloBoard> {
+    return { id, name: 'Testing' };
+  }
+  async listBoardLists(id: string): Promise<TrelloList[]> {
+    return Object.entries(CANONICAL_LIST_NAMES).map(
+      ([status, name], index) => ({
+        id: `list-${status.replace('_', '-')}`,
+        idBoard: id,
+        name,
+        pos: (index + 1) * 1024,
+        closed: false,
+      }),
+    );
+  }
 
   async getCard(): Promise<TrelloCard> {
     this.calls.push('get-card');
@@ -382,6 +413,8 @@ describe('production checklist CLI boundary', () => {
     cardId,
     '--name',
     'CLI checks',
+    '--board',
+    '111111111111111111111111',
     '--operation-id',
     'cli-checklist',
     '--output',

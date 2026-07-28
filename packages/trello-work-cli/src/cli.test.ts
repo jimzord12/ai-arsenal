@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import { join, resolve } from 'node:path';
-import { mutationCliResult } from './cli';
+import { mutationCliResult, runWorkCli } from './cli';
+import type { WorkConfig } from './config';
 import { WorkCliError } from './errors';
 
 type ProcessResult = {
@@ -66,9 +67,101 @@ describe('work process command contract', () => {
       'work checklist item set',
       'work doctor',
       'work docs',
+      'work boards list',
+      'work workflow init',
+      'work lists list',
+      'work lists create',
+      'work lists update',
+      'work lists close',
     ]) {
       expect(result.stdout).toContain(syntax);
     }
+  });
+
+  it('requires an explicit board selector for every board-dependent command', async () => {
+    const config: WorkConfig = {
+      credentials: { apiKey: 'key', apiToken: 'token' },
+      boardId: null,
+      listIds: {},
+      listNames: {
+        inbox: 'Inbox',
+        ready: 'Ready',
+        in_progress: 'In Progress',
+        review: 'Review',
+        blocked: 'Blocked',
+        done: 'Done',
+      },
+      transitionGraph: {
+        inbox: ['ready'],
+        ready: ['in_progress'],
+        in_progress: ['review', 'blocked'],
+        review: ['done', 'in_progress'],
+        blocked: ['ready', 'in_progress'],
+        done: [],
+      },
+      reconcileSource: 'description',
+      loadedHermesEnv: false,
+      hermesEnvPath: null,
+    };
+    const result = await runWorkCli(['get', 'WU-1', '--output', 'json'], {
+      config,
+      client: {} as never,
+    });
+    expect(result).toMatchObject({ exitCode: 2, stdout: '' });
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      error: { code: 'USAGE_ERROR', message: '--board is required.' },
+    });
+  });
+
+  it('routes board listing and exact board selection without persisted state', async () => {
+    const config: WorkConfig = {
+      credentials: { apiKey: 'key', apiToken: 'token' },
+      boardId: null,
+      listIds: {},
+      listNames: {
+        inbox: 'Inbox',
+        ready: 'Ready',
+        in_progress: 'In Progress',
+        review: 'Review',
+        blocked: 'Blocked',
+        done: 'Done',
+      },
+      transitionGraph: {
+        inbox: ['ready'],
+        ready: ['in_progress'],
+        in_progress: ['review', 'blocked'],
+        review: ['done', 'in_progress'],
+        blocked: ['ready', 'in_progress'],
+        done: [],
+      },
+      reconcileSource: 'description',
+      loadedHermesEnv: false,
+      hermesEnvPath: null,
+    };
+    const client = {
+      async listMemberBoards() {
+        return [{ id: '111111111111111111111111', name: 'Testing' }];
+      },
+      async getBoard(id: string) {
+        return { id, name: 'Testing' };
+      },
+      async listBoardLists() {
+        return [];
+      },
+    };
+    await expect(
+      runWorkCli(['boards', 'list', '--output', 'json'], {
+        config,
+        client: client as never,
+      }),
+    ).resolves.toMatchObject({ exitCode: 0, stderr: '' });
+    await expect(
+      runWorkCli(['lists', 'list', '--board', 'Testing', '--output', 'json'], {
+        config,
+        client: client as never,
+      }),
+    ).resolves.toMatchObject({ exitCode: 0, stderr: '' });
+    expect(config.boardId).toBeNull();
   });
 
   it('validates a local fixture as JSON without credentials or diagnostics', async () => {
@@ -169,7 +262,7 @@ describe('work process command contract', () => {
     });
   });
 
-  it('plans create dry-run without credentials, configuration, or Trello access', async () => {
+  it('fails create dry-run closed before credentials or Trello access without --board', async () => {
     const fixture = join(packageRoot, 'test', 'fixtures', 'valid-draft.md');
     const result = await runCli([
       'create',
@@ -182,16 +275,20 @@ describe('work process command contract', () => {
       'json',
     ]);
 
-    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
-    expect(JSON.parse(result.stdout)).toMatchObject({
-      outcome: 'planned',
-      operationId: 'cli-create-1',
-      missingConfiguration: ['TRELLO_BOARD_ID', 'TRELLO_LIST_INBOX_ID'],
+    expect(result).toMatchObject({ exitCode: 2, stdout: '' });
+    expect(JSON.parse(result.stderr)).toMatchObject({
+      error: { code: 'USAGE_ERROR', message: '--board is required.' },
     });
   });
 
   it('reports doctor and remote credential failures as stable JSON without network access', async () => {
-    const diagnostics = await runCli(['doctor', '--output', 'json']);
+    const diagnostics = await runCli([
+      'doctor',
+      '--board',
+      'Testing',
+      '--output',
+      'json',
+    ]);
     expect(diagnostics).toMatchObject({ exitCode: 0, stderr: '' });
     expect(JSON.parse(diagnostics.stdout)).toMatchObject({
       credentials: { available: false },
@@ -201,6 +298,8 @@ describe('work process command contract', () => {
     const remote = await runCli([
       'get',
       '0123456789abcdef01234567',
+      '--board',
+      '111111111111111111111111',
       '--output',
       'json',
     ]);

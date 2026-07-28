@@ -1,6 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import type { WorkConfig } from './config';
+import {
+  CANONICAL_LIST_NAMES,
+  DEFAULT_TRANSITION_GRAPH,
+  type WorkConfig,
+} from './config';
 import { reconcileWorkUnit, type ReconcileClient } from './reconcile';
 import type { TrelloCard } from './trello-types';
 import { parseWorkUnit, renderWorkUnit } from './work-unit';
@@ -40,12 +44,13 @@ async function card(
   };
 }
 
-function config(source: 'description' | 'list' | null): WorkConfig {
+function config(source: 'description' | 'list'): WorkConfig {
   return {
     credentials: { apiKey: 'key', apiToken: 'token' },
     boardId: 'board-1',
     listIds: { inbox: 'list-inbox', ready: 'list-ready' },
-    transitionGraph: null,
+    listNames: { ...CANONICAL_LIST_NAMES },
+    transitionGraph: structuredClone(DEFAULT_TRANSITION_GRAPH),
     reconcileSource: source,
     loadedHermesEnv: false,
     hermesEnvPath: null,
@@ -159,8 +164,12 @@ describe('representation reconciliation', () => {
   it('fails before mutation when source policy, board, or list mapping is unavailable', async () => {
     const client = new FakeReconcileClient();
     client.card = await card();
+    const missingSource = {
+      ...config('description'),
+      reconcileSource: null,
+    } as unknown as WorkConfig;
     await expect(
-      reconcileWorkUnit(cardId, config(null), client, {
+      reconcileWorkUnit(cardId, missingSource, client, {
         operationId: 'reconcile-42',
       }),
     ).rejects.toMatchObject({ code: 'RECONCILE_POLICY_UNCONFIGURED' });

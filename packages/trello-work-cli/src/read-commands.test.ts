@@ -1,6 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import type { WorkConfig } from './config';
+import {
+  CANONICAL_LIST_NAMES,
+  DEFAULT_TRANSITION_GRAPH,
+  type WorkConfig,
+} from './config';
 import {
   doctor,
   getWorkUnit,
@@ -43,8 +47,9 @@ function config(overrides: Partial<WorkConfig> = {}): WorkConfig {
     credentials: { apiKey: 'present', apiToken: 'present' },
     boardId: 'board-1',
     listIds: { inbox: 'list-inbox', ready: 'list-ready' },
-    transitionGraph: null,
-    reconcileSource: null,
+    listNames: { ...CANONICAL_LIST_NAMES },
+    transitionGraph: structuredClone(DEFAULT_TRANSITION_GRAPH),
+    reconcileSource: 'description',
     loadedHermesEnv: false,
     hermesEnvPath: null,
     ...overrides,
@@ -218,12 +223,34 @@ describe('read-only commands', () => {
     expect(client.calls).toEqual([]);
   });
 
+  it('rejects a direct card reference from a different resolved board', async () => {
+    const remote = await card({ idList: 'outside-list' });
+    const client = fakeClient([]);
+    client.getCard = async () => remote;
+    await expect(getWorkUnit(cardId, config(), client)).rejects.toMatchObject({
+      code: 'CARD_BOARD_MISMATCH',
+    });
+    expect(client.calls).toContain('listBoardCards:board-1');
+  });
+
   it('reports doctor diagnostics read-only and never includes secret values', async () => {
     const client = fakeClient(
       [],
       [
-        { id: 'list-inbox', name: 'Inbox', closed: false },
-        { id: 'list-ready', name: 'Ready', closed: false },
+        {
+          id: 'list-inbox',
+          idBoard: 'board-1',
+          name: 'Inbox',
+          pos: 1024,
+          closed: false,
+        },
+        {
+          id: 'list-ready',
+          idBoard: 'board-1',
+          name: 'Ready',
+          pos: 2048,
+          closed: false,
+        },
       ],
     );
     const result = await doctor(config(), client);
@@ -253,9 +280,11 @@ describe('read-only commands', () => {
       blocked: 'lb',
       done: 'ld',
     };
-    const lists = Object.values(listIds).map((id) => ({
+    const lists = Object.values(listIds).map((id, index) => ({
       id,
+      idBoard: 'board-1',
       name: id,
+      pos: (index + 1) * 1024,
       closed: false,
     }));
     await expect(

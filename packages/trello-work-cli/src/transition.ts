@@ -69,7 +69,10 @@ function proposedDescription(
         : `${current.sections.Context}\n\n${marker}`,
     },
   };
-  const description = renderWorkUnit(document);
+  const description = renderWorkUnit(document).replace(
+    /^status: [^\n]+$/m,
+    `status: ${JSON.stringify(target)}`,
+  );
   parseWorkUnit(description);
   return description;
 }

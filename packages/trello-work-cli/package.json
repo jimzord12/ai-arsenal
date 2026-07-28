@@ -12,6 +12,7 @@
     "assets/work-guide.md",
     "assets/work-unit-metadata.schema.json",
     "src/bin.ts",
+    "src/board.ts",
     "src/checklist.ts",
     "src/cli.ts",
     "src/command-catalog.ts",
@@ -19,6 +20,7 @@
     "src/create.ts",
     "src/docs.ts",
     "src/errors.ts",
+    "src/list-management.ts",
     "src/mutation.ts",
     "src/read-commands.ts",
     "src/reconcile.ts",
@@ -39,6 +41,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --project tsconfig.json",
     "test": "jest --runInBand --coverage",
+    "test:live": "jest --runInBand --coverage=false --runTestsByPath test/live-trello.e2e.test.ts",
     "pack": "pnpm pack",
     "validate": "publint --strict --pack pnpm"
   }

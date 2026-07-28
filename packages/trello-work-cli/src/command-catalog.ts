@@ -10,6 +10,48 @@ const MUTATION_SAFETY = ['--dry-run', '--if-version', '--operation-id'];
 
 const BASE_COMMAND_CATALOG: CommandDefinition[] = [
   {
+    id: 'boards-list',
+    syntax: 'work boards list',
+    summary: 'List authenticated readable boards without mutation.',
+    options: ['--hermes-env', '--output'],
+    mutating: false,
+  },
+  {
+    id: 'workflow-init',
+    syntax: 'work workflow init',
+    summary: 'Create only missing canonical workflow lists.',
+    options: [...MUTATION_SAFETY, '--output'],
+    mutating: true,
+  },
+  {
+    id: 'lists-list',
+    syntax: 'work lists list',
+    summary: 'List open and closed lists on the resolved board.',
+    options: ['--output'],
+    mutating: false,
+  },
+  {
+    id: 'lists-create',
+    syntax: 'work lists create --name <name>',
+    summary: 'Create and verify one board-scoped list.',
+    options: ['--name', '--position', ...MUTATION_SAFETY, '--output'],
+    mutating: true,
+  },
+  {
+    id: 'lists-update',
+    syntax: 'work lists update <list-id>',
+    summary: 'Rename or reposition one board-scoped list.',
+    options: ['--name', '--position', ...MUTATION_SAFETY, '--output'],
+    mutating: true,
+  },
+  {
+    id: 'lists-close',
+    syntax: 'work lists close <list-id>',
+    summary: 'Close/archive one empty board-scoped list.',
+    options: [...MUTATION_SAFETY, '--output'],
+    mutating: true,
+  },
+  {
     id: 'get',
     syntax: 'work get <reference>',
     summary: 'Read and normalize one Work Unit.',
@@ -137,12 +179,19 @@ const BASE_COMMAND_CATALOG: CommandDefinition[] = [
 
 export const COMMAND_CATALOG: CommandDefinition[] = BASE_COMMAND_CATALOG.map(
   (command) =>
-    command.id === 'docs' || command.id === 'validate-file'
+    command.id === 'docs' ||
+    command.id === 'validate-file' ||
+    command.id === 'boards-list'
       ? command
       : {
           ...command,
-          options: command.options.includes('--hermes-env')
-            ? command.options
-            : [...command.options, '--hermes-env'],
+          syntax: `${command.syntax} --board <id-or-exact-name>`,
+          options: [
+            ...command.options,
+            ...(command.options.includes('--hermes-env')
+              ? []
+              : ['--hermes-env']),
+            '--board',
+          ],
         },
 );

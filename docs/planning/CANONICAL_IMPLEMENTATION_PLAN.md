@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Trello Work Unit CLI V1 verified offline; commit, distribution, and live Trello integration remain separately gated
+> **Status:** Trello Work Unit CLI V1 and dedicated-board live E2E verified; commit and distribution remain separately gated
 > **Living-plan schema:** 1.0
-> **Last reconciled:** 2026-07-27
-> **Current phase:** Maintenance / verified Trello Work Unit CLI V1
+> **Last reconciled:** 2026-07-28
+> **Current phase:** Maintenance / verified Trello Work Unit CLI live boundary
 > **Operator view:** `NEXT.md`
 
 ---
@@ -105,10 +105,10 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Changesets generated private package version `0.1.0` and `packages/features-cli/CHANGELOG.md` for flexible feature selectors. The actual 10-file `0.1.0` tarball passes strict publint, installs into a clean unrelated pnpm consumer, and is installed in the Windows user's global pnpm environment. The global command resolves both index and full-name feature selectors in the active `ics-vcr` consumer.
 - `[VERIFIED]` `packages/features-cli/AGENTS.md` establishes a self-hosting boundary: use the monorepo living-plan workflow to maintain this package and reserve `features-cli` for consumer-project feature workflows.
 - `[VERIFIED]` The monorepo work-item pipeline is fully implemented and independently verified. Its 30-test workflow suite covers strict active registration, direct-user revision requests, contract/plan archive-and-increment recovery, fresh approval binding, failed-verification recovery, skill structure, and disposable lifecycle routing; the full repository check passes.
-- `[VERIFIED]` `packages/trello-work-cli` is the private TypeScript package `@jz/ai-arsenal-trello-work-cli`. Its offline Work Unit V1 boundary implements deterministic parsing and schema enforcement, dry-run plans, references, strict CLI parsing, version-guarded mutations, durable operation replay, partial-recovery signaling, secret redaction, API request construction, and built-in documentation without contacting Trello.
+- `[VERIFIED]` `packages/trello-work-cli` is the private TypeScript package `@jz/ai-arsenal-trello-work-cli`. Its Work Unit V1 boundary implements deterministic parsing and schema enforcement, explicit stateless board selection, canonical workflow defaults with environment overrides, guarded workflow initialization, board-scoped list CRUD, dry-run plans, references, strict CLI parsing, version-guarded mutations, durable operation replay, partial-recovery signaling, secret redaction, API request construction, and built-in documentation.
 - `[VERIFIED]` Exact operation replay is resolved before ordinary stale-version rejection for update, transition, reconcile, and checklist mutations, while every new write remains version-guarded. Metadata/description replay re-verifies title, all request-managed metadata, and every section before returning `recovered`.
-- `[VERIFIED]` The Trello CLI passes formatting, linting, strict typechecking, strict publint, 159 tests across 15 suites, and repository-wide checks. The independent reviewer found no Critical or High issue; the reproducible review snapshot used a sorted newline-delimited SHA-256 manifest and remained stable before and after review.
-- `[VERIFIED]` No real Trello configuration, credentials, cards, lists, checklists, consumer state, release, publication, global installation, or Git-history mutation occurred while implementing and verifying the package.
+- `[VERIFIED]` The Trello CLI passes formatting, linting, strict typechecking, strict publint, 207 offline tests across 18 suites, repository-wide checks, 30 workflow tests, and an explicit 12-test live suite on the dedicated `TestingBoard`. Final independent review of the exact staged snapshot found no Critical or High issue.
+- `[VERIFIED]` Live validation was allowlisted to `TestingBoard` (`6a16bbf1fea5389eb39636b7`). It covered canonical zero-write initialization, run-owned initialization replay/collision, board/list failure boundaries, list mutation dry-run/replay/collision, Work Unit lifecycle behavior, recovery seams, and cleanup. All generated cards are in Done and all disposable run-created lists are closed; no unrelated board, card archival/deletion, checklist deletion, release, publication, global installation, or Git-history mutation occurred.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[USER-LOCKED]` The approved Monorepo Work-Item Pipeline design and implementation plan define the current maintenance change. The user explicitly approved implementation on 2026-07-13, required subagent-driven execution and independent wide review, prohibited release/distribution automation, and prohibited commits or pushes without separate direction.
 
@@ -414,7 +414,7 @@ Required layers:
 
 Current verified coverage includes colocated domain/filesystem suites, an in-process command-characterization suite, and a real-process E2E/distribution suite: 144 tests across seven Jest suites. It covers schema/domain validation, slug/ID/full-name feature selection, status/review/dependency selection, real temporary filesystem persistence, corrupt JSON rejection, recovery-journal fail-closed behavior, stale and held lock behavior, direct issue-write partial failure characterization, strict `cwd` rooting, paths with spaces and Unicode, milestone byte preservation, real concurrent writer fail-fast behavior, and actual packed-artifact installation/invocation from a clean consumer. Public GitHub Actions verifies the quality workflow on Linux and the process/distribution suite on both Windows and Linux.
 
-The Trello Work Unit CLI adds 159 offline tests across 15 suites. They cover schema and parser strictness, reference resolution, dry-run and request construction, version preflight, operation-ID replay/collision ordering, retained-marker postcondition drift, partial recovery, checklist mutation families, redaction, API error mapping, docs, and package boundaries. These tests use fakes and do not access credentials or Trello; live integration remains a separate explicit gate.
+The Trello Work Unit CLI has 207 offline tests across 18 suites. They cover schema and parser strictness, reference resolution, explicit board resolution, canonical defaults and overrides, guarded workflow initialization, list CRUD, dry-run and request construction, version preflight, operation-ID replay/collision ordering, retained-marker postcondition drift, partial recovery, checklist mutation families, redaction, API error mapping, docs, and package boundaries. A separately invoked 12-test live suite is allowlisted to the dedicated TestingBoard and verifies supported production paths, deterministic injected recovery seams, run isolation, status-only card cleanup, and empty run-list closure.
 
 Preserve Jest initially because the existing 109-test suite uses Jest-specific spies, fake timers, and module access. Use Node subprocess APIs in tests to invoke the real Bun executable; do not couple tests to `Bun.spawn` unless production needs it.
 
@@ -826,7 +826,7 @@ Implementation, independent verification, and reconciliation are complete. The u
 | Separate plans could drift                                                                                         | Controlled                        | Single canonical plan                                                                                           |
 | Human forgets workflow state                                                                                       | Controlled by design              | `NEXT.md` and session contract                                                                                  |
 | Agent skips reconciliation                                                                                         | Controlled by workflow            | Required skills and gates                                                                                       |
-| Live Trello behavior is not yet verified against user configuration                                                | Explicitly deferred               | Obtain board/list configuration and separate authorization before any safe live integration exercise            |
+| Live Trello behavior outside the dedicated TestingBoard is not verified or authorized                              | Explicitly bounded                | Keep live mutation allowlisted to TestingBoard unless a separate approved work item authorizes another board    |
 | Atomic production Work Unit ID allocation has no selected Trello-backed concurrency mechanism                      | Explicitly deferred               | Select and verify a backing mechanism before representing allocation as production-concurrency-safe             |
 
 Reconciliation must remove resolved risks and add newly material risks.
@@ -841,7 +841,7 @@ Broad transaction hardening for issue Markdown, derived issue state, and feature
 
 Later explicit gates remain for any public behavior/schema change, material tooling or distribution deviation, and source deletion.
 
-The Trello board ID, Inbox/list identifiers, credential/configuration source, safe live-integration procedure, and production atomic ID-allocation backend remain open. Offline V1 must not be represented as live-integrated or as proving a Trello-backed concurrency mechanism.
+The dedicated TestingBoard identifier, canonical list mapping, process-environment credential source, and recovery-aware live procedure are verified. Production-board use and the production atomic ID-allocation backend remain open and separately gated; dedicated-board live validation must not be represented as production-board authorization or as proving a Trello-backed concurrency mechanism.
 
 ---
 
@@ -907,4 +907,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Decide whether to authorize a separate commit and push of the verified `feat/trello-work-unit-cli` worktree. Release, publication, local/global distribution, live Trello configuration/integration, credential access, and source deletion remain separately gated and unapproved.
+Decide whether to authorize commit and push of the exact verified staged Trello Work Unit CLI snapshot. Release, publication, local/global distribution, production-board access, and source deletion remain separately gated and unapproved.

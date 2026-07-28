@@ -65,11 +65,20 @@ describe('Trello REST API v1 client', () => {
     expect(url.searchParams.get('fields')).toContain('idShort');
   });
 
-  it('supports board, list, card-list, and authentication reads', async () => {
+  it('supports board discovery, board/list reads, and authentication reads', async () => {
     const transport = new FakeTransport(
       json({ id: 'me', username: 'jim' }),
+      json([{ id: 'board-1', name: 'Work' }]),
       json({ id: 'board-1', name: 'Work' }),
-      json([{ id: 'list-1', name: 'Inbox', closed: false }]),
+      json([
+        {
+          id: 'list-1',
+          idBoard: 'board-1',
+          name: 'Inbox',
+          pos: 1024,
+          closed: false,
+        },
+      ]),
       json([card]),
     );
     const api = client(transport);
@@ -78,6 +87,9 @@ describe('Trello REST API v1 client', () => {
       id: 'me',
       username: 'jim',
     });
+    await expect(api.listMemberBoards()).resolves.toEqual([
+      { id: 'board-1', name: 'Work' },
+    ]);
     await expect(api.getBoard('board-1')).resolves.toEqual({
       id: 'board-1',
       name: 'Work',
@@ -88,9 +100,62 @@ describe('Trello REST API v1 client', () => {
       transport.requests.map((request) => new URL(request.url).pathname),
     ).toEqual([
       '/1/members/me',
+      '/1/members/me/boards',
       '/1/boards/board-1',
       '/1/boards/board-1/lists',
       '/1/boards/board-1/cards',
+    ]);
+  });
+
+  it('constructs list create, read, update, action, and occupancy requests', async () => {
+    const list = {
+      id: 'list-1',
+      idBoard: 'board-1',
+      name: 'Disposable',
+      pos: 1024,
+      closed: false,
+    };
+    const transport = new FakeTransport(
+      json(list),
+      json(list),
+      json({ ...list, name: 'Renamed', pos: 2048 }),
+      json([
+        {
+          data: {
+            list: { id: 'list-1', name: 'Renamed' },
+            old: { name: 'Disposable' },
+          },
+        },
+      ]),
+      json([{ id: card.id }]),
+    );
+    const api = client(transport);
+
+    await api.createList({
+      idBoard: 'board-1',
+      name: 'Disposable',
+      pos: 'bottom',
+    });
+    await api.getList('list-1');
+    await api.updateList('list-1', { name: 'Renamed', pos: 2048 });
+    await expect(api.listBoardListActions('board-1')).resolves.toEqual([
+      { listId: 'list-1', names: ['Renamed', 'Disposable'] },
+    ]);
+    await expect(api.listListCards('list-1')).resolves.toEqual([
+      { id: card.id },
+    ]);
+
+    expect(
+      transport.requests.map((request) => [
+        request.method,
+        new URL(request.url).pathname,
+      ]),
+    ).toEqual([
+      ['POST', '/1/lists'],
+      ['GET', '/1/lists/list-1'],
+      ['PUT', '/1/lists/list-1'],
+      ['GET', '/1/boards/board-1/actions'],
+      ['GET', '/1/lists/list-1/cards'],
     ]);
   });
 
@@ -157,6 +222,7 @@ describe('Trello REST API v1 client', () => {
     const transport = new FakeTransport(
       json([checklist]),
       json(checklist),
+      json(checklist.checkItems[0]),
       json({ ...checklist, name: 'Done' }),
       json({ ...checklist.checkItems[0], state: 'complete' }),
     );
@@ -164,6 +230,7 @@ describe('Trello REST API v1 client', () => {
 
     await api.listChecklists(card.id);
     await api.createChecklist(card.id, 'Verification');
+    await api.createChecklistItem('check-1', 'Tests');
     await api.updateChecklist('check-1', 'Done');
     await api.setChecklistItemState(card.id, 'item-1', true);
 
@@ -172,10 +239,11 @@ describe('Trello REST API v1 client', () => {
     ).toEqual([
       `/1/cards/${card.id}/checklists`,
       '/1/checklists',
+      '/1/checklists/check-1/checkItems',
       '/1/checklists/check-1',
       `/1/cards/${card.id}/checkItem/item-1`,
     ]);
-    expect(new URLSearchParams(transport.requests[3].body).get('state')).toBe(
+    expect(new URLSearchParams(transport.requests[4].body).get('state')).toBe(
       'complete',
     );
   });

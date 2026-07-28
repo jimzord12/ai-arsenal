@@ -25,7 +25,7 @@ describe('Work CLI configuration', () => {
       [
         'TRELLO_API_KEY=file-key',
         'TRELLO_API_TOKEN=file-token',
-        'TRELLO_BOARD_ID=board-from-file',
+        'TRELLO_BOARD_ID=must-not-select-a-board',
         'TRELLO_LIST_INBOX_ID=inbox-from-file',
       ].join('\n'),
       'utf8',
@@ -40,7 +40,7 @@ describe('Work CLI configuration', () => {
       apiKey: 'process-key',
       apiToken: 'file-token',
     });
-    expect(config.boardId).toBe('board-from-file');
+    expect(config.boardId).toBeNull();
     expect(config.listIds.inbox).toBe('inbox-from-file');
     expect(config.loadedHermesEnv).toBe(true);
   });
@@ -58,14 +58,43 @@ describe('Work CLI configuration', () => {
     expect(config.loadedHermesEnv).toBe(false);
   });
 
-  it('reports unresolved board/list configuration without inventing identifiers', async () => {
+  it('never uses ambient board selection and reports the runtime board as unresolved', async () => {
     const config = await loadWorkConfig({
-      env: { TRELLO_API_KEY: 'key', TRELLO_API_TOKEN: 'token' },
+      env: {
+        TRELLO_API_KEY: 'key',
+        TRELLO_API_TOKEN: 'token',
+        TRELLO_BOARD_ID: 'must-not-select-a-board',
+      },
     });
+    expect(config.boardId).toBeNull();
     expect(missingMutationConfiguration(config, ['inbox'])).toEqual([
       'TRELLO_BOARD_ID',
       'TRELLO_LIST_INBOX_ID',
     ]);
+  });
+
+  it('uses the canonical workflow defaults while independently honoring list overrides', async () => {
+    const config = await loadWorkConfig({
+      env: { TRELLO_LIST_REVIEW_ID: 'review-override' },
+    });
+    expect(config.listIds).toEqual({ review: 'review-override' });
+    expect(config.listNames).toEqual({
+      inbox: 'Inbox',
+      ready: 'Ready',
+      in_progress: 'In Progress',
+      review: 'Review',
+      blocked: 'Blocked',
+      done: 'Done',
+    });
+    expect(config.transitionGraph).toEqual({
+      inbox: ['ready'],
+      ready: ['in_progress'],
+      in_progress: ['review', 'blocked'],
+      review: ['done', 'in_progress'],
+      blocked: ['ready', 'in_progress'],
+      done: [],
+    });
+    expect(config.reconcileSource).toBe('description');
   });
 
   it.each([
