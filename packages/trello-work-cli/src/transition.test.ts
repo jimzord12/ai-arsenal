@@ -47,6 +47,7 @@ function config(configured = true): WorkConfig {
     listIds: configured
       ? {
           inbox: 'list-inbox',
+          in_design: 'list-in-design',
           ready: 'list-ready',
           in_progress: 'list-in-progress',
           review: 'list-review',
@@ -113,6 +114,32 @@ describe('configured transitions', () => {
       },
     });
     expect(client.calls).toEqual(['list', 'update', 'get']);
+  });
+
+  it('rejects In Design to Ready while pending content or Open Questions remain', async () => {
+    const client = new FakeTransitionClient();
+    const current = await card();
+    const document = parseWorkUnit(current.desc);
+    client.card = {
+      ...current,
+      idList: 'list-in-design',
+      desc: renderWorkUnit({
+        ...document,
+        metadata: { ...document.metadata, status: 'in_design' },
+        sections: {
+          ...document.sections,
+          Objective: 'Pending: define the outcome.',
+          'Open Questions': '- What evidence is required?',
+        },
+      }),
+    };
+
+    await expect(
+      transitionWorkUnit(cardId, 'ready', config(), client, {
+        operationId: 'ready-gate-pending',
+      }),
+    ).rejects.toMatchObject({ code: 'WORK_UNIT_NOT_READY' });
+    expect(client.calls).toEqual(['get']);
   });
 
   it('returns a dry-run plan without writes', async () => {

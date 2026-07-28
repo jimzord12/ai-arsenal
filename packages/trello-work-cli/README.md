@@ -8,6 +8,8 @@ The planning skill extracts and presents human-facing Work Unit drafts. This CLI
 
 The canonical document is one `# Work Unit` heading, one immediately following fenced `yaml` metadata block in canonical field order, and the required ordered sections. `parent` and `blocked_by` use `WU-N`; Trello card IDs are separate 24-character hexadecimal identifiers.
 
+Inbox supports two intake paths: ordinary Trello cards listed by `work inbox list`, and agent-prepared Draft Work Units created by `work draft create`. `work create` remains a deprecated warning-emitting alias. `work design start` converts the selected card in place to In Design, preserving its Trello identity and history. In Design requires every canonical section and permits explicit `Pending:` content and `Open Questions`; transition to Ready is rejected until both are resolved.
+
 ## Safety boundaries
 
 - `status`, IDs, and timestamps are system-managed.
@@ -47,6 +49,7 @@ to close a list containing cards.
 Status-specific list variables remain configuration inputs:
 
 - `TRELLO_LIST_INBOX_ID`
+- `TRELLO_LIST_IN_DESIGN_ID`
 - `TRELLO_LIST_READY_ID`
 - `TRELLO_LIST_IN_PROGRESS_ID`
 - `TRELLO_LIST_REVIEW_ID`
@@ -54,11 +57,11 @@ Status-specific list variables remain configuration inputs:
 - `TRELLO_LIST_DONE_ID`
 
 Without those overrides, statuses resolve by exact canonical names: `Inbox`,
-`Ready`, `In Progress`, `Review`, `Blocked`, and `Done`. Run
+`In Design`, `Ready`, `In Progress`, `Review`, `Blocked`, and `Done`. Run
 `work workflow init --board <id-or-exact-name> --operation-id <durable-id>` to
 dry-run or create only missing canonical lists. Existing lists are preserved;
 duplicates and wrong-board overrides fail before writes. The built-in transition
-graph is Inbox → Ready; Ready → In Progress; In Progress → Review or Blocked;
+graph is Inbox → In Design; In Design → Ready; Ready → In Progress; In Progress → Review or Blocked;
 Review → Done or In Progress; Blocked → Ready or In Progress; Done → none.
 `TRELLO_TRANSITIONS_JSON` replaces that complete graph. Reconciliation defaults
 to `description`; `TRELLO_RECONCILE_SOURCE` replaces it.

@@ -124,6 +124,7 @@ class FakeListClient implements ListManagementClient {
 describe('board-scoped list management', () => {
   const canonicalNames = {
     inbox: 'Inbox',
+    in_design: 'In Design',
     ready: 'Ready',
     in_progress: 'In Progress',
     review: 'Review',
@@ -145,7 +146,7 @@ describe('board-scoped list management', () => {
     ).resolves.toMatchObject({ outcome: 'verified' });
     expect(
       api.calls.filter((call) => call.startsWith('createList:')),
-    ).toHaveLength(5);
+    ).toHaveLength(6);
     const writes = api.calls.filter((call) =>
       call.startsWith('createList:'),
     ).length;
@@ -263,7 +264,7 @@ describe('board-scoped list management', () => {
         options,
       ),
     ).resolves.toMatchObject({ outcome: 'ambiguous' });
-    expect(api.lists.map((list) => list.name)).toEqual(['Inbox', 'Ready']);
+    expect(api.lists.map((list) => list.name)).toEqual(['Inbox', 'In Design']);
 
     api.failWriteAt = null;
     await expect(
@@ -280,6 +281,7 @@ describe('board-scoped list management', () => {
         boardId,
         listIds: {
           inbox: expect.any(String),
+          in_design: expect.any(String),
           ready: expect.any(String),
           in_progress: expect.any(String),
           review: expect.any(String),
@@ -290,6 +292,7 @@ describe('board-scoped list management', () => {
     });
     expect(api.lists.map((list) => list.name)).toEqual([
       'Inbox',
+      'In Design',
       'Ready',
       'In Progress',
       'Review',
@@ -322,12 +325,12 @@ describe('board-scoped list management', () => {
       recovery: {
         operationId: expect.stringMatching(/^workflow-[0-9a-f]{32}$/),
         boardId,
-        requested: { name: 'In Progress', closed: false },
+        requested: { name: 'Ready', closed: false },
         action: 'inspect-list-and-board-actions-before-retry',
       },
     });
     expect(JSON.stringify(replayed)).not.toMatch(/api-key|api-token/i);
-    expect(api.lists.map((list) => list.name)).toEqual(['Inbox', 'Ready']);
+    expect(api.lists.map((list) => list.name)).toEqual(['Inbox', 'In Design']);
   });
 
   it('fails initialization before mutation for duplicate names and wrong-board overrides', async () => {

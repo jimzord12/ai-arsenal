@@ -8,6 +8,7 @@ import {
 import {
   doctor,
   getWorkUnit,
+  listInboxCards,
   listWorkUnits,
   validateLocalWorkUnit,
   validateRemoteWorkUnit,
@@ -210,6 +211,38 @@ describe('read-only commands', () => {
     });
   });
 
+  it('lists ordinary Inbox cards while Work Unit listing skips them', async () => {
+    const ordinary = await card({
+      id: 'aaaaaaaaaaaaaaaaaaaaaaaa',
+      idShort: 44,
+      name: 'Investigate onboarding',
+      desc: 'A plain Trello intake note.',
+    });
+    const persisted = await card();
+    const client = fakeClient([ordinary, persisted]);
+
+    await expect(listInboxCards(config(), client)).resolves.toMatchObject({
+      items: [
+        { id: ordinary.id, kind: 'ordinary' },
+        { id: persisted.id, kind: 'work-unit' },
+      ],
+    });
+    await expect(listWorkUnits({}, config(), client)).resolves.toMatchObject({
+      items: [{ metadata: { id: 'WU-42' } }],
+    });
+  });
+
+  it('rejects malformed Inbox cards that retain a durable operation marker', async () => {
+    const malformed = await card({
+      desc: 'Damaged content\n<!-- work-operation: design-start-1 deadbeef -->',
+    });
+    const client = fakeClient([malformed]);
+
+    await expect(listInboxCards(config(), client)).rejects.toMatchObject({
+      code: 'INVALID_REMOTE_WORK_UNIT',
+    });
+  });
+
   it('fails board-dependent reads before any client call when unconfigured', async () => {
     const client = fakeClient([]);
     await expect(
@@ -260,7 +293,7 @@ describe('read-only commands', () => {
       board: { configured: true, reachable: true },
       mappings: {
         valid: false,
-        missing: ['in_progress', 'review', 'blocked', 'done'],
+        missing: ['in_design', 'in_progress', 'review', 'blocked', 'done'],
       },
     });
     expect(JSON.stringify(result)).not.toContain('present');
@@ -274,6 +307,7 @@ describe('read-only commands', () => {
   it('marks doctor mappings valid only when every required list is unique, present, and open', async () => {
     const listIds = {
       inbox: 'li',
+      in_design: 'ldesign',
       ready: 'lr',
       in_progress: 'lp',
       review: 'lv',

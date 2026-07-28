@@ -30,7 +30,15 @@
     "title": { "type": "string", "minLength": 1 },
     "type": { "enum": ["chore", "task", "slice"] },
     "status": {
-      "enum": ["inbox", "ready", "in_progress", "review", "blocked", "done"]
+      "enum": [
+        "inbox",
+        "in_design",
+        "ready",
+        "in_progress",
+        "review",
+        "blocked",
+        "done"
+      ]
     },
     "priority": { "enum": ["critical", "high", "normal", "low"] },
     "complexity": { "enum": ["low", "medium", "high"] },

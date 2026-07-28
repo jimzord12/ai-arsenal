@@ -209,7 +209,17 @@ export async function listWorkUnits(
 ): Promise<{ filters: ListFilters; items: NormalizedWorkUnit[] }> {
   const boardId = requireBoard(config);
   const items = (await client.listBoardCards(boardId))
-    .map(normalizeRemoteCard)
+    .flatMap((card) => {
+      try {
+        return [normalizeRemoteCard(card)];
+      } catch (error) {
+        const claimsWorkUnit =
+          card.desc.trimStart().startsWith('# Work Unit') ||
+          card.desc.includes('<!-- work-operation:');
+        if (claimsWorkUnit) throw error;
+        return [];
+      }
+    })
     .filter((item) => {
       const metadata = item.metadata;
       return (
@@ -223,6 +233,52 @@ export async function listWorkUnits(
       );
     });
   return { filters, items };
+}
+
+export async function listInboxCards(
+  config: WorkConfig,
+  client: ReadCommandClient,
+): Promise<{
+  items: Array<
+    | (Pick<TrelloCard, 'id' | 'idShort' | 'idList' | 'name' | 'shortUrl'> & {
+        kind: 'ordinary';
+      })
+    | (Pick<TrelloCard, 'id' | 'idShort' | 'idList' | 'name' | 'shortUrl'> & {
+        kind: 'work-unit';
+        workUnit: NormalizedWorkUnit;
+      })
+  >;
+}> {
+  const boardId = requireBoard(config);
+  const inboxId = config.listIds.inbox;
+  if (!inboxId) configurationMissing(['TRELLO_LIST_INBOX_ID']);
+  const cards = (await client.listBoardCards(boardId)).filter(
+    (card) => card.idList === inboxId,
+  );
+  return {
+    items: cards.map((card) => {
+      const basic = {
+        id: card.id,
+        idShort: card.idShort,
+        idList: card.idList,
+        name: card.name,
+        shortUrl: card.shortUrl,
+      };
+      try {
+        return {
+          ...basic,
+          kind: 'work-unit' as const,
+          workUnit: normalizeRemoteCard(card),
+        };
+      } catch (error) {
+        const claimsWorkUnit =
+          card.desc.trimStart().startsWith('# Work Unit') ||
+          card.desc.includes('<!-- work-operation:');
+        if (claimsWorkUnit) throw error;
+        return { ...basic, kind: 'ordinary' as const };
+      }
+    }),
+  };
 }
 
 export type DoctorResult = {
@@ -262,6 +318,7 @@ export async function doctor(
   };
   const allStatuses: WorkUnitStatus[] = [
     'inbox',
+    'in_design',
     'ready',
     'in_progress',
     'review',

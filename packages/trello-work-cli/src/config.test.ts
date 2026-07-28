@@ -80,6 +80,7 @@ describe('Work CLI configuration', () => {
     expect(config.listIds).toEqual({ review: 'review-override' });
     expect(config.listNames).toEqual({
       inbox: 'Inbox',
+      in_design: 'In Design',
       ready: 'Ready',
       in_progress: 'In Progress',
       review: 'Review',
@@ -87,7 +88,8 @@ describe('Work CLI configuration', () => {
       done: 'Done',
     });
     expect(config.transitionGraph).toEqual({
-      inbox: ['ready'],
+      inbox: ['in_design'],
+      in_design: ['ready'],
       ready: ['in_progress'],
       in_progress: ['review', 'blocked'],
       review: ['done', 'in_progress'],
@@ -116,7 +118,8 @@ describe('Work CLI configuration', () => {
 
   it('accepts a complete transition graph with exact known statuses', async () => {
     const graph = {
-      inbox: ['ready'],
+      inbox: ['in_design'],
+      in_design: ['ready'],
       ready: ['in_progress'],
       in_progress: ['review'],
       review: ['done'],

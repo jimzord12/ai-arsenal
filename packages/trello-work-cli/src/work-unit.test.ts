@@ -191,7 +191,23 @@ describe('canonical Work Unit documents', () => {
     expect(() => parseWorkUnit(source)).toThrow(expected);
   });
 
-  it('allows Open Questions only for inbox documents', async () => {
+  it('allows canonical persisted In Design documents to retain Open Questions', async () => {
+    let source = await validDraft();
+    source = source
+      .replace('id: null', 'id: "WU-9"')
+      .replace(
+        'trello_card_id: null',
+        'trello_card_id: "0123456789abcdef01234567"',
+      )
+      .replace('status: inbox', 'status: in_design')
+      .replace(
+        'created_at: null\nupdated_at: null',
+        'created_at: "2026-07-26T12:00:00.000Z"\nupdated_at: "2026-07-26T12:00:00.000Z"',
+      );
+    expect(parseWorkUnit(source).metadata.status).toBe('in_design');
+  });
+
+  it('allows Open Questions only for inbox or In Design documents', async () => {
     let source = await validDraft();
     source = source
       .replace('id: null', 'id: "WU-9"')

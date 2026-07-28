@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { mutationCliResult, runWorkCli } from './cli';
 import type { WorkConfig } from './config';
@@ -54,6 +55,9 @@ describe('work process command contract', () => {
     for (const syntax of [
       'work get <reference>',
       'work list',
+      'work inbox list',
+      'work draft create',
+      'work design start',
       'work create',
       'work metadata update',
       'work description replace',
@@ -85,6 +89,7 @@ describe('work process command contract', () => {
       listIds: {},
       listNames: {
         inbox: 'Inbox',
+        in_design: 'In Design',
         ready: 'Ready',
         in_progress: 'In Progress',
         review: 'Review',
@@ -92,7 +97,8 @@ describe('work process command contract', () => {
         done: 'Done',
       },
       transitionGraph: {
-        inbox: ['ready'],
+        inbox: ['in_design'],
+        in_design: ['ready'],
         ready: ['in_progress'],
         in_progress: ['review', 'blocked'],
         review: ['done', 'in_progress'],
@@ -120,6 +126,7 @@ describe('work process command contract', () => {
       listIds: {},
       listNames: {
         inbox: 'Inbox',
+        in_design: 'In Design',
         ready: 'Ready',
         in_progress: 'In Progress',
         review: 'Review',
@@ -127,7 +134,8 @@ describe('work process command contract', () => {
         done: 'Done',
       },
       transitionGraph: {
-        inbox: ['ready'],
+        inbox: ['in_design'],
+        in_design: ['ready'],
         ready: ['in_progress'],
         in_progress: ['review', 'blocked'],
         review: ['done', 'in_progress'],
@@ -308,7 +316,156 @@ describe('work process command contract', () => {
       error: { code: 'TRELLO_CREDENTIALS_MISSING' },
     });
   });
+
+  it('routes inbox list through runWorkCli', async () => {
+    const { config, client } = routingFixture();
+    const result = await runWorkCli(
+      ['inbox', 'list', '--board', 'Testing', '--output', 'json'],
+      { config, client: client as never },
+    );
+    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      items: [{ kind: 'ordinary', id: '0123456789abcdef01234567' }],
+    });
+  });
+
+  it.each([['draft', 'create'], ['create']])(
+    'routes %p dry-run from injected file input',
+    async (...command) => {
+      const { config, client, draft } = routingFixture();
+      const result = await runWorkCli(
+        [
+          ...command,
+          '--file',
+          'draft.md',
+          '--dry-run',
+          '--operation-id',
+          'routing-draft-1',
+          '--board',
+          'Testing',
+          '--output',
+          'json',
+        ],
+        { config, client: client as never, readFile: async () => draft },
+      );
+      expect(result.exitCode).toBe(0);
+      expect(JSON.parse(result.stdout)).toMatchObject({ outcome: 'planned' });
+      expect(result.stderr).toBe(
+        command[0] === 'create'
+          ? 'DEPRECATED: work create; use work draft create.\n'
+          : '',
+      );
+    },
+  );
+
+  it('routes design start with injected file input and preserves JSON separation', async () => {
+    const { config, client, draft } = routingFixture();
+    const result = await runWorkCli(
+      [
+        'design',
+        'start',
+        '0123456789abcdef01234567',
+        '--file',
+        'partial.md',
+        '--dry-run',
+        '--operation-id',
+        'routing-design-1',
+        '--board',
+        'Testing',
+        '--output',
+        'json',
+      ],
+      { config, client: client as never, readFile: async () => draft },
+    );
+    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      outcome: 'planned',
+      proposed: { cardId: '0123456789abcdef01234567' },
+    });
+  });
+
+  it.each([
+    ['draft', 'create', '--board', 'Testing'],
+    ['draft', 'create', '--file', 'a', '--stdin', '--board', 'Testing'],
+    ['design', 'start', 'card', '--stdin', '--board', 'Testing'],
+    ['inbox', 'list', '--file', 'a', '--board', 'Testing'],
+    ['design', 'start', '--file', 'a', '--board', 'Testing'],
+  ])(
+    'rejects new-command parser errors before routing: %p',
+    async (...args) => {
+      const result = await runWorkCli([...args, '--output', 'json']);
+      expect(result).toMatchObject({ exitCode: 2, stdout: '' });
+      expect(JSON.parse(result.stderr)).toMatchObject({
+        error: { code: 'USAGE_ERROR' },
+      });
+    },
+  );
 });
+
+function routingFixture() {
+  const config: WorkConfig = {
+    credentials: { apiKey: 'key', apiToken: 'token' },
+    boardId: null,
+    listIds: {
+      inbox: 'list-inbox',
+      in_design: 'list-design',
+      ready: 'list-ready',
+      in_progress: 'list-progress',
+      review: 'list-review',
+      blocked: 'list-blocked',
+      done: 'list-done',
+    },
+    listNames: {
+      inbox: 'Inbox',
+      in_design: 'In Design',
+      ready: 'Ready',
+      in_progress: 'In Progress',
+      review: 'Review',
+      blocked: 'Blocked',
+      done: 'Done',
+    },
+    transitionGraph: {
+      inbox: ['in_design'],
+      in_design: ['ready'],
+      ready: ['in_progress'],
+      in_progress: ['review', 'blocked'],
+      review: ['done', 'in_progress'],
+      blocked: ['ready', 'in_progress'],
+      done: [],
+    },
+    reconcileSource: 'description',
+    loadedHermesEnv: false,
+    hermesEnvPath: null,
+  };
+  const card = {
+    id: '0123456789abcdef01234567',
+    idShort: 42,
+    name: 'Ordinary intake',
+    desc: 'Plain intake notes.',
+    idList: 'list-inbox',
+    dateLastActivity: '2026-07-28T12:00:00.000Z',
+    shortUrl: 'https://trello.com/c/test/card',
+  };
+  const lists = Object.entries(config.listIds).map(([status, id]) => ({
+    id: id as string,
+    idBoard: 'board-id',
+    name: config.listNames[status as keyof typeof config.listNames],
+    pos: 1,
+    closed: false,
+  }));
+  const client = {
+    getBoard: async () => ({ id: 'board-id', name: 'Testing' }),
+    listMemberBoards: async () => [{ id: 'board-id', name: 'Testing' }],
+    listBoardLists: async () => lists,
+    listBoardCards: async () => [card],
+    getCard: async () => card,
+  };
+  const draft = readFileSync(
+    join(packageRoot, 'test', 'fixtures', 'valid-draft.md'),
+    'utf8',
+  );
+  return { config, client, draft };
+}
 
 describe('mutation family CLI outcomes', () => {
   it.each([
@@ -343,6 +500,7 @@ describe('mutation family CLI outcomes', () => {
 
   it.each([
     ['planned', { plan: {} }],
+    ['planned', { proposed: {} }],
     ['verified', { value: {} }],
     ['recovered', { value: {} }],
   ] as const)('permits the valid %s outcome', (outcome, payload) => {

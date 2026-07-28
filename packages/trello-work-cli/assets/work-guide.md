@@ -6,7 +6,10 @@ This guide ships with `@jz/ai-arsenal-trello-work-cli` and is version-matched wi
 
 A Work Unit is one Trello card whose description is a canonical `# Work Unit` Markdown document. Its fenced YAML metadata and ordered sections are validated before reads are normalized or writes begin.
 
-- Drafts use `status: inbox`, null IDs, and null timestamps.
+- Drafts use `status: inbox`, null IDs, and null timestamps. Create an agent-prepared draft with `work draft create`; `work create` is a deprecated alias that emits a warning.
+- Ordinary Trello cards are also valid Inbox intake. Use `work inbox list`, then convert the selected card in place with `work design start`.
+- In Design Work Units keep every canonical section. Mark incomplete content explicitly with `Pending:` entries and optional `Open Questions`.
+- In Design can enter Ready only after all `Pending:` entries and material `Open Questions` are resolved.
 - Persisted cards pair `id: WU-N` with a 24-character hexadecimal `trello_card_id` and paired timestamps.
 - `WU-N` comes from Trello's server-assigned board-scoped `idShort`; gaps are valid and IDs are never predicted or reused.
 - `parent` and `blocked_by` contain Work Unit IDs, never Trello card IDs.
@@ -53,9 +56,21 @@ Close/archive an empty list after board-ownership and card-occupancy preflight.
 This is Trello's list-deletion semantic; the CLI never permanently deletes a
 list and never closes a list containing cards.
 
-### work create --file <work-unit.md> | --stdin
+### work inbox list
+
+List ordinary Inbox cards and canonical Draft Work Units without forcing ordinary cards to parse as Work Units.
+
+### work draft create --file <work-unit.md> | --stdin
 
 Validate a draft, create exactly one Inbox card, derive `WU-N` from returned `idShort`, persist IDs/timestamps, and read back before success. A dry run never predicts `WU-N`.
+
+### work design start <card-reference> --file <work-unit.md>
+
+Claim the selected Inbox card and convert that same card in place to canonical In Design content. The Trello card ID, comments, attachments, and history are preserved.
+
+### work create --file <work-unit.md> | --stdin
+
+Deprecated alias for `work draft create`. It preserves behavior and emits a warning; new automation should use `work draft create`.
 
 ### work metadata update <reference> --json <merge-patch> | --file <patch.json>
 
@@ -132,6 +147,7 @@ matches fail without mutation and duplicate exact names require a board ID.
 Status/list synchronization uses:
 
 - `TRELLO_LIST_INBOX_ID`
+- `TRELLO_LIST_IN_DESIGN_ID`
 - `TRELLO_LIST_READY_ID`
 - `TRELLO_LIST_IN_PROGRESS_ID`
 - `TRELLO_LIST_REVIEW_ID`
@@ -139,13 +155,13 @@ Status/list synchronization uses:
 - `TRELLO_LIST_DONE_ID`
 
 Each variable independently overrides one status. Missing values resolve exact
-canonical names: `Inbox`, `Ready`, `In Progress`, `Review`, `Blocked`, and
+canonical names: `Inbox`, `In Design`, `Ready`, `In Progress`, `Review`, `Blocked`, and
 `Done`. `work workflow init --board <id-or-exact-name> --operation-id <id>`
 creates only missing canonical lists after a complete ambiguity and override
 preflight; use `--dry-run` to inspect the aggregate plan. Existing lists are
 never renamed, closed, replaced, or reopened.
 
-The built-in transition graph is Inbox → Ready; Ready → In Progress; In Progress
+The built-in transition graph is Inbox → In Design; In Design → Ready; Ready → In Progress; In Progress
 → Review or Blocked; Review → Done or In Progress; Blocked → Ready or In
 Progress; Done → none. `TRELLO_TRANSITIONS_JSON` replaces the complete graph.
 Reconciliation defaults to `description`; `TRELLO_RECONCILE_SOURCE=description`

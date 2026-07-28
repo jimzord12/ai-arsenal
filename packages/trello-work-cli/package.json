@@ -18,6 +18,7 @@
     "src/command-catalog.ts",
     "src/config.ts",
     "src/create.ts",
+    "src/design.ts",
     "src/docs.ts",
     "src/errors.ts",
     "src/list-management.ts",

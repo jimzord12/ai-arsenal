@@ -10,13 +10,20 @@ import {
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { parseWorkUnit, renderWorkUnit } from '../src/work-unit';
+import { createWorkUnit } from '../src/create';
+import { startDesign } from '../src/design';
+import { listInboxCards, normalizeRemoteCard } from '../src/read-commands';
+import { transitionWorkUnit } from '../src/transition';
 import {
   CANONICAL_LIST_NAMES,
   DEFAULT_TRANSITION_GRAPH,
   type WorkConfig,
 } from '../src/config';
 import type { TrelloCard } from '../src/trello-types';
-import { resolveBoardSelector } from '../src/board';
+import {
+  resolveBoardSelector,
+  resolveWorkflowListMappings,
+} from '../src/board';
 import {
   createBoardList,
   initializeBoardWorkflow,
@@ -33,13 +40,15 @@ const completeEnvironment = {
   TRELLO_API_KEY: 'test-key',
   TRELLO_API_TOKEN: 'test-token',
   TRELLO_LIST_INBOX_ID: 'aaaaaaaaaaaaaaaaaaaaaaaa',
+  TRELLO_LIST_IN_DESIGN_ID: 'abababababababababababab',
   TRELLO_LIST_READY_ID: 'bbbbbbbbbbbbbbbbbbbbbbbb',
   TRELLO_LIST_IN_PROGRESS_ID: 'cccccccccccccccccccccccc',
   TRELLO_LIST_REVIEW_ID: 'dddddddddddddddddddddddd',
   TRELLO_LIST_BLOCKED_ID: 'eeeeeeeeeeeeeeeeeeeeeeee',
   TRELLO_LIST_DONE_ID: 'ffffffffffffffffffffffff',
   TRELLO_TRANSITIONS_JSON: JSON.stringify({
-    inbox: ['ready'],
+    inbox: ['in_design'],
+    in_design: ['ready'],
     ready: ['in_progress'],
     in_progress: ['review'],
     review: ['done'],
@@ -140,6 +149,7 @@ describe('live Trello E2E preflight', () => {
       boardId: 'board-1',
       listIds: {
         inbox: 'canonical-inbox',
+        in_design: 'in-design',
         ready: 'ready',
         in_progress: 'in-progress',
         review: 'review',
@@ -188,13 +198,35 @@ describe('live Trello E2E preflight', () => {
 
     await moveRunCardToDone(
       card.id,
-      'cleanup-regression',
+      `cleanup-regression-${card.id}`,
       effectiveConfig,
       client,
     );
 
     expect(parseWorkUnit(card.desc).metadata.status).toBe('done');
     expect(card.idList).toBe(canonicalConfig.listIds.done);
+    expect(card.desc).toContain(
+      `cleanup-regression-${card.id}-cleanup-transition-`,
+    );
+  });
+
+  it('initializes and verifies the onboarding workflow before resolving list mappings', async () => {
+    const source = await readFile(__filename, 'utf8');
+    const scenario = source.slice(
+      source.lastIndexOf("'converts ordinary and Draft intake"),
+    );
+    const initializeAt = scenario.indexOf('initializeBoardWorkflow(');
+    const verifyAt = scenario.indexOf('initialized.outcome');
+    const resolveAt = scenario.indexOf('resolveWorkflowListMappings(');
+
+    expect(initializeAt).toBeGreaterThan(-1);
+    expect(verifyAt).toBeGreaterThan(initializeAt);
+    expect(resolveAt).toBeGreaterThan(verifyAt);
+    expect(scenario).toContain('${runId}-${ordinary.id}-ready-rejected');
+    expect(scenario).toContain('${runId}-${ordinary.id}-design');
+    expect(scenario).toContain('${runId}-${draftCardId}-design');
+    expect(scenario).toContain('${runId}-${cardId}-completion');
+    expect(scenario).toContain('${runId}-${cardId}-cleanup');
   });
 
   it('removes inbox-only Open Questions before the live card enters the transition path', async () => {
@@ -253,6 +285,7 @@ describe('live Trello E2E preflight', () => {
       listIds: {},
       listNames: {
         inbox: 'Inbox',
+        in_design: 'In Design',
         ready: 'Ready',
         in_progress: 'In Progress',
         review: 'Review',
@@ -260,7 +293,8 @@ describe('live Trello E2E preflight', () => {
         done: 'Done',
       },
       transitionGraph: {
-        inbox: ['ready'],
+        inbox: ['in_design'],
+        in_design: ['ready'],
         ready: ['in_progress'],
         in_progress: ['review', 'blocked'],
         review: ['done', 'in_progress'],
@@ -393,6 +427,154 @@ describe('explicit live Trello E2E scenario', () => {
         disposableListsVerifiedClosed: true,
         leakedResources: [],
       });
+    },
+    120_000,
+  );
+
+  liveTest(
+    'converts ordinary and Draft intake on the same cards, gates Ready, completes Done, and cleans run-owned cards',
+    async () => {
+      const live = await loadLiveE2EConfig(process.env);
+      const client = live.createClient();
+      const board = await resolveBoardSelector(live.boardSelector, client);
+      expect(board.id.toLowerCase()).toBe(live.allowlistedBoardId);
+      const runId = `onboarding-${Date.now()}`;
+      const initialized = await initializeBoardWorkflow(
+        board.id,
+        live.workConfig,
+        client,
+        { operationId: `${runId}-workflow-init` },
+      );
+      expect(['verified', 'recovered']).toContain(initialized.outcome);
+      const listIds = await resolveWorkflowListMappings(
+        board.id,
+        live.workConfig.listIds,
+        live.workConfig.listNames,
+        client,
+      );
+      const config: WorkConfig = {
+        ...live.workConfig,
+        boardId: board.id,
+        listIds,
+      };
+      const marker = `[work-live-run:${runId}]`;
+      const ownedCardIds: string[] = [];
+      const base = parseWorkUnit(
+        await readFile(
+          resolve(__dirname, 'fixtures', 'valid-draft.md'),
+          'utf8',
+        ),
+      );
+      const partial = {
+        ...prepareLiveWorkUnitDraft(base, runId, marker),
+        sections: {
+          ...prepareLiveWorkUnitDraft(base, runId, marker).sections,
+          Objective: 'Pending: confirm the designed outcome.',
+          'Open Questions': '- Which final evidence is required?',
+        },
+      };
+      try {
+        const ordinary = await client.createCard({
+          idList: listIds.inbox,
+          name: `${marker} ordinary intake`,
+          desc: `${marker} plain intake`,
+        });
+        ownedCardIds.push(ordinary.id);
+        const inbox = await listInboxCards(config, client);
+        expect(inbox.items).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ id: ordinary.id, kind: 'ordinary' }),
+          ]),
+        );
+        const ordinaryDesign = await startDesign(
+          ordinary.id,
+          renderWorkUnit(partial),
+          config,
+          client,
+          { operationId: `${runId}-${ordinary.id}-design` },
+        );
+        expect(ordinaryDesign).toMatchObject({
+          outcome: 'verified',
+          workUnit: { card: { id: ordinary.id } },
+        });
+
+        const draft = prepareLiveWorkUnitDraft(base, runId, marker);
+        const created = await createWorkUnit(
+          renderWorkUnit(draft),
+          config,
+          client,
+          { operationId: `${runId}-draft-create` },
+        );
+        expect(created.outcome).toBe('verified');
+        const draftCardId = (created.workUnit as { card: { id: string } }).card
+          .id;
+        ownedCardIds.push(draftCardId);
+        const draftDesign = await startDesign(
+          draftCardId,
+          renderWorkUnit(partial),
+          config,
+          client,
+          { operationId: `${runId}-${draftCardId}-design` },
+        );
+        expect(draftDesign).toMatchObject({
+          outcome: 'verified',
+          workUnit: { card: { id: draftCardId } },
+        });
+
+        await expect(
+          transitionWorkUnit(ordinary.id, 'ready', config, client, {
+            operationId: `${runId}-${ordinary.id}-ready-rejected`,
+          }),
+        ).rejects.toMatchObject({ code: 'WORK_UNIT_NOT_READY' });
+
+        for (const cardId of ownedCardIds) {
+          const currentCard = await client.getCard(cardId);
+          const current = parseWorkUnit(currentCard.desc);
+          const resolved = {
+            ...current,
+            sections: {
+              ...current.sections,
+              Objective: 'Confirm the designed outcome.',
+            },
+          };
+          delete resolved.sections['Open Questions'];
+          await client.updateCard(cardId, { desc: renderWorkUnit(resolved) });
+          const ready = await transitionWorkUnit(
+            cardId,
+            'ready',
+            config,
+            client,
+            {
+              operationId: `${runId}-${cardId}-ready`,
+            },
+          );
+          expect(ready.outcome).toBe('verified');
+          await moveRunCardToDone(
+            cardId,
+            `${runId}-${cardId}-completion`,
+            config,
+            client,
+          );
+          expect(
+            normalizeRemoteCard(await client.getCard(cardId)),
+          ).toMatchObject({
+            card: { id: cardId, idList: listIds.done },
+            metadata: { status: 'done' },
+          });
+        }
+      } finally {
+        for (const cardId of ownedCardIds) {
+          const card = await client.getCard(cardId);
+          if (card.name.includes(marker) || card.desc.includes(marker)) {
+            await moveRunCardToDone(
+              cardId,
+              `${runId}-${cardId}-cleanup`,
+              config,
+              client,
+            );
+          }
+        }
+      }
     },
     120_000,
   );

@@ -25,6 +25,7 @@ export type LoadWorkConfigOptions = {
 
 const LIST_VARIABLES: Record<WorkUnitStatus, string> = {
   inbox: 'TRELLO_LIST_INBOX_ID',
+  in_design: 'TRELLO_LIST_IN_DESIGN_ID',
   ready: 'TRELLO_LIST_READY_ID',
   in_progress: 'TRELLO_LIST_IN_PROGRESS_ID',
   review: 'TRELLO_LIST_REVIEW_ID',
@@ -34,6 +35,7 @@ const LIST_VARIABLES: Record<WorkUnitStatus, string> = {
 const STATUSES = Object.keys(LIST_VARIABLES) as WorkUnitStatus[];
 export const CANONICAL_LIST_NAMES: Record<WorkUnitStatus, string> = {
   inbox: 'Inbox',
+  in_design: 'In Design',
   ready: 'Ready',
   in_progress: 'In Progress',
   review: 'Review',
@@ -44,7 +46,8 @@ export const DEFAULT_TRANSITION_GRAPH: Record<
   WorkUnitStatus,
   WorkUnitStatus[]
 > = {
-  inbox: ['ready'],
+  inbox: ['in_design'],
+  in_design: ['ready'],
   ready: ['in_progress'],
   in_progress: ['review', 'blocked'],
   review: ['done', 'in_progress'],

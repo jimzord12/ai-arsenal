@@ -27,7 +27,13 @@ export const REQUIRED_SECTIONS = [
 
 export type WorkUnitType = 'chore' | 'task' | 'slice';
 export type WorkUnitStatus =
-  'inbox' | 'ready' | 'in_progress' | 'review' | 'blocked' | 'done';
+  | 'inbox'
+  | 'in_design'
+  | 'ready'
+  | 'in_progress'
+  | 'review'
+  | 'blocked'
+  | 'done';
 export type WorkUnitPriority = 'critical' | 'high' | 'normal' | 'low';
 export type WorkUnitComplexity = 'low' | 'medium' | 'high';
 export type EngineeringDepth =
@@ -74,7 +80,15 @@ const DATE_TIME =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
 const ENUMS = {
   type: ['chore', 'task', 'slice'],
-  status: ['inbox', 'ready', 'in_progress', 'review', 'blocked', 'done'],
+  status: [
+    'inbox',
+    'in_design',
+    'ready',
+    'in_progress',
+    'review',
+    'blocked',
+    'done',
+  ],
   priority: ['critical', 'high', 'normal', 'low'],
   complexity: ['low', 'medium', 'high'],
   engineering_depth: ['exploratory', 'production-pragmatic', 'hardened'],
@@ -105,7 +119,7 @@ function parseToken(token: string, line: number): unknown {
   if (/(?:!!|&|\*|\||>)/.test(token)) {
     fail(`metadata line ${line}: unsafe YAML construct`);
   }
-  if (/^[a-z][a-z0-9-]*$/.test(token)) return token;
+  if (/^[a-z][a-z0-9_-]*$/.test(token)) return token;
   fail(`metadata line ${line}: unsafe or unquoted scalar`);
 }
 
@@ -341,8 +355,12 @@ export function parseWorkUnit(source: string): WorkUnitDocument {
   const metadata = parseMetadata(match[1]);
   const body = normalized.slice(match[0].length);
   const sections = parseSections(body);
-  if (sections['Open Questions'] && metadata.status !== 'inbox') {
-    fail('Open Questions is allowed only for status inbox');
+  if (
+    sections['Open Questions'] &&
+    metadata.status !== 'inbox' &&
+    metadata.status !== 'in_design'
+  ) {
+    fail('Open Questions is allowed only for status inbox or in_design');
   }
   return { metadata, sections };
 }

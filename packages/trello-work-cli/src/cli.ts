@@ -19,6 +19,7 @@ import {
   type WorkConfig,
 } from './config';
 import { createWorkUnit } from './create';
+import { startDesign } from './design';
 import { renderDocs, renderShortHelp } from './docs';
 import { asWorkCliError, formatWorkError, WorkCliError } from './errors';
 import {
@@ -32,6 +33,7 @@ import {
 import {
   doctor,
   getWorkUnit,
+  listInboxCards,
   listWorkUnits,
   validateLocalWorkUnit,
   validateRemoteWorkUnit,
@@ -108,6 +110,9 @@ function commandOptions(command: string, positionals: string[]): Set<string> {
     return new Set(common);
   }
   if (command === 'create') return new Set(['--file', '--stdin', ...mutation]);
+  if (command === 'draft') return new Set(['--file', '--stdin', ...mutation]);
+  if (command === 'design') return new Set(['--file', ...mutation]);
+  if (command === 'inbox') return new Set(configured);
   if (command === 'validate') {
     return new Set(
       positionals.length === 0 ? ['--file', ...common] : configured,
@@ -147,6 +152,18 @@ function expectedPositionals(
 ): number | undefined {
   if (command === 'docs' || command === 'create' || command === 'list')
     return 0;
+  if (command === 'inbox') {
+    if (positionals[0] !== 'list') usage('Unknown inbox command.');
+    return 1;
+  }
+  if (command === 'draft') {
+    if (positionals[0] !== 'create') usage('Unknown draft command.');
+    return 1;
+  }
+  if (command === 'design') {
+    if (positionals[0] !== 'start') usage('Unknown design command.');
+    return 2;
+  }
   if (command === 'doctor') return 0;
   if (command === 'boards') {
     if (positionals[0] !== 'list') usage('Unknown boards command.');
@@ -212,6 +229,16 @@ function validateAndNormalizeArgs(args: string[]): string[] {
   const expected = expectedPositionals(command, positionals);
   if (expected !== undefined && positionals.length !== expected) {
     usage(`Invalid positional arguments for ${command}.`);
+  }
+  if (command === 'create' || command === 'draft') {
+    const hasFile = seen.has('--file');
+    const hasStdin = seen.has('--stdin');
+    if (hasFile === hasStdin) {
+      usage('Supply exactly one of --file <path> or --stdin.');
+    }
+  }
+  if (command === 'design' && !seen.has('--file')) {
+    usage('--file is required.');
   }
   return [command, ...positionals, ...optionTokens];
 }
@@ -291,6 +318,7 @@ export function mutationCliResult(
     recovery?: Record<string, unknown>;
     plan?: unknown;
     draft?: unknown;
+    proposed?: unknown;
     value?: unknown;
     workUnit?: unknown;
   };
@@ -316,7 +344,9 @@ export function mutationCliResult(
   }
   const validPlanned =
     result.outcome === 'planned' &&
-    (result.plan !== undefined || result.draft !== undefined);
+    (result.plan !== undefined ||
+      result.draft !== undefined ||
+      result.proposed !== undefined);
   const validCompleted =
     (result.outcome === 'verified' || result.outcome === 'recovered') &&
     (result.value !== undefined || result.workUnit !== undefined);
@@ -504,6 +534,9 @@ export async function runWorkCli(
         'lists',
         'doctor',
         'create',
+        'draft',
+        'design',
+        'inbox',
         'validate',
         'get',
         'list',
@@ -615,11 +648,39 @@ export async function runWorkCli(
       client,
     );
 
-    if (args[0] === 'create') {
+    if (args[0] === 'create' || (args[0] === 'draft' && args[1] === 'create')) {
       const source = await sourceFromFileOrStdin(args, dependencies);
       const options = mutationOptions(args);
-      return mutationCliResult(
+      const result = mutationCliResult(
         await createWorkUnit(source, selectedConfig, client, options),
+        json,
+        secrets,
+      );
+      return args[0] === 'create'
+        ? {
+            ...result,
+            stderr: 'DEPRECATED: work create; use work draft create.\n',
+          }
+        : result;
+    }
+
+    if (args[0] === 'design' && args[1] === 'start') {
+      return mutationCliResult(
+        await startDesign(
+          referenceAt(args, 2),
+          await readText(requiredValue(args, '--file')),
+          selectedConfig,
+          client,
+          mutationOptions(args),
+        ),
+        json,
+        secrets,
+      );
+    }
+
+    if (args[0] === 'inbox' && args[1] === 'list') {
+      return success(
+        await listInboxCards(selectedConfig, client),
         json,
         secrets,
       );
@@ -635,6 +696,7 @@ export async function runWorkCli(
       'reconcile',
       'checklist',
       'lists',
+      'inbox',
     ]);
     if (!remoteFamilies.has(args[0])) {
       throw new WorkCliError('USAGE_ERROR', `Unknown command: ${args[0]}.`, {

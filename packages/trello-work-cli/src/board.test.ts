@@ -79,10 +79,17 @@ describe('stateless board discovery and resolution', () => {
         closed: false,
       },
       {
+        id: 'design-id',
+        idBoard: boardId,
+        name: 'In Design',
+        pos: 2,
+        closed: false,
+      },
+      {
         id: 'ready-id',
         idBoard: boardId,
         name: 'Ready',
-        pos: 2,
+        pos: 3,
         closed: false,
       },
       {
@@ -114,6 +121,7 @@ describe('stateless board discovery and resolution', () => {
         { review: 'review-id' },
         {
           inbox: 'Inbox',
+          in_design: 'In Design',
           ready: 'Ready',
           in_progress: 'In Progress',
           review: 'Review',
@@ -128,6 +136,7 @@ describe('stateless board discovery and resolution', () => {
       ),
     ).resolves.toEqual({
       inbox: 'inbox-id',
+      in_design: 'design-id',
       ready: 'ready-id',
       in_progress: 'progress-id',
       review: 'review-id',
@@ -144,6 +153,7 @@ describe('stateless board discovery and resolution', () => {
         {},
         {
           inbox: 'Inbox',
+          in_design: 'In Design',
           ready: 'Ready',
           in_progress: 'In Progress',
           review: 'Review',

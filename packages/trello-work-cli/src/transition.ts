@@ -32,6 +32,7 @@ export type TransitionOptions = {
 
 const STATUSES: WorkUnitStatus[] = [
   'inbox',
+  'in_design',
   'ready',
   'in_progress',
   'review',
@@ -155,6 +156,19 @@ export async function transitionWorkUnit(
     throw new WorkCliError(
       'TRANSITION_UNSUPPORTED',
       `Transition ${current.metadata.status} -> ${targetStatus} is not configured.`,
+    );
+  }
+  if (
+    current.metadata.status === 'in_design' &&
+    targetStatus === 'ready' &&
+    (current.sections['Open Questions'] !== undefined ||
+      Object.values(current.sections).some((section) =>
+        /\bpending\s*:/i.test(section),
+      ))
+  ) {
+    throw new WorkCliError(
+      'WORK_UNIT_NOT_READY',
+      'Resolve all Pending entries and Open Questions before entering Ready.',
     );
   }
   const now = options.now ?? new Date().toISOString();

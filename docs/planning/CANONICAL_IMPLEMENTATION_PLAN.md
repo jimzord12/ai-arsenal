@@ -1,6 +1,6 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Trello Work Unit CLI V1 and dedicated-board live E2E verified; commit and distribution remain separately gated
+> **Status:** Revised Trello Work Unit intake/design lifecycle verified offline; capture and authorized TestingBoard validation remain
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-28
 > **Current phase:** Maintenance / verified Trello Work Unit CLI live boundary
@@ -105,10 +105,11 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Changesets generated private package version `0.1.0` and `packages/features-cli/CHANGELOG.md` for flexible feature selectors. The actual 10-file `0.1.0` tarball passes strict publint, installs into a clean unrelated pnpm consumer, and is installed in the Windows user's global pnpm environment. The global command resolves both index and full-name feature selectors in the active `ics-vcr` consumer.
 - `[VERIFIED]` `packages/features-cli/AGENTS.md` establishes a self-hosting boundary: use the monorepo living-plan workflow to maintain this package and reserve `features-cli` for consumer-project feature workflows.
 - `[VERIFIED]` The monorepo work-item pipeline is fully implemented and independently verified. Its 30-test workflow suite covers strict active registration, direct-user revision requests, contract/plan archive-and-increment recovery, fresh approval binding, failed-verification recovery, skill structure, and disposable lifecycle routing; the full repository check passes.
-- `[VERIFIED]` `packages/trello-work-cli` is the private TypeScript package `@jz/ai-arsenal-trello-work-cli`. Its Work Unit V1 boundary implements deterministic parsing and schema enforcement, explicit stateless board selection, canonical workflow defaults with environment overrides, guarded workflow initialization, board-scoped list CRUD, dry-run plans, references, strict CLI parsing, version-guarded mutations, durable operation replay, partial-recovery signaling, secret redaction, API request construction, and built-in documentation.
+- `[VERIFIED]` `packages/trello-work-cli` is the private TypeScript package `@jz/ai-arsenal-trello-work-cli`. Its Work Unit V1 boundary implements deterministic parsing and schema enforcement, explicit stateless board selection, seven-list canonical workflow defaults with environment overrides, guarded workflow initialization, board-scoped list CRUD, dry-run plans, references, strict CLI parsing, version-guarded mutations, durable operation replay, partial-recovery signaling, secret redaction, API request construction, and built-in documentation.
 - `[VERIFIED]` Exact operation replay is resolved before ordinary stale-version rejection for update, transition, reconcile, and checklist mutations, while every new write remains version-guarded. Metadata/description replay re-verifies title, all request-managed metadata, and every section before returning `recovered`.
-- `[VERIFIED]` The Trello CLI passes formatting, linting, strict typechecking, strict publint, 207 offline tests across 18 suites, repository-wide checks, 30 workflow tests, and an explicit 12-test live suite on the dedicated `TestingBoard`. Final independent review of the exact staged snapshot found no Critical or High issue.
-- `[VERIFIED]` Live validation was allowlisted to `TestingBoard` (`6a16bbf1fea5389eb39636b7`). It covered canonical zero-write initialization, run-owned initialization replay/collision, board/list failure boundaries, list mutation dry-run/replay/collision, Work Unit lifecycle behavior, recovery seams, and cleanup. All generated cards are in Done and all disposable run-created lists are closed; no unrelated board, card archival/deletion, checklist deletion, release, publication, global installation, or Git-history mutation occurred.
+- `[VERIFIED]` The Trello CLI supports ordinary Inbox cards and canonical Draft Work Units, `work inbox list`, explicit `work draft create`, the deprecated `work create` alias, same-card `work design start` promotion, canonical partial `in_design`, and strict In Design-to-Ready completeness gating. Malformed cards claiming Work Unit identity fail closed, and design operation IDs are checked board-wide before mutation.
+- `[VERIFIED]` The revised Trello CLI passes formatting, linting, strict typechecking, strict publint, 230 offline tests across 19 suites, repository-wide checks, 30 workflow tests, and credential-free verification of its gated live harness with 12 checks passing and 2 live cases skipped. Final independent review of the exact snapshot found no Critical or High issue.
+- `[VERIFIED]` Historical live validation was allowlisted to `TestingBoard` (`6a16bbf1fea5389eb39636b7`) and left all generated cards in Done with disposable lists closed. The revised seven-list onboarding harness independently initializes its preconditions, covers ordinary-card and Draft intake, uses full-card-scoped operation IDs, and is not yet executed live; global installation and revised TestingBoard validation remain the approved post-capture operation.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[USER-LOCKED]` The approved Monorepo Work-Item Pipeline design and implementation plan define the current maintenance change. The user explicitly approved implementation on 2026-07-13, required subagent-driven execution and independent wide review, prohibited release/distribution automation, and prohibited commits or pushes without separate direction.
 
@@ -414,7 +415,7 @@ Required layers:
 
 Current verified coverage includes colocated domain/filesystem suites, an in-process command-characterization suite, and a real-process E2E/distribution suite: 144 tests across seven Jest suites. It covers schema/domain validation, slug/ID/full-name feature selection, status/review/dependency selection, real temporary filesystem persistence, corrupt JSON rejection, recovery-journal fail-closed behavior, stale and held lock behavior, direct issue-write partial failure characterization, strict `cwd` rooting, paths with spaces and Unicode, milestone byte preservation, real concurrent writer fail-fast behavior, and actual packed-artifact installation/invocation from a clean consumer. Public GitHub Actions verifies the quality workflow on Linux and the process/distribution suite on both Windows and Linux.
 
-The Trello Work Unit CLI has 207 offline tests across 18 suites. They cover schema and parser strictness, reference resolution, explicit board resolution, canonical defaults and overrides, guarded workflow initialization, list CRUD, dry-run and request construction, version preflight, operation-ID replay/collision ordering, retained-marker postcondition drift, partial recovery, checklist mutation families, redaction, API error mapping, docs, and package boundaries. A separately invoked 12-test live suite is allowlisted to the dedicated TestingBoard and verifies supported production paths, deterministic injected recovery seams, run isolation, status-only card cleanup, and empty run-list closure.
+The Trello Work Unit CLI has 230 offline tests across 19 suites. They cover schema and parser strictness, mixed Inbox classification, explicit board resolution, seven-list defaults and overrides, guarded workflow initialization, list CRUD, dry-run and request construction, executable command routing, in-place design promotion, Ready completeness gating, version preflight, board-wide operation-ID replay/collision ordering, retained-marker postcondition drift, partial recovery, checklist mutations, redaction, API error mapping, docs, and package boundaries. Its gated live harness has 12 credential-free checks plus 2 opt-in live cases for both intake paths, same-card identity, transition completion, and run-owned cleanup; the revised live cases remain pending until post-capture execution on TestingBoard.
 
 Preserve Jest initially because the existing 109-test suite uses Jest-specific spies, fake timers, and module access. Use Node subprocess APIs in tests to invoke the real Bun executable; do not couple tests to `Bun.spawn` unless production needs it.
 
@@ -810,6 +811,22 @@ Implementation, independent verification, and reconciliation are complete. The u
 
 ---
 
+## Maintenance update — Trello Intake and In Design Lifecycle
+
+### Resulting verified state
+
+- Inbox accepts ordinary Trello intake cards and canonical Draft Work Units without conflating the two; malformed cards claiming Work Unit identity remain explicit validation failures.
+- `work draft create` creates structured Inbox drafts, `work create` is a deprecated compatibility alias, and `work design start` converts the selected card in place so card identity and Trello history are preserved.
+- `In Design` is the seventh canonical list and `in_design` is the resumable partial status. Canonical structure is retained while explicit `Pending:` content and Open Questions are allowed; Ready requires both to be resolved.
+- Metadata dry-run outcomes, real command routing, cross-card operation-ID collision safety, stale-version handling, replay/recovery, docs, fixtures, and the revised onboarding workbook are verified offline.
+- All 230 package tests, package/root quality gates, 30 workflow tests, strict package validation, affected-path audit, and independent review pass. No `.tgz`, credential artifact, global installation, live Trello mutation, or Git-history mutation occurred during repository verification.
+
+### Remaining operation
+
+Capture the exact verified snapshot first. Then globally install that captured local package and run the separately authorized onboarding workbook only on TestingBoard `6a16bbf1fea5389eb39636b7`; record credential-free evidence and stop on any board, mutation, cleanup, or command-resolution ambiguity.
+
+---
+
 # 19. Current Risks
 
 | Risk                                                                                                               | Current status                    | Required resolution                                                                                             |
@@ -828,6 +845,7 @@ Implementation, independent verification, and reconciliation are complete. The u
 | Agent skips reconciliation                                                                                         | Controlled by workflow            | Required skills and gates                                                                                       |
 | Live Trello behavior outside the dedicated TestingBoard is not verified or authorized                              | Explicitly bounded                | Keep live mutation allowlisted to TestingBoard unless a separate approved work item authorizes another board    |
 | Atomic production Work Unit ID allocation has no selected Trello-backed concurrency mechanism                      | Explicitly deferred               | Select and verify a backing mechanism before representing allocation as production-concurrency-safe             |
+| Revised seven-list Trello lifecycle has not yet been exercised live                                                | Post-capture validation pending   | Install the captured local package and run the authorized workbook only on TestingBoard                         |
 
 Reconciliation must remove resolved risks and add newly material risks.
 
@@ -841,7 +859,7 @@ Broad transaction hardening for issue Markdown, derived issue state, and feature
 
 Later explicit gates remain for any public behavior/schema change, material tooling or distribution deviation, and source deletion.
 
-The dedicated TestingBoard identifier, canonical list mapping, process-environment credential source, and recovery-aware live procedure are verified. Production-board use and the production atomic ID-allocation backend remain open and separately gated; dedicated-board live validation must not be represented as production-board authorization or as proving a Trello-backed concurrency mechanism.
+The dedicated TestingBoard identifier, process-environment credential source, and recovery-aware procedure are verified from prior work. Revised seven-list and dual-intake live validation remains pending after repository capture. Production-board use and the production atomic ID-allocation backend remain open and separately gated; dedicated-board validation must not be represented as production-board authorization or as proving a Trello-backed concurrency mechanism.
 
 ---
 
@@ -907,4 +925,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Decide whether to authorize commit and push of the exact verified staged Trello Work Unit CLI snapshot. Release, publication, local/global distribution, production-board access, and source deletion remain separately gated and unapproved.
+Commit and push the exact verified Trello Work Unit CLI snapshot and verify the remote result. Then install that captured local package globally and execute the separately authorized onboarding workbook only on TestingBoard. Release, publication, production-board access, and source deletion remain separately gated and unapproved.
