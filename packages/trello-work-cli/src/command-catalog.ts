@@ -54,8 +54,9 @@ const BASE_COMMAND_CATALOG: CommandDefinition[] = [
   {
     id: 'get',
     syntax: 'jz-trello-flow get <reference>',
-    summary: 'Read and normalize one Work Unit.',
-    options: ['--output'],
+    summary:
+      'Read one Work Unit and attachment metadata; optionally download uploads.',
+    options: ['--attachments-dir', '--output'],
     mutating: false,
   },
   {

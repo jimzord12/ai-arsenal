@@ -39,16 +39,27 @@ export type TrelloChecklist = {
   checkItems: TrelloChecklistItem[];
 };
 
+export type TrelloAttachment = {
+  id: string;
+  name: string;
+  url: string;
+  mimeType: string;
+  bytes: number;
+  date: string;
+  isUpload: boolean;
+};
+
 export type TransportRequest = {
   method: 'GET' | 'POST' | 'PUT';
   url: string;
   headers?: Record<string, string>;
   body?: string;
+  responseType?: 'binary';
 };
 
 export type TransportResponse = {
   status: number;
-  body: string;
+  body: string | Uint8Array;
 };
 
 export interface TrelloTransport {

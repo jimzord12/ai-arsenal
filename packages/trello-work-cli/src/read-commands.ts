@@ -1,7 +1,17 @@
+import {
+  describeAttachments,
+  downloadAttachments,
+  type AttachmentResult,
+} from './attachments';
 import type { WorkConfig } from './config';
 import { WorkCliError } from './errors';
 import { parseReference } from './reference';
-import type { TrelloBoard, TrelloCard, TrelloList } from './trello-types';
+import type {
+  TrelloAttachment,
+  TrelloBoard,
+  TrelloCard,
+  TrelloList,
+} from './trello-types';
 import {
   parseWorkUnit,
   type WorkUnitDocument,
@@ -16,11 +26,18 @@ export interface ReadCommandClient {
   listBoardLists(boardId: string): Promise<TrelloList[]>;
   listBoardCards(boardId: string): Promise<TrelloCard[]>;
   getCard(reference: string): Promise<TrelloCard>;
+  listCardAttachments(cardId: string): Promise<TrelloAttachment[]>;
+  downloadAttachment(url: string): Promise<Uint8Array>;
 }
 
 export type NormalizedWorkUnit = WorkUnitDocument & {
   card: Pick<TrelloCard, 'id' | 'idShort' | 'idList' | 'name' | 'shortUrl'>;
   version: string;
+};
+
+export type GetWorkUnitResult = NormalizedWorkUnit & {
+  attachmentCount: number;
+  attachments: AttachmentResult[];
 };
 
 export type ListFilters = {
@@ -131,8 +148,23 @@ export async function getWorkUnit(
   reference: string,
   config: WorkConfig,
   client: ReadCommandClient,
-): Promise<NormalizedWorkUnit> {
-  return normalizeRemoteCard(await resolveCard(reference, config, client));
+  options: { attachmentsDirectory?: string } = {},
+): Promise<GetWorkUnitResult> {
+  const workUnit = normalizeRemoteCard(
+    await resolveCard(reference, config, client),
+  );
+  const attachments = await client.listCardAttachments(workUnit.card.id);
+  return {
+    ...workUnit,
+    attachmentCount: attachments.length,
+    attachments: options.attachmentsDirectory
+      ? await downloadAttachments(
+          attachments,
+          options.attachmentsDirectory,
+          (url) => client.downloadAttachment(url),
+        )
+      : describeAttachments(attachments),
+  };
 }
 
 export type RemoteValidationFinding = {

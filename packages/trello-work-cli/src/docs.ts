@@ -45,6 +45,12 @@ export const DOCS_TOPICS: DocsTopic[] = [
       'Every command accepts --output json. Machine-readable success data goes to stdout. Diagnostics and structured failures go to stderr. Exit code 0 means success; 1 means validation/API/verification failure; 2 means usage error; 3 means credentials/authentication failure; 4 means optimistic-concurrency rejection. Codes and messages are stable and never include credential values.',
   },
   {
+    id: 'attachments',
+    title: 'Attachment metadata and downloads',
+    content:
+      'Every jz-trello-flow get result includes attachmentCount and complete ordered attachment metadata. Ordinary get does not download or write files. Use --attachments-dir <directory> only on get to download uploaded attachments with authenticated binary-safe transport. External links remain metadata-only and are never fetched. Downloads stay inside the explicit destination, reject unsafe filenames, deterministically disambiguate duplicate names, and never overwrite existing files. A partial download exits nonzero and reports the failed attachment plus only the paths already completed.',
+  },
+  {
     id: 'recovery',
     title: 'Recovery and reconciliation',
     content:

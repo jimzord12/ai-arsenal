@@ -121,4 +121,22 @@ describe('offline Work CLI documentation', () => {
       'Remote board operations require TRELLO_BOARD_ID',
     );
   });
+
+  it('documents the complete attachment metadata and explicit download safety contract', () => {
+    const get = COMMAND_CATALOG.find((command) => command.id === 'get');
+    expect(get?.options).toContain('--attachments-dir');
+
+    const guide = renderDocs({ mode: 'default', output: 'text' });
+    for (const phrase of [
+      'attachmentCount',
+      '--attachments-dir',
+      'does not download',
+      'uploaded attachments',
+      'external links',
+      'never overwrite',
+      'partial download',
+    ]) {
+      expect(guide.toLowerCase()).toContain(phrase.toLowerCase());
+    }
+  });
 });

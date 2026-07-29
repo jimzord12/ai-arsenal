@@ -7,6 +7,7 @@ import { gunzipSync } from 'node:zlib';
 import { mutationCliResult, runWorkCli } from './cli';
 import type { WorkConfig } from './config';
 import { WorkCliError } from './errors';
+import { parseWorkUnit, renderWorkUnit } from './work-unit';
 
 type ProcessResult = {
   exitCode: number;
@@ -72,6 +73,7 @@ describe('jz-trello-flow process command contract', () => {
       );
       const archive = gunzipSync(readFileSync(tarball));
       let packedManifest: { bin: Record<string, string> } | undefined;
+      const packedPaths: string[] = [];
       for (let offset = 0; offset + 512 <= archive.length;) {
         const header = archive.subarray(offset, offset + 512);
         const name = header
@@ -85,11 +87,11 @@ describe('jz-trello-flow process command contract', () => {
           .trim();
         const size = Number.parseInt(sizeText || '0', 8);
         offset += 512;
+        if (name) packedPaths.push(name);
         if (name === 'package/package.json') {
           packedManifest = JSON.parse(
             archive.subarray(offset, offset + size).toString('utf8'),
           ) as { bin: Record<string, string> };
-          break;
         }
         offset += Math.ceil(size / 512) * 512;
       }
@@ -98,6 +100,8 @@ describe('jz-trello-flow process command contract', () => {
         'jz-trello-flow': 'src/bin.ts',
       });
       expect(packedManifest?.bin).not.toHaveProperty('work');
+      expect(packedPaths).toContain('package/src/attachments.ts');
+      expect(packedPaths).not.toContain('package/src/attachments.test.ts');
     } finally {
       rmSync(packDirectory, { recursive: true, force: true });
     }
@@ -384,6 +388,193 @@ describe('jz-trello-flow process command contract', () => {
     });
   });
 
+  it('routes get attachment downloads and rejects the option on unrelated commands', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'trello-cli-attachments-'));
+    const fixture = routingFixture();
+    const parsed = parseWorkUnit(fixture.draft);
+    fixture.card.desc = renderWorkUnit({
+      ...parsed,
+      metadata: {
+        ...parsed.metadata,
+        id: 'WU-42',
+        trello_card_id: fixture.card.id,
+        created_at: '2026-07-29T10:00:00.000Z',
+        updated_at: '2026-07-29T10:00:00.000Z',
+      },
+    });
+    Object.assign(fixture.client, {
+      listCardAttachments: jest.fn(async () => [
+        {
+          id: 'attachment-1',
+          name: 'evidence.bin',
+          url: 'https://trello.com/1/cards/card/attachments/attachment-1/download/evidence.bin',
+          mimeType: 'application/octet-stream',
+          bytes: 3,
+          date: '2026-07-29T10:01:00.000Z',
+          isUpload: true,
+        },
+      ]),
+      downloadAttachment: jest.fn(async () => Uint8Array.from([0, 255, 1])),
+    });
+    try {
+      const result = await runWorkCli(
+        [
+          'get',
+          'WU-42',
+          '--attachments-dir',
+          root,
+          '--board',
+          'Testing',
+          '--output',
+          'json',
+        ],
+        { config: fixture.config, client: fixture.client as never },
+      );
+
+      expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+      expect(JSON.parse(result.stdout)).toMatchObject({
+        attachmentCount: 1,
+        attachments: [
+          {
+            id: 'attachment-1',
+            downloaded: true,
+            downloadedPath: join(root, 'evidence.bin'),
+          },
+        ],
+      });
+      expect(readFileSync(join(root, 'evidence.bin'))).toEqual(
+        Buffer.from([0, 255, 1]),
+      );
+
+      const rejected = await runWorkCli([
+        'list',
+        '--attachments-dir',
+        root,
+        '--output',
+        'json',
+      ]);
+      expect(rejected).toMatchObject({ exitCode: 2, stdout: '' });
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  it('renders attachment count and one complete metadata line per attachment in text output', async () => {
+    const fixture = routingFixture();
+    const parsed = parseWorkUnit(fixture.draft);
+    fixture.card.desc = renderWorkUnit({
+      ...parsed,
+      metadata: {
+        ...parsed.metadata,
+        id: 'WU-42',
+        trello_card_id: fixture.card.id,
+        created_at: '2026-07-29T10:00:00.000Z',
+        updated_at: '2026-07-29T10:00:00.000Z',
+      },
+    });
+    Object.assign(fixture.client, {
+      listCardAttachments: jest.fn(async () => [
+        {
+          id: 'attachment-1',
+          name: 'evidence\nline.bin',
+          url: 'https://example.com/reference',
+          mimeType: 'application/octet-stream',
+          bytes: 3,
+          date: '2026-07-29T10:01:00.000Z',
+          isUpload: false,
+        },
+      ]),
+      downloadAttachment: jest.fn(),
+    });
+
+    const result = await runWorkCli(
+      ['get', 'WU-42', '--board', 'Testing', '--output', 'text'],
+      { config: fixture.config, client: fixture.client as never },
+    );
+
+    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(result.stdout).toContain('Attachments: 1\n');
+    const metadataLines = result.stdout
+      .split('\n')
+      .filter((line) => line.startsWith('Attachment: '));
+    expect(metadataLines).toHaveLength(1);
+    expect(JSON.parse(metadataLines[0].slice('Attachment: '.length))).toEqual({
+      id: 'attachment-1',
+      name: 'evidence\nline.bin',
+      url: 'https://example.com/reference',
+      mimeType: 'application/octet-stream',
+      bytes: 3,
+      date: '2026-07-29T10:01:00.000Z',
+      isUpload: false,
+      urlType: 'external',
+      downloaded: false,
+      downloadedPath: null,
+    });
+  });
+
+  it('returns truthful JSON recovery when an attachment download partially fails', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'trello-cli-attachments-'));
+    const fixture = routingFixture();
+    const parsed = parseWorkUnit(fixture.draft);
+    fixture.card.desc = renderWorkUnit({
+      ...parsed,
+      metadata: {
+        ...parsed.metadata,
+        id: 'WU-42',
+        trello_card_id: fixture.card.id,
+        created_at: '2026-07-29T10:00:00.000Z',
+        updated_at: '2026-07-29T10:00:00.000Z',
+      },
+    });
+    const attachments = ['first.bin', 'second.bin'].map((name, index) => ({
+      id: `attachment-${index + 1}`,
+      name,
+      url: `https://trello.com/1/cards/card/attachments/attachment-${index + 1}/download/${name}`,
+      mimeType: 'application/octet-stream',
+      bytes: 1,
+      date: `2026-07-29T10:0${index}:00.000Z`,
+      isUpload: true,
+    }));
+    Object.assign(fixture.client, {
+      listCardAttachments: jest.fn(async () => attachments),
+      downloadAttachment: jest
+        .fn<Promise<Uint8Array>, [string]>()
+        .mockResolvedValueOnce(Uint8Array.from([1]))
+        .mockRejectedValueOnce(new Error('download failed token')),
+    });
+    try {
+      const result = await runWorkCli(
+        [
+          'get',
+          'WU-42',
+          '--attachments-dir',
+          root,
+          '--board',
+          'Testing',
+          '--output',
+          'json',
+        ],
+        { config: fixture.config, client: fixture.client as never },
+      );
+
+      expect(result).toMatchObject({ exitCode: 1, stdout: '' });
+      expect(JSON.parse(result.stderr)).toMatchObject({
+        error: {
+          code: 'ATTACHMENT_DOWNLOAD_PARTIAL',
+          recovery: {
+            failedAttachment: { id: 'attachment-2', name: 'second.bin' },
+            completedPaths: [join(root, 'first.bin')],
+            downloadedCount: 1,
+            uploadedCount: 2,
+          },
+        },
+      });
+      expect(readFileSync(join(root, 'first.bin'))).toEqual(Buffer.from([1]));
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it.each([['draft', 'create'], ['create']])(
     'routes %p dry-run from injected file input',
     async (...command) => {
@@ -519,7 +710,7 @@ function routingFixture() {
     join(packageRoot, 'test', 'fixtures', 'valid-draft.md'),
     'utf8',
   );
-  return { config, client, draft };
+  return { config, client, draft, card };
 }
 
 describe('mutation family CLI outcomes', () => {

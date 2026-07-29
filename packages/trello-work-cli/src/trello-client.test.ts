@@ -65,6 +65,98 @@ describe('Trello REST API v1 client', () => {
     expect(url.searchParams.get('fields')).toContain('idShort');
   });
 
+  it('lists complete attachment metadata in Trello order and rejects malformed entries', async () => {
+    const attachments = [
+      {
+        id: 'attachment-1',
+        name: 'evidence.bin',
+        url: 'https://trello.com/1/cards/card/attachments/attachment-1/download/evidence.bin',
+        mimeType: 'application/octet-stream',
+        bytes: 4,
+        date: '2026-07-29T10:00:00.000Z',
+        isUpload: true,
+      },
+      {
+        id: 'attachment-2',
+        name: 'reference',
+        url: 'https://example.com/reference',
+        mimeType: '',
+        bytes: 0,
+        date: '2026-07-29T10:01:00.000Z',
+        isUpload: false,
+      },
+    ];
+    const transport = new FakeTransport(
+      json(attachments),
+      json([{ ...attachments[0], bytes: '4' }]),
+    );
+    const api = client(transport);
+
+    await expect(api.listCardAttachments(card.id)).resolves.toEqual(
+      attachments,
+    );
+    expect(new URL(transport.requests[0].url).pathname).toBe(
+      `/1/cards/${card.id}/attachments`,
+    );
+    await expect(api.listCardAttachments(card.id)).rejects.toMatchObject({
+      code: 'TRELLO_RESPONSE_INVALID',
+    });
+  });
+
+  it('downloads attachment bytes with OAuth header authentication and no credential URL', async () => {
+    const bytes = Uint8Array.from([0, 255, 13, 10, 128]);
+    const transport = new FakeTransport({ status: 200, body: bytes });
+    const downloadUrl =
+      'https://trello.com/1/cards/card/attachments/attachment/download/evidence.bin';
+
+    await expect(
+      client(transport).downloadAttachment(downloadUrl),
+    ).resolves.toEqual(bytes);
+    expect(transport.requests).toEqual([
+      {
+        method: 'GET',
+        url: downloadUrl,
+        headers: {
+          authorization:
+            'OAuth oauth_consumer_key="api-key-value", oauth_token="api-token-value"',
+        },
+        responseType: 'binary',
+      },
+    ]);
+    expect(transport.requests[0].url).not.toContain('api-key-value');
+    expect(transport.requests[0].url).not.toContain('api-token-value');
+    expect(transport.requests[0].url).not.toContain('must-not-send');
+  });
+
+  it('rejects non-Trello download URLs before sending an OAuth header', async () => {
+    const transport = new FakeTransport();
+
+    await expect(
+      client(transport).downloadAttachment('https://example.com/file.bin'),
+    ).rejects.toMatchObject({ code: 'ATTACHMENT_URL_UNSAFE' });
+    expect(transport.requests).toHaveLength(0);
+  });
+
+  it('rejects credential-bearing attachment metadata URLs', async () => {
+    const transport = new FakeTransport(
+      json([
+        {
+          id: 'attachment-1',
+          name: 'evidence.bin',
+          url: 'https://trello.com/file?token=api-token-value',
+          mimeType: 'application/octet-stream',
+          bytes: 4,
+          date: '2026-07-29T10:00:00.000Z',
+          isUpload: true,
+        },
+      ]),
+    );
+
+    await expect(
+      client(transport).listCardAttachments(card.id),
+    ).rejects.toMatchObject({ code: 'TRELLO_RESPONSE_INVALID' });
+  });
+
   it('supports board discovery, board/list reads, and authentication reads', async () => {
     const transport = new FakeTransport(
       json({ id: 'me', username: 'jim' }),

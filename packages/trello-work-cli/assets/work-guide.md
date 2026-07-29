@@ -22,7 +22,17 @@ A `<reference>` is exactly one of `WU-N`, a 24-character Trello card ID, or an H
 ### jz-trello-flow get <reference>
 
 Read and normalize one Work Unit. Use `--board <id-or-exact-name>` on every
-invocation and `--output json` for automation.
+invocation and `--output json` for automation. Every result includes
+`attachmentCount` and complete ordered attachment metadata. Ordinary `get`
+does not download or write files.
+
+Add `--attachments-dir <directory>` to download uploaded attachments with
+authenticated binary-safe transport and report each absolute completed path.
+External links remain metadata-only and are never fetched. Downloads reject
+unsafe filenames, stay inside the explicit directory, deterministically
+disambiguate duplicate names, and never overwrite existing files. A partial
+download exits nonzero, safely identifies the failed attachment, and reports
+only files already completed.
 
 ### jz-trello-flow list
 

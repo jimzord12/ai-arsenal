@@ -37,6 +37,7 @@ import {
   listWorkUnits,
   validateLocalWorkUnit,
   validateRemoteWorkUnit,
+  type GetWorkUnitResult,
   type ListFilters,
 } from './read-commands';
 import { reconcileWorkUnit } from './reconcile';
@@ -78,6 +79,7 @@ const VALUE_OPTIONS = new Set([
   '--position',
   '--topic',
   '--search',
+  '--attachments-dir',
 ]);
 
 function usage(message: string): never {
@@ -142,7 +144,7 @@ function commandOptions(command: string, positionals: string[]): Set<string> {
       ...(positionals[0] === 'list' ? configured : mutation),
     ]);
   }
-  if (command === 'get') return new Set(configured);
+  if (command === 'get') return new Set(['--attachments-dir', ...configured]);
   return new Set(common);
 }
 
@@ -300,6 +302,26 @@ function success(
         : `${value}\n`
       : `${JSON.stringify(value, null, json ? 0 : 2)}\n`;
   return { exitCode: 0, stderr: '', stdout: redactSecrets(rendered, secrets) };
+}
+
+function getSuccess(
+  value: GetWorkUnitResult,
+  json: boolean,
+  secrets: readonly string[],
+): CliResult {
+  if (json) return success(value, true, secrets);
+  const { attachmentCount, attachments, ...workUnit } = value;
+  return success(
+    [
+      JSON.stringify(workUnit, null, 2),
+      `Attachments: ${attachmentCount}`,
+      ...attachments.map(
+        (attachment) => `Attachment: ${JSON.stringify(attachment)}`,
+      ),
+    ].join('\n'),
+    false,
+    secrets,
+  );
 }
 
 export function mutationCliResult(
@@ -716,8 +738,13 @@ export async function runWorkCli(
       );
     }
     if (args[0] === 'get') {
-      return success(
-        await getWorkUnit(referenceAt(args, 1), selectedConfig, client),
+      const attachmentsDirectory = valueAfter(args, '--attachments-dir');
+      return getSuccess(
+        await getWorkUnit(referenceAt(args, 1), selectedConfig, client, {
+          ...(attachmentsDirectory === undefined
+            ? {}
+            : { attachmentsDirectory }),
+        }),
         json,
         secrets,
       );

@@ -1,5 +1,6 @@
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import {
   CANONICAL_LIST_NAMES,
   DEFAULT_TRANSITION_GRAPH,
@@ -14,7 +15,7 @@ import {
   validateRemoteWorkUnit,
   type ReadCommandClient,
 } from './read-commands';
-import type { TrelloCard, TrelloList } from './trello-types';
+import type { TrelloAttachment, TrelloCard, TrelloList } from './trello-types';
 import { parseWorkUnit, renderWorkUnit } from './work-unit';
 
 const cardId = '0123456789abcdef01234567';
@@ -91,6 +92,14 @@ function fakeClient(
       if (!card) throw new Error('missing fake card');
       return card;
     },
+    async listCardAttachments(id) {
+      calls.push(`listCardAttachments:${id}`);
+      return [];
+    },
+    async downloadAttachment(url) {
+      calls.push(`downloadAttachment:${url}`);
+      throw new Error('unexpected attachment download');
+    },
   };
 }
 
@@ -124,6 +133,8 @@ describe('read-only commands', () => {
       {
         version: remote.dateLastActivity,
         metadata: { id: 'WU-42', trello_card_id: cardId },
+        attachmentCount: 0,
+        attachments: [],
       },
     );
     await expect(
@@ -135,8 +146,85 @@ describe('read-only commands', () => {
     });
     expect(client.calls).toEqual([
       'listBoardCards:board-1',
+      `listCardAttachments:${cardId}`,
       `getCard:${cardId}`,
     ]);
+  });
+
+  it('adds ordered attachment metadata and count to get without downloading by default', async () => {
+    const remote = await card();
+    const attachments: TrelloAttachment[] = [
+      {
+        id: 'attachment-1',
+        name: 'evidence.bin',
+        url: 'https://trello.com/1/cards/card/attachments/attachment-1/download/evidence.bin',
+        mimeType: 'application/octet-stream',
+        bytes: 5,
+        date: '2026-07-29T10:00:00.000Z',
+        isUpload: true,
+      },
+      {
+        id: 'attachment-2',
+        name: 'reference',
+        url: 'https://example.com/reference',
+        mimeType: 'text/html',
+        bytes: 0,
+        date: '2026-07-29T10:01:00.000Z',
+        isUpload: false,
+      },
+    ];
+    const downloadAttachment = jest.fn();
+    const client = {
+      ...fakeClient([remote]),
+      listCardAttachments: jest.fn(async () => attachments),
+      downloadAttachment,
+    };
+
+    await expect(getWorkUnit('WU-42', config(), client)).resolves.toMatchObject(
+      {
+        attachmentCount: 2,
+        attachments: [
+          { id: 'attachment-1', urlType: 'uploaded', downloaded: false },
+          { id: 'attachment-2', urlType: 'external', downloaded: false },
+        ],
+      },
+    );
+    expect(client.listCardAttachments).toHaveBeenCalledWith(remote.id);
+    expect(downloadAttachment).not.toHaveBeenCalled();
+  });
+
+  it('downloads uploaded attachments when get receives an explicit destination', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'trello-get-attachments-'));
+    const remote = await card();
+    const attachment: TrelloAttachment = {
+      id: 'attachment-1',
+      name: 'evidence.bin',
+      url: 'https://trello.com/1/cards/card/attachments/attachment-1/download/evidence.bin',
+      mimeType: 'application/octet-stream',
+      bytes: 3,
+      date: '2026-07-29T10:00:00.000Z',
+      isUpload: true,
+    };
+    const client = {
+      ...fakeClient([remote]),
+      listCardAttachments: jest.fn(async () => [attachment]),
+      downloadAttachment: jest.fn(async () => Uint8Array.from([0, 255, 1])),
+    };
+    try {
+      const result = await getWorkUnit('WU-42', config(), client, {
+        attachmentsDirectory: root,
+      });
+
+      expect(result.attachments[0]).toMatchObject({
+        downloaded: true,
+        downloadedPath: join(root, attachment.name),
+      });
+      await expect(readFile(join(root, attachment.name))).resolves.toEqual(
+        Buffer.from([0, 255, 1]),
+      );
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it('returns deterministic structured remote validation findings without writes', async () => {

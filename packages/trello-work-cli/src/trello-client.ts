@@ -3,6 +3,7 @@ import { WorkCliError } from './errors';
 import type {
   TransportRequest,
   TransportResponse,
+  TrelloAttachment,
   TrelloBoard,
   TrelloCard,
   TrelloChecklist,
@@ -35,7 +36,13 @@ export class FetchTrelloTransport implements TrelloTransport {
         body: request.body,
         signal: controller.signal,
       });
-      return { status: response.status, body: await response.text() };
+      return {
+        status: response.status,
+        body:
+          request.responseType === 'binary'
+            ? new Uint8Array(await response.arrayBuffer())
+            : await response.text(),
+      };
     } finally {
       clearTimeout(timeout);
     }
@@ -161,6 +168,70 @@ function normalizeChecklist(value: unknown): TrelloChecklist {
   };
 }
 
+function requireSafeAttachmentUrl(value: string): string {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new WorkCliError(
+      'TRELLO_RESPONSE_INVALID',
+      'Trello attachment response has an invalid URL.',
+    );
+  }
+  const credentialParameters = new Set([
+    'key',
+    'token',
+    'api_key',
+    'api_token',
+    'oauth_token',
+    'oauth_consumer_key',
+  ]);
+  if (
+    url.username ||
+    url.password ||
+    [...url.searchParams.keys()].some((key) =>
+      credentialParameters.has(key.toLowerCase()),
+    )
+  ) {
+    throw new WorkCliError(
+      'TRELLO_RESPONSE_INVALID',
+      'Trello attachment response contains a credential-bearing URL.',
+    );
+  }
+  return value;
+}
+
+function normalizeAttachment(value: unknown): TrelloAttachment {
+  const attachment = requireObject(value, 'attachment response');
+  if (
+    typeof attachment.bytes !== 'number' ||
+    !Number.isFinite(attachment.bytes) ||
+    attachment.bytes < 0
+  ) {
+    throw new WorkCliError(
+      'TRELLO_RESPONSE_INVALID',
+      'Trello attachment response is missing bytes.',
+    );
+  }
+  if (typeof attachment.isUpload !== 'boolean') {
+    throw new WorkCliError(
+      'TRELLO_RESPONSE_INVALID',
+      'Trello attachment response is missing isUpload.',
+    );
+  }
+  return {
+    id: requireString(attachment, 'id', 'attachment response'),
+    name: requireString(attachment, 'name', 'attachment response'),
+    url: requireSafeAttachmentUrl(
+      requireString(attachment, 'url', 'attachment response'),
+    ),
+    mimeType: requireString(attachment, 'mimeType', 'attachment response'),
+    bytes: attachment.bytes,
+    date: requireString(attachment, 'date', 'attachment response'),
+    isUpload: attachment.isUpload,
+  };
+}
+
 export class TrelloClient {
   private readonly apiKey: string;
   private readonly apiToken: string;
@@ -235,6 +306,12 @@ export class TrelloClient {
       );
     }
     let body: unknown = null;
+    if (typeof response.body !== 'string') {
+      throw new WorkCliError(
+        'TRELLO_RESPONSE_INVALID',
+        'Trello returned binary data for a JSON request.',
+      );
+    }
     if (response.body) {
       try {
         body = JSON.parse(response.body);
@@ -448,6 +525,82 @@ export class TrelloClient {
       { fields: CARD_FIELDS },
       normalizeCard,
     );
+  }
+
+  listCardAttachments(cardId: string): Promise<TrelloAttachment[]> {
+    return this.request(
+      'GET',
+      `/cards/${encodeURIComponent(cardId)}/attachments`,
+      { fields: 'id,name,url,mimeType,bytes,date,isUpload' },
+      (value) => {
+        if (!Array.isArray(value)) {
+          throw new WorkCliError(
+            'TRELLO_RESPONSE_INVALID',
+            'Trello returned an invalid attachment collection.',
+          );
+        }
+        return value.map(normalizeAttachment);
+      },
+    );
+  }
+
+  async downloadAttachment(url: string): Promise<Uint8Array> {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      throw new WorkCliError(
+        'ATTACHMENT_URL_UNSAFE',
+        'The uploaded attachment URL is invalid.',
+      );
+    }
+    if (
+      parsed.protocol !== 'https:' ||
+      (parsed.hostname !== 'trello.com' &&
+        !parsed.hostname.endsWith('.trello.com')) ||
+      parsed.username ||
+      parsed.password
+    ) {
+      throw new WorkCliError(
+        'ATTACHMENT_URL_UNSAFE',
+        'The uploaded attachment URL is not an approved Trello HTTPS URL.',
+      );
+    }
+    let response: TransportResponse;
+    try {
+      response = await this.transport.request({
+        method: 'GET',
+        url,
+        headers: {
+          authorization: `OAuth oauth_consumer_key="${this.apiKey}", oauth_token="${this.apiToken}"`,
+        },
+        responseType: 'binary',
+      });
+    } catch (error) {
+      const message = redactSecrets(
+        error instanceof Error ? error.message : String(error),
+        [this.apiKey, this.apiToken],
+      );
+      throw new WorkCliError(
+        'TRELLO_NETWORK_ERROR',
+        `Trello attachment download failed: ${message}`,
+        { cause: error },
+      );
+    }
+    if (response.status < 200 || response.status >= 300) {
+      throw new WorkCliError(
+        'TRELLO_API_ERROR',
+        `Trello attachment download failed with HTTP ${response.status}.`,
+        { exitCode: response.status === 401 ? 3 : 1 },
+      );
+    }
+    if (!(response.body instanceof Uint8Array)) {
+      throw new WorkCliError(
+        'TRELLO_RESPONSE_INVALID',
+        'Trello attachment download returned non-binary data.',
+      );
+    }
+    return response.body;
   }
 
   createCard(input: {

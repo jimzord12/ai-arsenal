@@ -79,6 +79,20 @@ jz-trello-flow docs --output json
 
 `jz-trello-flow docs` is packaged, offline, and version-matched. It covers the complete command contract, recommended human and agent workflows, configuration, credential safety, outputs, exit codes, examples, expected failures, and recovery.
 
+## Card attachments
+
+Every successful `jz-trello-flow get` includes `attachmentCount` and the full
+ordered attachment metadata returned by Trello. Ordinary `get` is metadata-only
+and does not download or write files.
+
+Use `--attachments-dir <directory>` on `get` to download uploaded attachments.
+Downloads use authenticated binary-safe transport, preserve exact bytes, and
+report absolute completed paths. External links remain metadata-only and are
+never fetched. Unsafe filenames are rejected, duplicate names are
+deterministically disambiguated with the attachment ID, and existing files are
+never overwritten. A partial download exits nonzero and identifies the failed
+attachment while reporting only files that completed.
+
 ## Development
 
 From the monorepo root:
