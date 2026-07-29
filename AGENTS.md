@@ -264,14 +264,19 @@ Until the user changes it:
 - Prefer low-complexity, high-impact choices.
 - Do not create generic shared packages before real reuse exists.
 
-## Release and Local-Distribution Rules
+## CLI Change, Release, and Local-Distribution Rules
 
-Whenever the user says a change will be released, including a private packed-tarball or global local-distribution release:
+Every completed feature, fix, or other behavior change to an AI Arsenal CLI package must include the complete versioned local-delivery chain in the same bounded body of work. CLI source delivery is not complete after tests and a source commit alone.
 
 1. Use SemVer to choose the package bump, create a Changeset, and apply it with `pnpm version-packages`; do not hand-edit package versions or changelogs. The configured Changesets workflow versions private packages and generates their changelogs.
-2. Include the resulting package-manifest version and generated `CHANGELOG.md` in the release commit, then run the package and packed-artifact verification required by the release scope.
-3. Packing, installing, or replacing the Windows user's global pnpm package requires an explicit bounded release/local-distribution work item, preflight, rollback path, and verification. Proceed autonomously when those exist; escalate only for unavailable access, an unworkable rollback requirement, or a dangerous deletion/data-loss step.
-4. Treat the flexible feature selector enhancement as a recommended first feature release of `0.1.0` from the current `0.0.0` baseline when a bounded work item explicitly includes its release; it is not released merely because its source change was merged.
+2. Include the resulting package-manifest version and generated `CHANGELOG.md` in the reviewed delivery snapshot. Run the full package gates, repository gates, packed-artifact validation, and a clean disposable-consumer installation from the exact generated tarball.
+3. After the exact reviewed snapshot is committed and pushed and its required GitHub Actions CI is successful, pack that exact CI-green commit and install or replace the resulting package in the Windows user's global pnpm environment. Do not globally link a mutable source tree.
+4. Verify the global installation independently: confirm the installed package name and exact version, invoke the public executable through the generated global shim, run version/help plus a feature-relevant read-only or disposable smoke test, and confirm the observed behavior comes from the installed artifact rather than the repository source tree.
+5. Record the package version, tarball identity/checksum, global install command, installed-version proof, smoke results, commit SHA, remote SHA equality, clean worktree, and successful CI run URLs in durable work-item/reconciliation evidence.
+6. Treat Changeset creation/application, package versioning, exact-commit packing, global pnpm installation, installation verification, commit, push, and CI verification as mandatory completion steps for CLI behavior work. Do not leave them as an optional follow-up release unless the user explicitly narrows the requested boundary.
+7. The bounded work item must include preflight, rollback, and verification for global replacement. Proceed autonomously when prerequisites exist; escalate only for unavailable access, an unworkable rollback requirement, or a dangerous deletion/data-loss step.
+
+Documentation-only, planning-only, test-only, or workflow-policy changes that do not alter a shipped CLI package's behavior do not trigger a package version bump or global reinstall.
 
 These are direction and constraints. Exact manifests, commands, architecture, build strategy, distribution model, and tests must be derived from repository evidence.
 
