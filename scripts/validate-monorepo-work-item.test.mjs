@@ -180,6 +180,262 @@ function addPassedCompletion(workItemDirectory) {
   );
 }
 
+function addV2WorkItem(
+  workItemDirectory,
+  {
+    stage = 'implement',
+    status = 'active',
+    turns = 0,
+    reviewCycles = 0,
+    requiredFindings = 'no',
+    dangerous = 'no',
+    prerequisites = 'resolved',
+    approval = 'not-required',
+    approvalSource = 'none',
+    finalVerificationResult = stage === 'deliver' ? 'passed' : 'pending',
+  } = {},
+) {
+  writeArtifact(
+    workItemDirectory,
+    'work-item.md',
+    `# Work Item
+
+Work item: ${workItemId}
+Workflow: 2
+Stage: ${stage}
+Status: ${status}
+Started at: 2026-07-29T10:00:00+03:00
+Max time: 4 hours
+Last time check: 2026-07-29T10:00:00+03:00
+Turns since time check: ${turns}
+Review cycles: ${reviewCycles}
+Required findings remaining: ${requiredFindings}
+Dangerous deletion or irreversible data loss: ${dangerous}
+Hard prerequisites: ${prerequisites}
+Approval: ${approval}
+Approval source: ${approvalSource}
+
+## Goal
+
+Deliver Workflow v2.
+
+## Non-goals
+
+- Migration automation.
+
+## Acceptance criteria
+
+- The compact workflow validates.
+
+## Implementation summary
+
+${stage === 'implement' ? 'Pending.' : 'Implementation complete.'}
+
+## Review findings and repairs
+
+${stage === 'verify' || stage === 'deliver' ? 'No required findings.' : 'Pending.'}
+
+## Final verification
+
+Result: ${finalVerificationResult}
+`,
+  );
+}
+
+test('a compact v2 work item routes through the five-stage workflow', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory);
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 0, result.json.blocker);
+  assert.equal(result.json.valid, true);
+  assert.equal(result.json.nextSkill, 'implement-monorepo-change');
+  assert.deepEqual(result.json.artifacts.workItem, {
+    workflow: 2,
+    stage: 'implement',
+    status: 'active',
+    reviewCycles: 0,
+    turnsSinceTimeCheck: 0,
+  });
+});
+
+test('v2 enforces time checks and the review-cycle ceiling', (t) => {
+  for (const [name, options, step, expectedStatus, blocker] of [
+    [
+      'overdue time check',
+      { turns: 5 },
+      'implement-monorepo-change',
+      1,
+      /time check/i,
+    ],
+    [
+      'fifth unresolved review',
+      {
+        stage: 'review',
+        status: 'blocked',
+        reviewCycles: 4,
+        requiredFindings: 'yes',
+      },
+      'review-monorepo-change',
+      0,
+      /four review cycles/i,
+    ],
+  ]) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, options);
+    writeActiveState(fixture.root, workItemId, step);
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, expectedStatus, name);
+    assert.match(result.json.blocker, blocker, name);
+  }
+});
+
+test('v2 accepts recorded turn counts through four in verify and deliver', (t) => {
+  for (const stage of ['verify', 'deliver']) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, { stage, turns: 4 });
+    writeActiveState(fixture.root, workItemId, `${stage}-monorepo-change`);
+
+    const result = runValidator(fixture.root);
+
+    assert.equal(result.status, 0, `${stage}: ${result.json.blocker}`);
+    assert.equal(result.json.artifacts.workItem.turnsSinceTimeCheck, 4);
+  }
+});
+
+test('v2 requires direct approval only for dangerous work', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    dangerous: 'yes',
+    approval: 'required',
+  });
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /direct approval/i);
+});
+
+test('v2 treats approval-required and prerequisite-blocked states as valid stops', (t) => {
+  for (const [name, options, blocker] of [
+    [
+      'dangerous approval required',
+      {
+        stage: 'define',
+        status: 'blocked',
+        dangerous: 'yes',
+        approval: 'required',
+      },
+      /awaiting direct approval/i,
+    ],
+    [
+      'hard prerequisite blocked',
+      {
+        stage: 'define',
+        status: 'blocked',
+        prerequisites: 'blocked',
+      },
+      /hard prerequisite/i,
+    ],
+  ]) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, options);
+    writeActiveState(fixture.root, workItemId, 'define-monorepo-change');
+
+    const result = runValidator(fixture.root);
+
+    assert.equal(result.status, 0, `${name}: ${result.json.blocker}`);
+    assert.equal(result.json.valid, true, name);
+    assert.equal(result.json.nextSkill, null, name);
+    assert.match(result.json.blocker, blocker, name);
+  }
+});
+
+test('completed v2 work validates with cleared registration', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    status: 'delivered',
+  });
+  writeActiveState(fixture.root, 'none', 'none');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 0, result.json.blocker);
+  assert.equal(result.json.nextSkill, null);
+  assert.match(result.json.blocker, /delivered/i);
+});
+
+test('v2 deliver state requires explicit passed final verification', (t) => {
+  for (const status of ['active', 'delivered']) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      stage: 'deliver',
+      status,
+      finalVerificationResult: 'failed',
+    });
+    writeActiveState(
+      fixture.root,
+      status === 'delivered' ? 'none' : workItemId,
+      status === 'delivered' ? 'none' : 'deliver-monorepo-change',
+    );
+
+    const result = runValidator(fixture.root);
+
+    assert.equal(result.status, 1);
+    assert.match(result.json.blocker, /passed final verification/i);
+  }
+});
+
+test('v2 rejects mixed current artifacts and incomplete stage evidence', (t) => {
+  const mixed = createFixture(t);
+  addV2WorkItem(mixed.workItemDirectory);
+  addRequest(mixed.workItemDirectory);
+  writeActiveState(mixed.root, workItemId, 'implement-monorepo-change');
+  const mixedResult = runValidator(mixed.root);
+  assert.equal(mixedResult.status, 1);
+  assert.match(mixedResult.json.blocker, /one compact|v1 artifact/i);
+
+  const incomplete = createFixture(t);
+  addV2WorkItem(incomplete.workItemDirectory, {
+    stage: 'verify',
+  });
+  const incompletePath = path.join(
+    incomplete.workItemDirectory,
+    'work-item.md',
+  );
+  fs.writeFileSync(
+    incompletePath,
+    fs
+      .readFileSync(incompletePath, 'utf8')
+      .replace('No required findings.', 'Pending.'),
+    'utf8',
+  );
+  writeActiveState(incomplete.root, workItemId, 'verify-monorepo-change');
+  const incompleteResult = runValidator(incomplete.root);
+  assert.equal(incompleteResult.status, 1);
+  assert.match(incompleteResult.json.blocker, /review findings.*pending/i);
+});
+
+test('four unresolved review cycles must stop as blocked', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'review',
+    reviewCycles: 4,
+    requiredFindings: 'yes',
+  });
+  writeActiveState(fixture.root, workItemId, 'review-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /blocked after four review cycles/i);
+});
+
 test('a ready request routes to orientation', (t) => {
   const fixture = createFixture(t);
   addRequest(fixture.workItemDirectory);

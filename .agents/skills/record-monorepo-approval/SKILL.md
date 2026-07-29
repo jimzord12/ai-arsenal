@@ -1,9 +1,12 @@
 ---
 name: record-monorepo-approval
-description: Use when the active AI Arsenal monorepo work item has a ready plan and needs a digest-bound autonomous or direct-user authorization record before implementation.
+description: Historical Workflow v1 compatibility reference only; never use for new work.
 ---
 
 # Record Monorepo Approval
+
+> **Historical Workflow v1 Compatibility:** Never use this skill for new work.
+> Workflow v2 records dangerous-work approval directly in `work-item.md`.
 
 Retain this stage and `approval.md` name for pipeline compatibility. Its routine purpose is to record an autonomous, digest-bound authorization decision—not to ask the user for permission.
 

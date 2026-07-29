@@ -1,9 +1,12 @@
 ---
 name: capture-monorepo-change
-description: Use when an explicit, normal-pipeline AI Arsenal monorepo change request needs its first work item and no active work item exists.
+description: Historical Workflow v1 compatibility reference only; never use for new work.
 ---
 
 # Capture Monorepo Change
+
+> **Historical Workflow v1 Compatibility:** Never use this skill for new work.
+> Workflow v2 uses `define-monorepo-change` and one compact `work-item.md`.
 
 ## Overview
 

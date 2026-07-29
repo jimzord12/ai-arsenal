@@ -1,9 +1,12 @@
 ---
 name: scope-monorepo-change
-description: Use when an active AI Arsenal monorepo work item has ready request and context artifacts and needs a bounded change contract before implementation planning.
+description: Historical Workflow v1 compatibility reference only; never use for new work.
 ---
 
 # Scope Monorepo Change
+
+> **Historical Workflow v1 Compatibility:** Never use this skill for new work.
+> Workflow v2 defines scope directly in the compact `work-item.md`.
 
 ## Overview
 

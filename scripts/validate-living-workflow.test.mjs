@@ -9,17 +9,22 @@ const validator = path.resolve('scripts/validate-living-workflow.mjs');
 
 const normalSkills = [
   'orchestrate-monorepo-work',
+  'define-monorepo-change',
+  'implement-monorepo-change',
+  'review-monorepo-change',
+  'verify-monorepo-change',
+  'deliver-monorepo-change',
+];
+
+const retiredV1Skills = [
   'capture-monorepo-change',
   'orient-monorepo-change',
   'scope-monorepo-change',
   'plan-monorepo-change',
   'record-monorepo-approval',
-  'implement-monorepo-change',
-  'verify-monorepo-change',
+  'request-monorepo-revision',
   'reconcile-monorepo-change',
 ];
-
-const revisionSkill = 'request-monorepo-revision';
 
 function write(relativePath, content) {
   const absolutePath = path.join(root, relativePath);
@@ -32,7 +37,7 @@ function createFixture() {
 
   write(
     'AGENTS.md',
-    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${revisionSkill}\n${normalSkills.join('\n')}\n`,
+    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${normalSkills.join('\n')}\n`,
   );
   write(
     'NEXT.md',
@@ -53,6 +58,18 @@ function createFixture() {
   );
   write('docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md', '# Pipeline\n');
   write(
+    'docs/workflow/WORKFLOW_OVERVIEW.md',
+    '# Overview\n\ndefine → implement → review/repair → verify → deliver\none compact `work-item.md`\norchestrate-monorepo-work\ndeliver-monorepo-change\n',
+  );
+  write(
+    '.agents/skills/initializing-living-plan-workflow/assets/AGENTS.template.md',
+    '# Template\n\ndefine → implement → review/repair → verify → deliver\none compact `work-item.md`\norchestrate-monorepo-work\ndeliver-monorepo-change\n',
+  );
+  write(
+    'docs/workflow/templates/work-item/work-item.md',
+    '## Goal\n## Non-goals\n## Acceptance criteria\nStarted at:\nMax time:\n## Implementation summary\n## Review findings and repairs\n## Final verification\n',
+  );
+  write(
     'package.json',
     JSON.stringify({
       scripts: {
@@ -66,22 +83,22 @@ function createFixture() {
     'initializing-living-plan-workflow',
     'executing-living-plan-phase',
     'reconciling-living-plan',
-    revisionSkill,
     ...normalSkills,
   ]) {
     const body =
       skill === 'orchestrate-monorepo-work'
-        ? '\n## Revision routing\nSelect `request-monorepo-revision` for a direct user revision request or a concrete in-contract defect.\n'
-        : skill === 'scope-monorepo-change'
-          ? '\n## Contract revision recovery\nConsume `revision-request.md`, archive downstream current artifacts in reverse dependency order, archive the current contract and request, then write `contract@N+1` and route to `plan-monorepo-change`.\n'
-          : skill === 'plan-monorepo-change'
-            ? '\n## Plan revision recovery\nConsume `revision-request.md`, archive downstream current artifacts in reverse dependency order, archive the current plan and request, then write `plan@N+1` and route to `record-monorepo-approval`.\n'
-            : skill === revisionSkill
-              ? '\n## Bounded revision intent\nRun for a direct user revision request or concrete in-contract defect. Record `revision-request.md` and route only to `scope-monorepo-change` for contract or `plan-monorepo-change` for plan.\n'
-              : '';
+        ? '\ndefine → implement → review/repair → verify → deliver\ndefine-monorepo-change\n'
+        : '';
     write(
       `.agents/skills/${skill}/SKILL.md`,
       `---\nname: ${skill}\ndescription: Use when validating the fixture.\n---\n${body}`,
+    );
+  }
+
+  for (const skill of retiredV1Skills) {
+    write(
+      `.agents/skills/${skill}/SKILL.md`,
+      `---\nname: ${skill}\ndescription: Historical Workflow v1 compatibility reference only; never use for new work.\n---\n\n> **Historical Workflow v1 Compatibility:** Never use this skill for new work.\n`,
     );
   }
 
@@ -131,16 +148,6 @@ test('rejects a fixture missing a normal pipeline skill', () => {
 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /verify-monorepo-change/);
-});
-
-test('rejects a fixture missing the revision-request skill', () => {
-  const fixture = createFixture();
-  fs.rmSync(path.join(fixture, `.agents/skills/${revisionSkill}/SKILL.md`));
-
-  const result = validate(fixture);
-
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /request-monorepo-revision/);
 });
 
 test('rejects a fixture whose skill frontmatter name differs from its directory', () => {
@@ -196,36 +203,75 @@ test('rejects root instructions that retain the broad legacy execution loop', ()
   assert.match(result.stderr, /legacy broad execution loop/);
 });
 
-test('rejects fixture skills without contract and plan revision recovery rules', () => {
-  const fixture = createFixture();
-  for (const skill of ['scope-monorepo-change', 'plan-monorepo-change']) {
-    write(
-      `.agents/skills/${skill}/SKILL.md`,
-      `---\nname: ${skill}\ndescription: Use when validating the fixture.\n---\n`,
-    );
-  }
-
-  const result = validate(fixture);
-
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /scope-monorepo-change.*revision recovery/i);
-  assert.match(result.stderr, /plan-monorepo-change.*revision recovery/i);
-});
-
-test('rejects a router that offers revision entry without bounded revision authority', () => {
+test('rejects a router that omits the v2 stage order', () => {
   const fixture = createFixture();
   write(
     '.agents/skills/orchestrate-monorepo-work/SKILL.md',
-    '---\nname: orchestrate-monorepo-work\ndescription: Use when validating the fixture.\n---\nRoute revisions to request-monorepo-revision.\n',
+    '---\nname: orchestrate-monorepo-work\ndescription: Use when validating the fixture.\n---\nNo stage order.\n',
   );
 
   const result = validate(fixture);
 
   assert.equal(result.status, 1);
-  assert.match(
-    result.stderr,
-    /orchestrate-monorepo-work.*bounded revision entry/i,
+  assert.match(result.stderr, /orchestrate-monorepo-work.*stage order/i);
+});
+
+test('rejects current routing guidance that retains v1 stage concepts', () => {
+  for (const retiredGuidance of [
+    'No active item routes to capture-monorepo-change.',
+    'Continue through the digest-authorization stage.',
+    'Stop for stale approval.',
+  ]) {
+    const fixture = createFixture();
+    fs.appendFileSync(
+      path.join(fixture, '.agents/skills/orchestrate-monorepo-work/SKILL.md'),
+      `\n${retiredGuidance}\n`,
+    );
+
+    const result = validate(fixture);
+
+    assert.equal(result.status, 1, retiredGuidance);
+    assert.match(result.stderr, /retired v1 routing guidance/i);
+  }
+});
+
+test('rejects a retained v1 skill that is still triggerable for new work', () => {
+  const fixture = createFixture();
+  write(
+    '.agents/skills/capture-monorepo-change/SKILL.md',
+    '---\nname: capture-monorepo-change\ndescription: Use when starting new work.\n---\n',
   );
+
+  const result = validate(fixture);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /historical compatibility marker/i);
+});
+
+test('rejects material v1 reversion in current overview guidance', () => {
+  const fixture = createFixture();
+  write(
+    'docs/workflow/WORKFLOW_OVERVIEW.md',
+    '# Overview\n\ncapture → orient → scope → plan → implement → verify → reconcile\n',
+  );
+
+  const result = validate(fixture);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /WORKFLOW_OVERVIEW\.md.*Workflow v2/i);
+});
+
+test('rejects material v1 reversion in the initializer AGENTS template', () => {
+  const fixture = createFixture();
+  write(
+    '.agents/skills/initializing-living-plan-workflow/assets/AGENTS.template.md',
+    '# Template\n\nExecute one bounded phase, verify, and reconcile.\n',
+  );
+
+  const result = validate(fixture);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /AGENTS\.template\.md.*Workflow v2/i);
 });
 
 test('rejects a root workflow command that bypasses the current registration', () => {

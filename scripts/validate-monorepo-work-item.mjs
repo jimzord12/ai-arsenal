@@ -485,6 +485,254 @@ function validateRevisionRequestArchives(workItemDirectory, revisionRequest) {
   }
 }
 
+const v2StageSkills = {
+  define: 'define-monorepo-change',
+  implement: 'implement-monorepo-change',
+  review: 'review-monorepo-change',
+  verify: 'verify-monorepo-change',
+  deliver: 'deliver-monorepo-change',
+};
+
+function readSingleField(contents, label, pattern) {
+  const matches = [
+    ...contents.matchAll(new RegExp(`^${label}: (.+)\\r?$`, 'gm')),
+  ];
+  if (matches.length !== 1 || !pattern.test(matches[0][1])) {
+    throw new Error(`work-item.md must contain one valid ${label} field`);
+  }
+  return matches[0][1];
+}
+
+function validateV2ActiveRoute(activeState, output) {
+  const complete = output.artifacts.workItem.status === 'delivered';
+  if (complete) {
+    if (
+      activeState.activeWorkItem !== 'none' ||
+      activeState.pipelineStep !== 'none'
+    ) {
+      throw new Error(
+        'Delivered v2 work item must have its active registration cleared',
+      );
+    }
+    return output;
+  }
+  if (activeState.activeWorkItem !== output.workItem) {
+    throw new Error(
+      `NEXT.md active work item ${activeState.activeWorkItem} does not match ${output.workItem}`,
+    );
+  }
+  const expectedStep = v2StageSkills[output.artifacts.workItem.stage];
+  if (activeState.pipelineStep !== expectedStep) {
+    throw new Error(
+      `NEXT.md pipeline step ${activeState.pipelineStep} does not match ${expectedStep}`,
+    );
+  }
+  return output;
+}
+
+function validateV2WorkItem(workItem, workItemDirectory, activeState) {
+  const workItemPath = path.join(workItemDirectory, 'work-item.md');
+  const contents = fs.readFileSync(workItemPath, 'utf8');
+  const identity = readSingleField(contents, 'Work item', workItemPattern);
+  if (identity !== workItem) {
+    throw new Error('work-item.md has a mismatched work-item ID');
+  }
+  const workflow = readSingleField(contents, 'Workflow', /^2$/);
+  const stage = readSingleField(
+    contents,
+    'Stage',
+    /^(define|implement|review|verify|deliver)$/,
+  );
+  const status = readSingleField(
+    contents,
+    'Status',
+    /^(active|blocked|delivered)$/,
+  );
+  const startedAt = readSingleField(contents, 'Started at', /^\S+$/);
+  readSingleField(contents, 'Max time', /^[1-9]\d* (?:minutes?|hours?)$/);
+  const lastTimeCheck = readSingleField(contents, 'Last time check', /^\S+$/);
+  const turnsSinceTimeCheck = Number(
+    readSingleField(contents, 'Turns since time check', /^\d+$/),
+  );
+  const reviewCycles = Number(
+    readSingleField(contents, 'Review cycles', /^\d+$/),
+  );
+  const requiredFindings = readSingleField(
+    contents,
+    'Required findings remaining',
+    /^(yes|no)$/,
+  );
+  const dangerous = readSingleField(
+    contents,
+    'Dangerous deletion or irreversible data loss',
+    /^(yes|no)$/,
+  );
+  const hardPrerequisites = readSingleField(
+    contents,
+    'Hard prerequisites',
+    /^(resolved|blocked)$/,
+  );
+  const approval = readSingleField(
+    contents,
+    'Approval',
+    /^(not-required|required|approved)$/,
+  );
+  const approvalSource = readSingleField(contents, 'Approval source', /^.+$/);
+
+  for (const timestamp of [startedAt, lastTimeCheck]) {
+    if (Number.isNaN(Date.parse(timestamp))) {
+      throw new Error('work-item.md timestamps must be parseable');
+    }
+  }
+  if (turnsSinceTimeCheck >= 5) {
+    throw new Error(
+      'Recorded time check is overdue; record a proportionality check and reset Turns since time check',
+    );
+  }
+  if (reviewCycles > 4) {
+    throw new Error('Review cycles cannot exceed four');
+  }
+  const awaitingDangerousApproval =
+    dangerous === 'yes' && approval === 'required' && approvalSource === 'none';
+  const exhaustedReview =
+    stage === 'review' && reviewCycles === 4 && requiredFindings === 'yes';
+  if (hardPrerequisites === 'blocked' && status !== 'blocked') {
+    throw new Error('Blocked hard prerequisites require blocked status');
+  }
+  if (dangerous === 'yes') {
+    if (approval === 'required') {
+      if (approvalSource !== 'none' || status !== 'blocked') {
+        throw new Error(
+          'Dangerous work awaiting direct approval requires blocked status and Approval source: none',
+        );
+      }
+    } else if (approval !== 'approved' || approvalSource === 'none') {
+      throw new Error('Dangerous work requires direct approval and its source');
+    }
+  } else if (approval !== 'not-required') {
+    throw new Error('Routine v2 work must use Approval: not-required');
+  }
+  if (
+    requiredFindings === 'yes' &&
+    (stage === 'verify' || stage === 'deliver')
+  ) {
+    throw new Error('Required review findings must be repaired before verify');
+  }
+  if (status === 'active' && exhaustedReview) {
+    throw new Error(
+      'Required findings must be blocked after four review cycles',
+    );
+  }
+  if (
+    status === 'blocked' &&
+    hardPrerequisites !== 'blocked' &&
+    !awaitingDangerousApproval &&
+    !exhaustedReview
+  ) {
+    throw new Error(
+      'Blocked status requires an unavailable hard prerequisite, pending dangerous approval, or four exhausted review cycles',
+    );
+  }
+  if (status === 'delivered' && stage !== 'deliver') {
+    throw new Error('Delivered status requires the deliver stage');
+  }
+  if (status !== 'delivered' && stage === 'deliver' && status !== 'active') {
+    throw new Error('Deliver stage must be active or delivered');
+  }
+
+  const sectionBodies = new Map();
+  for (const heading of [
+    '## Goal',
+    '## Non-goals',
+    '## Acceptance criteria',
+    '## Implementation summary',
+    '## Review findings and repairs',
+    '## Final verification',
+  ]) {
+    const matches = [...contents.matchAll(new RegExp(`^${heading}$`, 'gm'))];
+    if (matches.length !== 1) {
+      throw new Error(`work-item.md must contain ${heading} exactly once`);
+    }
+    const bodyStart = matches[0].index + heading.length;
+    const body = contents.slice(bodyStart).split(/^## /m, 1)[0].trim();
+    if (!body) throw new Error(`${heading} must not be empty`);
+    sectionBodies.set(heading, body);
+  }
+
+  const stageIndex = [
+    'define',
+    'implement',
+    'review',
+    'verify',
+    'deliver',
+  ].indexOf(stage);
+  if (
+    stageIndex >= 2 &&
+    /^Pending\.$/i.test(sectionBodies.get('## Implementation summary'))
+  ) {
+    throw new Error(
+      'Implementation summary cannot remain Pending after implement',
+    );
+  }
+  if (
+    stageIndex >= 3 &&
+    /^Pending\.$/i.test(sectionBodies.get('## Review findings and repairs'))
+  ) {
+    throw new Error(
+      'Review findings and repairs cannot remain Pending at verify',
+    );
+  }
+  const finalVerificationBody = sectionBodies.get('## Final verification');
+  const finalVerificationMatches = [
+    ...finalVerificationBody.matchAll(/^Result: (pending|passed|failed)\r?$/gm),
+  ];
+  if (finalVerificationMatches.length !== 1) {
+    throw new Error(
+      'Final verification must contain exactly one Result: pending, passed, or failed',
+    );
+  }
+  const finalVerificationResult = finalVerificationMatches[0][1];
+  if (stageIndex >= 4 && finalVerificationResult !== 'passed') {
+    throw new Error('Deliver requires explicit passed final verification');
+  }
+
+  const currentV1Files = artifactDefinitions
+    .map((definition) => definition.file)
+    .concat(revisionRequestDefinition.file)
+    .filter((file) => fs.existsSync(path.join(workItemDirectory, file)));
+  if (currentV1Files.length > 0) {
+    throw new Error(
+      `Workflow v2 permits one compact current record; remove v1 artifact(s): ${currentV1Files.join(', ')}`,
+    );
+  }
+
+  const artifact = {
+    workflow: Number(workflow),
+    stage,
+    status,
+    reviewCycles,
+    turnsSinceTimeCheck,
+  };
+  let blocker = null;
+  let nextSkill = status === 'delivered' ? null : v2StageSkills[stage];
+  if (status === 'blocked') {
+    nextSkill = null;
+    if (awaitingDangerousApproval) {
+      blocker = 'Dangerous work is awaiting direct approval.';
+    } else if (hardPrerequisites === 'blocked') {
+      blocker = 'A hard prerequisite is blocked.';
+    } else {
+      blocker = 'Required findings remain after four review cycles.';
+    }
+  } else if (status === 'delivered') {
+    blocker = 'Work item is delivered.';
+  }
+  return validateV2ActiveRoute(
+    activeState,
+    result(workItem, true, nextSkill, blocker, { workItem: artifact }),
+  );
+}
+
 function validateWorkItem(workItem, activeState) {
   const artifacts = {};
   const finish = (output) => validateActiveRoute(activeState, output);
@@ -493,6 +741,10 @@ function validateWorkItem(workItem, activeState) {
   const workItemDirectory = path.resolve(workItemsRoot, workItem);
   if (!workItemDirectory.startsWith(`${workItemsRoot}${path.sep}`)) {
     throw new Error('Work-item path escapes docs/work-items');
+  }
+
+  if (fs.existsSync(path.join(workItemDirectory, 'work-item.md'))) {
+    return validateV2WorkItem(workItem, workItemDirectory, activeState);
   }
 
   const existing = artifactDefinitions.map((definition) =>

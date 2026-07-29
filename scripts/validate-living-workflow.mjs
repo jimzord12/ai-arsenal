@@ -5,28 +5,36 @@ const root = process.cwd();
 
 const normalSkills = [
   'orchestrate-monorepo-work',
+  'define-monorepo-change',
+  'implement-monorepo-change',
+  'review-monorepo-change',
+  'verify-monorepo-change',
+  'deliver-monorepo-change',
+];
+
+const retiredV1Skills = [
   'capture-monorepo-change',
   'orient-monorepo-change',
   'scope-monorepo-change',
   'plan-monorepo-change',
   'record-monorepo-approval',
-  'implement-monorepo-change',
-  'verify-monorepo-change',
+  'request-monorepo-revision',
   'reconcile-monorepo-change',
 ];
-
-const revisionSkill = 'request-monorepo-revision';
 
 const requiredFiles = [
   'AGENTS.md',
   'NEXT.md',
   'docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md',
   'docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md',
+  'docs/workflow/WORKFLOW_OVERVIEW.md',
   '.agents/skills/initializing-living-plan-workflow/SKILL.md',
+  '.agents/skills/initializing-living-plan-workflow/assets/AGENTS.template.md',
   '.agents/skills/executing-living-plan-phase/SKILL.md',
   '.agents/skills/reconciling-living-plan/SKILL.md',
-  `.agents/skills/${revisionSkill}/SKILL.md`,
+  'docs/workflow/templates/work-item/work-item.md',
   ...normalSkills.map((skill) => `.agents/skills/${skill}/SKILL.md`),
+  ...retiredV1Skills.map((skill) => `.agents/skills/${skill}/SKILL.md`),
 ];
 
 const errors = [];
@@ -46,6 +54,32 @@ for (const file of requiredFiles) read(file);
 const agents = read('AGENTS.md');
 const next = read('NEXT.md');
 const plan = read('docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md');
+const overview = read('docs/workflow/WORKFLOW_OVERVIEW.md');
+const agentsTemplate = read(
+  '.agents/skills/initializing-living-plan-workflow/assets/AGENTS.template.md',
+);
+
+for (const [file, contents] of [
+  ['docs/workflow/WORKFLOW_OVERVIEW.md', overview],
+  [
+    '.agents/skills/initializing-living-plan-workflow/assets/AGENTS.template.md',
+    agentsTemplate,
+  ],
+]) {
+  for (const [label, pattern] of [
+    [
+      'define → implement → review/repair → verify → deliver',
+      /define → implement → review\/repair → verify → deliver/,
+    ],
+    ['one compact `work-item.md`', /one\s+compact\s+`work-item\.md`/],
+    ['orchestrate-monorepo-work', /orchestrate-monorepo-work/],
+    ['deliver-monorepo-change', /deliver-monorepo-change/],
+  ]) {
+    if (!pattern.test(contents)) {
+      errors.push(`${file} is missing Workflow v2 guidance: ${label}`);
+    }
+  }
+}
 
 for (const token of [
   '<!-- living-plan-workflow:start -->',
@@ -55,7 +89,6 @@ for (const token of [
   'initializing-living-plan-workflow',
   'executing-living-plan-phase',
   'reconciling-living-plan',
-  revisionSkill,
   ...normalSkills,
 ]) {
   if (!agents.includes(token)) errors.push(`AGENTS.md missing: ${token}`);
@@ -136,61 +169,61 @@ for (const skillPath of requiredFiles.filter((f) => f.endsWith('/SKILL.md'))) {
     }
   }
   const description = frontmatter[1].match(/^description:\s+(.+)$/m)?.[1] ?? '';
-  if (!description.startsWith('Use when')) {
+  if (
+    !retiredV1Skills.includes(path.basename(path.dirname(skillPath))) &&
+    !description.startsWith('Use when')
+  ) {
     errors.push(`${skillPath} description must start with "Use when".`);
   }
 }
 
-for (const { skill, label, tokens } of [
-  {
-    skill: 'orchestrate-monorepo-work',
-    label: 'orchestrate-monorepo-work bounded revision entry',
-    tokens: [
-      'request-monorepo-revision',
-      'direct user revision request',
-      'in-contract defect',
-    ],
-  },
-  {
-    skill: 'scope-monorepo-change',
-    label: 'scope-monorepo-change revision recovery',
-    tokens: [
-      'Contract revision recovery',
-      'revision-request.md',
-      'reverse dependency order',
-      'contract@N+1',
-      'plan-monorepo-change',
-    ],
-  },
-  {
-    skill: 'plan-monorepo-change',
-    label: 'plan-monorepo-change revision recovery',
-    tokens: [
-      'Plan revision recovery',
-      'revision-request.md',
-      'reverse dependency order',
-      'plan@N+1',
-      'record-monorepo-approval',
-    ],
-  },
-  {
-    skill: revisionSkill,
-    label: 'request-monorepo-revision contract',
-    tokens: [
-      'direct user revision request',
-      'in-contract defect',
-      'revision-request.md',
-      'scope-monorepo-change',
-      'plan-monorepo-change',
-    ],
-  },
+for (const token of [
+  'define → implement → review/repair → verify → deliver',
+  'define-monorepo-change',
 ]) {
+  const skillPath = '.agents/skills/orchestrate-monorepo-work/SKILL.md';
+  if (!read(skillPath).includes(token)) {
+    errors.push(`orchestrate-monorepo-work stage order missing: ${token}`);
+  }
+}
+
+for (const skillPath of [
+  '.agents/skills/orchestrate-monorepo-work/SKILL.md',
+  '.agents/skills/executing-living-plan-phase/SKILL.md',
+]) {
+  if (
+    /capture-monorepo-change|digest-authorization stage|stale approval/i.test(
+      read(skillPath),
+    )
+  ) {
+    errors.push(`${skillPath} contains retired v1 routing guidance.`);
+  }
+}
+
+for (const skill of retiredV1Skills) {
   const skillPath = `.agents/skills/${skill}/SKILL.md`;
   const content = read(skillPath);
-  for (const token of tokens) {
-    if (!content.includes(token)) {
-      errors.push(`${label} missing: ${token}`);
-    }
+  if (
+    !content.includes('Historical Workflow v1 Compatibility') ||
+    !content.includes('never use for new work')
+  ) {
+    errors.push(`${skillPath} is missing its historical compatibility marker.`);
+  }
+}
+
+const compactTemplate = read('docs/workflow/templates/work-item/work-item.md');
+for (const token of [
+  '## Goal',
+  '## Non-goals',
+  '## Acceptance criteria',
+  'Started at:',
+  'Max time:',
+  '## Implementation summary',
+  '## Review findings and repairs',
+  '## Final verification',
+]) {
+  if (!compactTemplate.includes(token)) {
+    errors.push(`Compact work-item template missing: ${token}`);
   }
 }
 

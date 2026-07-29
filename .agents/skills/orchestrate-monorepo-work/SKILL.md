@@ -3,6 +3,24 @@ name: orchestrate-monorepo-work
 description: Use when resuming, routing, or reporting the next step for an AI Arsenal monorepo work item, including an unclear work-item state or a request to explain where repository work stands.
 ---
 
+# Workflow v2 (current)
+
+For a directory containing `work-item.md`, validate the current registration
+and route only by its compact `Stage` through:
+
+```text
+define → implement → review/repair → verify → deliver
+```
+
+With no active item and an explicit bounded request, route to
+`define-monorepo-change`. With no request, report `NEXT.md`. Pending direct
+approval for dangerous work, a blocked hard prerequisite, or four exhausted
+review cycles is a valid stop with no next skill. Malformed state routes to
+`initializing-living-plan-workflow`. This router remains read-only.
+
+Return the existing eight-label routing brief. The v1 instructions below apply
+only to historical directories without `work-item.md`; never start v1 work.
+
 # Orchestrate Monorepo Work
 
 ## Overview
@@ -41,29 +59,17 @@ from consumer state.
 ## Routing Rules
 
 Use validator JSON as the routing authority for an active work item. Its
-`nextSkill` selects the earliest eligible normal stage. A valid plan without `approval.md` routes directly to
-`record-monorepo-approval`. Treat this as autonomous digest authorization, not a
-human-permission stop, unless the contract includes dangerous deletion/data loss
-or a hard prerequisite is unavailable.
+`nextSkill` selects the eligible v2 stage. Valid intentional stops—pending direct
+approval for dangerous work, a blocked hard prerequisite, or four exhausted
+review cycles—have no next skill and must be reported without mutation.
 
-For a valid no-active-item result, report the current `NEXT.md` action. Do not
-recommend `capture-monorepo-change` until the user has described a new change
-that is within the normal pipeline.
+For a valid no-active-item result, report the current `NEXT.md` action. Route a
+new explicit bounded request to `define-monorepo-change`; this includes bounded
+release, packing, installation, and source-deletion work when its safety and
+approval boundaries can be recorded honestly.
 
-Select `request-monorepo-revision` for either a direct user revision request or
-a concrete agent-detected in-contract defect in the active current contract or
-plan. A failed verification may establish such a defect, but failure alone,
-optional expansion, ambiguity, or a status request does not.
-
-Release, packing, publishing, global installation, and source deletion are
-outside the normal pipeline. When a user describes one of those actions, do
-not route it to `capture-monorepo-change`; report it as outside this router's
-scope and direct the user to the applicable release/local-distribution rules
-or explicit source-deletion approval gate.
-
-If validation is invalid, active registration is multiple or malformed,
-approval is stale, or workflow metadata is malformed, stop. Set **Next skill**
-to `initializing-living-plan-workflow`; do not select a normal pipeline stage.
+If validation is invalid or workflow metadata is malformed, stop. Set **Next
+skill** to `initializing-living-plan-workflow`; do not select a normal stage.
 
 ## Required Routing Brief
 
@@ -83,30 +89,28 @@ Recommended command:
 Populate every field from the inspected state. For a stopped report, explain
 the validator or metadata defect in **Approval/blockers** and make the command
 the repair-oriented inspection command. For a user-described new change with
-no active item, set **Next skill** to `capture-monorepo-change` and **Required
+no active item, set **Next skill** to `define-monorepo-change` and **Required
 input** to the explicit change request.
 
 ## Quick Reference
 
-| Verified state                       | Next skill or action                   |
-| ------------------------------------ | -------------------------------------- |
-| No active item, no new change        | Report `NEXT.md`; do not start capture |
-| No active item, new change described | `capture-monorepo-change`              |
-| Direct user revision request         | `request-monorepo-revision`            |
-| Release/distribution/source deletion | Stop; outside the normal pipeline      |
-| Valid active state                   | Validator `nextSkill`                  |
-| Valid plan awaiting authorization    | `record-monorepo-approval`             |
-| Invalid or malformed state           | `initializing-living-plan-workflow`    |
+| Verified state                         | Next skill or action                 |
+| -------------------------------------- | ------------------------------------ |
+| No active item, no new change          | Report `NEXT.md`; do not define work |
+| No active item, new change described   | `define-monorepo-change`             |
+| Valid active state                     | Validator `nextSkill`                |
+| Intentional approval/prerequisite stop | Report blocker; do not mutate        |
+| Invalid or malformed state             | `initializing-living-plan-workflow`  |
 
 ## Common Mistakes
 
-- Asking for routine plan permission instead of routing to autonomous digest
-  authorization. Silence never authorizes dangerous deletion.
+- Asking for routine permission instead of defining and delivering bounded work.
+  Silence never authorizes dangerous deletion.
 - Using missing or unreadable active-work-item metadata as evidence that no
   work item exists. Stop for workflow repair instead.
-- Routing a release, packing, publishing, global-installation, or source-
-  deletion request to `capture-monorepo-change`. Those actions are outside the
-  normal pipeline.
+- Treating bounded release, packing, installation, or source-deletion work as
+  automatically outside the workflow instead of recording its exact scope and
+  safety boundary in `work-item.md`.
 - Advancing a stage because its artifact appears present without validator JSON.
 - Returning a prose status update instead of the eight-field routing brief.
 - Repairing, registering, or creating files while routing. Route first; the
