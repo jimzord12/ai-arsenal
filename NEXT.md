@@ -3,37 +3,37 @@
 **Workflow version:** 1.0
 **Last reconciled:** 2026-07-29
 **Project:** AI Arsenal monorepo
-**State:** Trello Flow CLI attachment metadata and explicit safe downloads are merged and CI-green; release and global installation remain separate.
-**Current phase:** Maintenance / Trello Work Unit attachment retrieval
+**State:** Trello Flow CLI `0.3.0` release metadata is verified; Git/CI, exact global installation, and read-only live capture remain.
+**Current phase:** Maintenance / Trello Work Unit attachment release
 **Active work item:** `none`
 **Pipeline step:** `none`
 
 ## Next Action
 
-Decide whether to create a versioned private release and explicitly authorize replacement of the globally installed `0.2.0` package.
+Commit and push the exact verified `0.3.0` release snapshot, require Quality and Portability for its full SHA, then pack/install that exact commit and rerun the read-only TestingBoard attachment workbook.
 
 ## Why This Is Next
 
-- Every `jz-trello-flow get` result now reports `attachmentCount` and complete normalized attachment metadata.
-- Explicit `--attachments-dir <directory>` downloads uploaded files with authenticated binary-safe transport, safe lexical destination handling, deterministic duplicate naming, atomic no-overwrite creation, and truthful partial-failure recovery.
-- External links remain metadata-only; default `get` performs no local file writes.
-- Focused tests, 251 package tests, strict packed-artifact validation, root checks, workflow validators, and independent review pass.
-- Commit `af5345cbd829223ea019d4e8d831239a539b98f5` is on `master` and `origin/master`; Quality run `30434688417` and Portability run `30434688480` passed for that exact SHA.
+- Changesets generated the correct additive minor release from `0.2.0` to `0.3.0`.
+- Changelog, package manifest, 251 package tests, strict packed validation, root gates, workflow validators, and independent release review pass.
+- The global package remains the rollback-safe `0.2.0` until exact-SHA CI passes.
 
 ## Requirements
 
-- [ ] Confirm whether this additive public CLI feature should receive the next SemVer release.
-- [ ] If approved, use Changesets to version the private package and verify the exact packed artifact.
-- [ ] Ask explicitly before replacing the global installation with that exact CI-green release.
+- [ ] Commit/push only the verified release and work-item snapshot; prove fetched `origin/master` equals the full release SHA.
+- [ ] Require Quality and Portability to pass for that exact SHA.
+- [ ] Pack from the clean exact commit, record tarball SHA-256, inspect its manifest/files, and install that exact tarball globally.
+- [ ] Verify native Windows `jz-trello-flow` reports `0.3.0` behavior and exposes `--attachments-dir`.
+- [ ] Run metadata-only, binary-download/hash, and no-overwrite checks only on TestingBoard/card `6a691ff583597d8cfdd0c780`.
 
 ## Blockers / Approval
 
-- No implementation or Git/CI blocker remains.
-- Do not publish, mutate Trello, or change the global installation without explicit authorization.
+- No blocker remains; the user explicitly authorized versioning, global replacement, commit, and push.
+- Do not publish, mutate Trello, access another board, delete rollback sources, or remediate Git Bash shims.
 
 ## Done When
 
-- The user either authorizes a bounded private release/install operation or defers it explicitly.
+- Exact Git/CI, tarball checksum, global `0.3.0`, native help, and read-only live attachment evidence all pass; final current-truth docs are committed/pushed and CI-green.
 
 ## After This
 
@@ -43,5 +43,5 @@ Decide whether to create a versioned private release and explicitly authorize re
 
 - `AGENTS.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
-- `docs/work-items/2026-07-29-fetch-trello-card-attachments/verification.md`
-- `docs/work-items/2026-07-29-fetch-trello-card-attachments/reconciliation.md`
+- `docs/work-items/2026-07-29-release-trello-attachments/verification.md`
+- `docs/work-items/2026-07-29-release-trello-attachments/reconciliation.md`

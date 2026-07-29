@@ -1,5 +1,11 @@
 # @jz/ai-arsenal-trello-work-cli
 
+## 0.3.0
+
+### Minor Changes
+
+- Report Trello card attachment metadata from `get` and support explicit, authenticated, binary-safe attachment downloads with safe no-overwrite behavior.
+
 ## 0.2.0
 
 ### Minor Changes
