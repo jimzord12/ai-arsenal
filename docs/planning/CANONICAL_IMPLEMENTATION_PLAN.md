@@ -930,4 +930,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Commit and push the verified Trello attachment snapshot, prove `HEAD` equals `origin/master`, and confirm Quality and Portability pass for that exact SHA. A versioned release and replacement of the globally installed `0.2.0` package require a separate Changesets operation and explicit installation approval. Publication, production-board access, and source deletion remain separately gated and unapproved.
+The verified Trello attachment snapshot is merged as `af5345cbd829223ea019d4e8d831239a539b98f5`; Quality run `30434688417` and Portability run `30434688480` passed for that exact SHA. The next decision is whether to create a versioned private release and explicitly authorize replacement of the globally installed `0.2.0` package. Publication, production-board access, and source deletion remain separately gated and unapproved.
