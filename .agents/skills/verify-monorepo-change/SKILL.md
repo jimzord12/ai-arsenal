@@ -1,7 +1,31 @@
 ---
 name: verify-monorepo-change
-description: Use when an active AI Arsenal monorepo work item has an implementation report and needs independent evidence before reconciliation.
+description: Use when a reviewed AI Arsenal Workflow v2 item has no required findings and needs final stable-snapshot verification.
 ---
+
+# Workflow v2 (current)
+
+When the active directory contains `work-item.md`, validate it and require
+`Stage: verify` with no required findings. On the final stable snapshot, run
+every acceptance-focused check plus the applicable full repository gates once,
+including workflow tests, both workflow validators, and `git diff --check` for
+workflow changes. Record exact commands, exit codes, and concise results in
+`Final verification`, including the exact `Result: passed` marker only when all
+required checks pass.
+
+At the start of each agent turn that resumes this item, increment
+`Turns since time check` once. If the increment reaches five, record the
+time/scope proportionality check, update `Last time check`, and reset the
+counter to zero before continuing. The validator can check only this recorded
+value, not unrecorded conversational turns.
+
+If a check fails, record `Result: failed` and return to `Stage: review`; a
+repair increments the review cycle and reruns only invalidated checks. If all
+checks pass, set
+`Stage: deliver` and route `NEXT.md` to `deliver-monorepo-change`.
+
+The v1 artifact instructions below apply only to historical directories
+without `work-item.md`.
 
 # Verify Monorepo Change
 

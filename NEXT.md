@@ -1,9 +1,9 @@
 # NEXT
 
-**Workflow version:** 1.0
+**Workflow version:** 2.0
 **Last reconciled:** 2026-07-29
 **Project:** AI Arsenal monorepo
-**State:** The package-owned Trello workflow protocol, four canonical Open Agent Skills, and `jz-trello-flow skills install` are implemented, independently verified, committed, pushed, and green in CI.
+**State:** Workflow v2 repair cycle 1 is implemented, verified, and delivered locally on `workflow-v2`; push was intentionally excluded.
 **Current phase:** Await the next bounded request
 **Active work item:** `none`
 **Pipeline step:** `none`
@@ -14,38 +14,34 @@ Await the next explicit bounded request and route it through `orchestrate-monore
 
 ## Why This Is Next
 
-- Passed `verification@3` covers focused behavior, package gates, the pinned official validator, the actual packed consumer, root gates, workflow validation, and adversarial Git/Python isolation.
-- Reconciliation records the locked installer decisions as current delivered product truth.
-- Commit `251d0ff92c7cf46371d139045450726359bae6dc` is present on `origin/master`; Quality and Portability CI passed.
+- Workflow v2 uses define → implement → review/repair → verify → deliver and one compact `work-item.md`.
+- One consolidated review/repair cycle resolved all required findings; 45 workflow tests and all required final gates passed.
+- Historical v1 work items remain readable through a small compatibility path; no migration framework was added.
 
-## Delivered Product Decisions
+## Delivered Workflow Decisions
 
-- Public command: `jz-trello-flow skills install`.
-- Install into the target repository's `.agents/skills/` directory.
-- Every run replaces the four CLI-managed `trello-work-*` skill directories with the versions bundled in the running CLI; no merge or version-migration logic.
-- Never modify unrelated skill directories.
-- Mark installed files as managed and replaceable by the CLI.
-- Prepare and validate the complete skill set before replacing targets so failed preparation cannot leave a partial installation.
-- Support `--dry-run` and report installed/replaced targets.
-- Include real packed-artifact coverage proving the skills ship and can be installed from the package.
+- Default Tier 2 for one to six trusted users; smallest reliable solution.
+- Five-stage workflow with one compact durable record.
+- Time proportionality check every five agent turns; elapsed estimate is not automatic failure.
+- Maximum four consolidated repair/re-review cycles with severity and acceptance-based repair rules.
+- Full gates once on the stable snapshot; rerun only invalidated checks after repairs.
+- Direct approval only for dangerous deletion/irreversible loss; hard prerequisites block honestly.
 
 ## Requirements
 
-- [x] Preserve the four repository-owned canonical skill sources.
-- [x] Add and verify the package assets, installer, packed boundary, help, and offline documentation.
-- [x] Verify fresh/replacement/repeated/dry-run/failure-safe installation, unrelated-skill preservation, and real packed-consumer execution.
-- [x] Pass independent verification, package/root gates, and workflow reconciliation.
-- [x] Commit and push the exact attributable snapshot.
-- [x] Confirm the resulting `master` CI runs.
+- [x] Update the minimum authoritative workflow docs, active skills, compact template, validator, and focused tests.
+- [x] Preserve historical v1 readability without migration machinery.
+- [x] Pass 45 workflow tests, both workflow validators, and whitespace validation.
+- [x] Commit conventionally on `workflow-v2` without pushing.
 
 ## Blockers / Escalation
 
 - No blocker is known.
-- No blocker remains for the delivered installer snapshot.
+- No blocker remains for Workflow v2 delivery.
 
 ## Done When
 
-- The reviewed commit is present on `origin/master`, local `master` matches it, and the worktree is clean.
+- The conventional commit exists locally on `workflow-v2` and has not been pushed.
 
 ## After This
 
@@ -56,10 +52,6 @@ Await the next explicit bounded request and route it through `orchestrate-monore
 - `AGENTS.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`
-- `packages/trello-work-cli/package.json`
-- `packages/trello-work-cli/assets/agent-workflow-protocol.md`
-- `packages/trello-work-cli/assets/agent-skills-adapters.md`
-- `.agents/skills/trello-work-orchestrator/SKILL.md`
-- `.agents/skills/trello-work-design/SKILL.md`
-- `.agents/skills/trello-work-deliver/SKILL.md`
-- `.agents/skills/trello-work-recover/SKILL.md`
+- `docs/workflow/templates/work-item/work-item.md`
+- `scripts/validate-monorepo-work-item.mjs`
+- `.agents/skills/orchestrate-monorepo-work/SKILL.md`

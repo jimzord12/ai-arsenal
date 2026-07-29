@@ -1,9 +1,12 @@
 ---
 name: reconcile-monorepo-change
-description: Use when an active AI Arsenal monorepo work item has passed verification and needs current-truth planning reconciliation and deterministic closure.
+description: Historical Workflow v1 compatibility reference only; never use for new work.
 ---
 
 # Reconcile Monorepo Change
+
+> **Historical Workflow v1 Compatibility:** Never use this skill for new work.
+> Workflow v2 performs current-truth closure in `deliver-monorepo-change`.
 
 ## Overview
 

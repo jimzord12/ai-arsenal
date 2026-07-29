@@ -1,9 +1,12 @@
 ---
 name: request-monorepo-revision
-description: Use when a direct user request or an agent-detected in-contract defect requires revision of the active AI Arsenal monorepo work item's current contract or plan.
+description: Historical Workflow v1 compatibility reference only; never use for new work.
 ---
 
 # Request Monorepo Revision
+
+> **Historical Workflow v1 Compatibility:** Never use this skill for new work.
+> Workflow v2 updates the compact item within its review/repair stage.
 
 ## Overview
 

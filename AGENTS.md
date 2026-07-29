@@ -19,7 +19,7 @@ At the beginning of every Codex session:
 1. Read `NEXT.md`.
 2. Read the sections of `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md` referenced by `NEXT.md`.
 3. Inspect `git status --short` and the latest relevant commits when a Git repository exists.
-4. Check whether required digest authorization, prerequisites, and verification evidence exist.
+4. Check hard prerequisites, proportionality timing, review state, and verification evidence.
 5. Do not begin work from memory or from an older plan.
 
 When the user asks **“What is going on?”**, **“Where are we?”**, or anything equivalent, answer in this exact compact shape:
@@ -119,22 +119,14 @@ eligible stage without mutating files or Git state.
 
 Use the router-selected stage only after its prerequisites are valid:
 
-1. `capture-monorepo-change`
-2. `orient-monorepo-change`
-3. `scope-monorepo-change`
-4. `plan-monorepo-change`
-5. `record-monorepo-approval`
-6. `implement-monorepo-change`
-7. `verify-monorepo-change`
-8. `reconcile-monorepo-change`
+1. `define-monorepo-change`
+2. `implement-monorepo-change`
+3. `review-monorepo-change`
+4. `verify-monorepo-change`
+5. `deliver-monorepo-change`
 
-### Direct Revision Entry
-
-`request-monorepo-revision` is available when the user directly requests
-revision of the active current contract or plan or when an agent discovers a
-concrete in-contract defect in either artifact. It records
-`revision-request.md` and routes to the owning scope or plan stage; it does not
-change product state or broaden revision intent.
+All current state lives in one `docs/work-items/<id>/work-item.md`. Historical
+v1 multi-file work items remain readable but never dictate routing for v2 work.
 
 ### `initializing-living-plan-workflow`
 
@@ -150,35 +142,30 @@ routes to `orchestrate-monorepo-work` and never broadly executes a phase.
 ### `reconciling-living-plan`
 
 Use only for verified legacy-plan repair outside a normal active work item.
-Normal passed work items must use `reconcile-monorepo-change`.
+Normal passed work items must use `deliver-monorepo-change`.
 
 ## Mandatory Workflow
 
 ```text
 orchestrate-monorepo-work (read-only)
-→ capture-monorepo-change (only for an explicit new request with no active item)
-→ request-monorepo-revision (for a direct request or concrete in-contract contract/plan defect)
-→ orient-monorepo-change
-→ scope-monorepo-change
-→ plan-monorepo-change
-→ record-monorepo-approval (autonomous digest authorization unless escalation is required)
+→ define-monorepo-change
 → implement-monorepo-change
+→ review-monorepo-change (repair and re-review, maximum four cycles)
 → verify-monorepo-change
-→ reconcile-monorepo-change
+→ deliver-monorepo-change
 → router reports the resulting next action
 ```
 
-The router selects the earliest eligible stage from validator-confirmed
-artifacts. If it reports malformed workflow metadata, stale approval, or other
-structural corruption, stop at `initializing-living-plan-workflow`; do not
-infer a stage or repair user intent.
+The router selects the stage recorded in validator-confirmed `work-item.md`.
+If it reports malformed workflow metadata, stop at
+`initializing-living-plan-workflow`; do not infer a stage or repair user intent.
 
 A normal work item is complete only after:
 
-- Passed verification and reconciliation evidence exist.
+- Review has no unresolved required findings and final verification passed.
 - The canonical plan and `NEXT.md` reflect verified current truth.
 - Active work-item fields are cleared and both workflow validators pass.
-- A current digest-bound authorization record exists. Routine plans may be authorized by the agent under this repository's autonomy policy.
+- The compact item is marked delivered. Routine work has no approval artifact.
 
 ## Living-Plan Rules
 
@@ -200,8 +187,8 @@ Do not churn wording when no material fact changed. Reconciliation must be idemp
 
 Agents are fully autonomous for bounded repository work. The work-item pipeline
 is an evidence and safety system, not a sequence of permission prompts. Continue
-through planning, digest authorization, implementation, repair, verification,
-reconciliation, routine commit, and routine push without asking the user again
+through definition, implementation, review/repair, verification, delivery,
+routine commit, and routine push without asking the user again
 when the operation is within the recorded contract and required prerequisites
 are available.
 
@@ -217,10 +204,10 @@ The agent may autonomously perform:
 - Routine dependency, Git, review, and recoverable external operations required
   by the bounded plan.
 
-For a plan containing dangerous deletion or similarly irreversible data loss,
-obtain direct user digest authorization at Stage 5 and obtain fresh direct
-confirmation again immediately before executing the exact destructive
-operation. Escalate, without fabricating a substitute, when a hard prerequisite
+For dangerous deletion or similarly irreversible data loss, obtain direct user
+approval recorded in `work-item.md` and fresh direct confirmation immediately
+before executing the exact destructive operation. Escalate, without
+fabricating a substitute, when a hard prerequisite
 is unavailable or no honest workaround can satisfy the contract, including
 missing credentials/access required for E2E tests, contradictory authority, or
 a technically impossible requirement.
@@ -230,8 +217,24 @@ Do not turn normal uncertainty, a failed test, review findings, plan revision,
 commit, push, or an in-contract recoverable mutation into a permission stop.
 Resolve routine ambiguity from repository authority and recorded acceptance
 criteria. When a new request materially changes the active contract, revise the
-artifacts and continue autonomously unless one of the narrow stop conditions
+compact definition and continue autonomously unless one of the narrow stop conditions
 above applies.
+
+## Proportionality and Review Limits
+
+- Estimate maximum work time and record the start time during definition.
+- At the start of every agent turn that creates or resumes an item in any v2
+  stage, increment the durable turn counter once. If the increment reaches
+  five, compare elapsed work with the estimate and scope, record the check,
+  update its timestamp, and reset the counter. The validator checks the durable
+  value only; it cannot observe unrecorded conversational turns. Exceeding the
+  estimate is an indicator to simplify or report—not an automatic failure.
+- Use focused tests during implementation. Run full required gates once on the
+  final stable snapshot and rerun only checks invalidated by later repairs.
+- Review uses consolidated findings and at most four repair/re-review cycles.
+  Fix every Critical, High, Medium, and acceptance-related Minor finding.
+  Ignore optional or out-of-scope polish. After cycle four, record remaining
+  blockers and stop.
 
 ## File Organization
 
@@ -285,8 +288,8 @@ These are direction and constraints. Exact manifests, commands, architecture, bu
 Before claiming a normal active work item complete:
 
 - Run its exact verification commands and inspect actual output and exit status.
-- Record verification evidence, then use `reconcile-monorepo-change` only after
-  passed verification.
+- Record verification in `work-item.md`, then use `deliver-monorepo-change`
+  only after it passes.
 - Confirm the completed active-registration state with both workflow validators.
 - Use `reconciling-living-plan` only for a verified legacy-plan repair outside
   a normal active work item.

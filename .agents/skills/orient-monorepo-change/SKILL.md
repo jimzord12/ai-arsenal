@@ -1,9 +1,12 @@
 ---
 name: orient-monorepo-change
-description: Use when an active AI Arsenal monorepo work item has a ready request and needs repository context before scoping, especially when source, documentation, or test evidence must be gathered without designing a change.
+description: Historical Workflow v1 compatibility reference only; never use for new work.
 ---
 
 # Orient Monorepo Change
+
+> **Historical Workflow v1 Compatibility:** Never use this skill for new work.
+> Workflow v2 records only essential context in the compact `work-item.md`.
 
 ## Overview
 

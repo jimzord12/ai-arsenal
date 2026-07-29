@@ -1,7 +1,29 @@
 ---
 name: implement-monorepo-change
-description: Use when an active AI Arsenal monorepo work item has a digest-bound approved plan and needs contract-scoped implementation before verification.
+description: Use when an active AI Arsenal Workflow v2 item is defined and needs focused test-first implementation before review.
 ---
+
+# Workflow v2 (current)
+
+When the active directory contains `work-item.md`, validate it and require
+`Stage: implement`. Read its goal, non-goals, and acceptance criteria. For each
+behavior change, add the focused failing test, observe failure, make the
+smallest conforming change, and observe the focused pass. Do not run broad
+final gates yet.
+
+At the start of each agent turn that resumes this item, increment
+`Turns since time check` once. If the increment reaches five, record the
+time/scope proportionality check, update `Last time check`, and reset the
+counter to zero before continuing. The validator can check only this recorded
+value, not unrecorded conversational turns.
+
+Update the compact implementation summary with changed paths, decisions, and
+focused command results. Dangerous actions also require fresh confirmation
+immediately before execution. Then set
+`Stage: review` and route `NEXT.md` to `review-monorepo-change`.
+
+The v1 artifact instructions below apply only to historical directories
+without `work-item.md`.
 
 # Implement Monorepo Change
 

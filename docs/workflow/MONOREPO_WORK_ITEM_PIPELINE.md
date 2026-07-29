@@ -1,8 +1,75 @@
 # Monorepo Work-Item Pipeline
 
-This is the normative contract for repository work items. It governs changes to
-the AI Arsenal monorepo and its packages; it never replaces the consumer
-`.scratch/features/` workflow or uses `features-cli` for package self-hosting.
+This is the normative Workflow v2 contract for AI Arsenal monorepo work. It is
+separate from consumer `.scratch/features/` work and never uses `features-cli`
+for package self-hosting.
+
+## Tier and proportionality
+
+Workflow v2 targets Tier 2 use by one to six trusted users. Prefer the smallest
+reliable implementation and do not add speculative security, enterprise, or
+migration machinery. Definition records `Started at`, `Max time`, and the turn
+counter. At the start of every agent turn that creates or resumes the active
+item in any of the five stages, increment `Turns since time check` once. If the
+increment reaches five, record the time/scope proportionality check, update
+`Last time check`, and reset the counter to zero before continuing. The
+validator checks only that durable recorded value; it cannot observe omitted
+conversational turns. Exceeding the estimate triggers simplification or a
+concise status assessment; it does not automatically fail the work item.
+
+## Current stage order
+
+```text
+define → implement → review/repair → verify → deliver
+```
+
+- `orchestrate-monorepo-work` is the read-only entry point.
+- `define-monorepo-change` creates one compact `work-item.md` and registers it.
+- `implement-monorepo-change` uses focused test-first changes and records the
+  implementation summary.
+- `review-monorepo-change` consolidates findings, repairs all Critical, High,
+  Medium, and acceptance-related Minor findings, and ignores optional or
+  out-of-scope polish. It permits at most four repair/re-review cycles.
+- `verify-monorepo-change` records `Result: passed` only after running the full
+  required gates once on the final stable snapshot. After a repair, rerun only
+  invalidated checks.
+- `deliver-monorepo-change` records the verified result, reconciles current
+  planning truth, reruns only checks invalidated by its delivery edits, clears
+  active registration, and may commit/push unless the work item narrows Git
+  delivery.
+
+## Compact work-item contract
+
+Current v2 items live at `docs/work-items/<id>/work-item.md` and use
+`docs/workflow/templates/work-item/work-item.md`. The record contains the goal,
+non-goals, acceptance criteria, maximum time estimate and start time,
+implementation summary, review findings/repairs, and final verification. It
+also carries only the small amount of routing and safety metadata validated by
+`scripts/validate-monorepo-work-item.mjs`.
+
+Routine work requires no approval artifact or digest. Direct user approval is
+required only for dangerous deletion or irreversible data loss. Until it is
+recorded, `Approval: required` with blocked status is an intentional valid stop;
+fresh confirmation is still required immediately before the exact destructive
+action. An unavailable hard prerequisite likewise uses blocked status as an
+intentional valid stop rather than being treated as corruption, mocked,
+skipped, or weakened.
+
+`NEXT.md` retains exactly one active work-item and pipeline-step pair. A
+delivered item clears both to `none`. Intentional blocked states have no next
+skill and remain registered at their current stage. Only malformed compact
+state routes to `initializing-living-plan-workflow`.
+
+## Historical v1 compatibility
+
+Directories without `work-item.md` may be validated by the historical v1 path
+below. This keeps existing evidence readable and history-safe. New work must
+not create or revise the v1 artifact chain.
+
+# Historical Workflow v1 Contract
+
+The remainder of this document describes the retired v1 artifact format for
+compatibility only; it is not the current workflow.
 
 ## Stage order
 

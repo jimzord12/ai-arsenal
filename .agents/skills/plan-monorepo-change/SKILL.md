@@ -1,9 +1,12 @@
 ---
 name: plan-monorepo-change
-description: Use when an active AI Arsenal monorepo work item has a ready change contract and needs an executable implementation plan before digest-bound autonomous authorization.
+description: Historical Workflow v1 compatibility reference only; never use for new work.
 ---
 
 # Plan Monorepo Change
+
+> **Historical Workflow v1 Compatibility:** Never use this skill for new work.
+> Workflow v2 keeps its bounded plan inside the compact `work-item.md`.
 
 ## Overview
 

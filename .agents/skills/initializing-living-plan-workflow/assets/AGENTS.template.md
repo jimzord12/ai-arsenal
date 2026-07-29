@@ -4,49 +4,44 @@
 
 ## Resume Contract
 
-On every session, read:
-
-1. `NEXT.md`
-2. The referenced sections of `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
-3. Git status and relevant recent commits
-
-For a status question, answer:
-
-```text
-Project:
-Current state:
-Next action:
-Requirements/blockers:
-Why this is next:
-Escalation needed:
-```
+On every session, read `NEXT.md`, its referenced canonical-plan sections, Git
+status, and relevant recent commits. Use `orchestrate-monorepo-work` as the
+read-only entry point.
 
 ## Mandatory Workflow
 
+Current work uses one compact `work-item.md` and this route:
+
 ```text
-Execute one bounded phase autonomously
-→ verify acceptance criteria
-→ reconcile the canonical plan
-→ update NEXT.md
-→ continue only when gates allow
+define → implement → review/repair → verify → deliver
 ```
 
-Routine gates are evidence checks, not permission prompts. A plan containing
-dangerous deletion or similarly irreversible data loss requires direct user
-digest authorization at Stage 5 and fresh direct confirmation again immediately
-before the exact destructive operation. Escalate unavailable hard prerequisites
-such as mandatory credentials/access, contradictory authority, or impossible
-requirements; never mock away required live/E2E evidence merely to avoid
-escalation.
+Required normal skills:
 
-Required skills:
+- `orchestrate-monorepo-work`
+- `define-monorepo-change`
+- `implement-monorepo-change`
+- `review-monorepo-change`
+- `verify-monorepo-change`
+- `deliver-monorepo-change`
 
-- `initializing-living-plan-workflow`
-- `executing-living-plan-phase`
-- `reconciling-living-plan`
+At the start of each agent turn that creates or resumes the active item,
+increment `Turns since time check` once. If the increment reaches five, record
+the time/scope proportionality check, update `Last time check`, and reset the
+counter to zero. The validator checks only the durable recorded value; it
+cannot observe omitted conversational turns.
 
-The canonical plan is current truth. `NEXT.md` is its short derived operator view.
+Awaiting direct approval for dangerous deletion or irreversible data loss, an
+unavailable hard prerequisite, and exhausted review cycles are valid stopped
+states. Malformed workflow structure alone routes to
+`initializing-living-plan-workflow`. `executing-living-plan-phase` and
+`reconciling-living-plan` are legacy compatibility paths, not normal stages.
 
-Do not begin a next phase before reconciliation.
+Final verification must record an explicit passed result before delivery.
+Delivery reconciles current truth and reruns only checks invalidated by its own
+edits before clearing active registration and completing authorized Git work.
+
+The canonical plan is current truth. `NEXT.md` is its short derived operator
+view.
 
 <!-- living-plan-workflow:end -->

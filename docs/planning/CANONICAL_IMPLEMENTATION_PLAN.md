@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Trello Flow CLI `0.3.0`, the package-owned workflow protocol, four canonical open-standard Trello Agent Skills, and their CLI installer are verified locally
+> **Status:** Workflow v2 and the previously delivered Trello Flow CLI, protocol, skills, and installer are verified
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-29
-> **Current phase:** Trello Agent Skills installer verified and reconciled; awaiting Git delivery
+> **Current phase:** Workflow v2 delivered locally; awaiting the next bounded request
 > **Operator view:** `NEXT.md`
 
 ---
@@ -116,7 +116,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` `packages/trello-work-cli/assets/agent-workflow-protocol.md` is the accepted package-owned protocol source for Trello-backed development through Claude Code, Codex, Pi, and Hermes Agent. Trello/`jz-trello-flow` owns durable lifecycle state while Superpowers or equivalent harness practice owns software design and implementation. Four canonical open-standard sources implement that contract at `.agents/skills/trello-work-{orchestrator,design,deliver,recover}/SKILL.md`; all pass official `skills-ref` validation pinned to upstream commit `38a2ff82958afee88dadf4831509e6f7e9d8ef4e`, and fresh re-review found no Critical, High, or Medium issue. `packages/trello-work-cli/assets/agent-skills-adapters.md` defines downstream client adaptation without semantic forks.
 - `[VERIFIED]` `jz-trello-flow skills install` is an offline, credential-free command that discovers the containing Git repository from nested paths, ignores inherited `GIT_*` repository selectors, and installs the four package-bundled managed Trello skills under `.agents/skills/`. Every run prepares and validates the full staged payload through the provenance-verified pinned `skills-ref` source before mutation, replaces only the four managed targets with rollback for later swap failure, preserves unrelated skills, and supports no-write `--dry-run` action reporting. The actual tarball passes disposable consumer installation and invocation through paths with spaces and Unicode; consumer Python import state cannot shadow validation. No release, publication, global installation, non-disposable skill installation, or Trello call was performed.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
-- `[VERIFIED]` The 2026-07-13 Monorepo Work-Item Pipeline implementation was approved under then-applicable restrictions on release/distribution automation and commit/push delivery. Dimitris's explicit 2026-07-29 standing-autonomy directive supersedes those restrictions for routine bounded work: agents proceed through review, commit, and push without a separate permission stop. Dangerous deletion or irreversible data loss still requires direct-user digest authorization at Stage 5 plus fresh execution-time confirmation, and unavailable hard prerequisites still escalate.
+- `[VERIFIED]` The 2026-07-29 standing-autonomy directive applies to routine bounded work: agents proceed through review, commit, and push without a separate permission stop. Workflow v2 records direct approval only for dangerous deletion or irreversible data loss and still requires fresh execution-time confirmation; unavailable hard prerequisites still escalate.
 
 ## 4.2 Product context supplied by the user
 
@@ -474,24 +474,25 @@ self-hosting.
 
 ## 8.1 Normal routing and durable evidence
 
-The router selects the earliest eligible stage from validated current artifacts:
+The router selects the stage from one validated compact work item:
 
 ```text
-capture → orient → scope → plan → record digest authorization
-→ implement → verify → reconcile
+define → implement → review/repair → verify → deliver
 ```
 
-Each work item retains explicit revisions, prerequisite revisions, and
-historical superseded artifacts. Authorization binds the exact implementation-plan
-bytes by SHA-256. The router does not write files, change Git state, advance
-artifacts, or grant authorization.
+Each v2 item uses one `work-item.md` containing its goal, non-goals, acceptance
+criteria, time estimate/start, implementation summary, review and repair record,
+and final verification. The router does not write files or change Git state.
+Historical v1 artifact directories remain readable through the validator's
+compatibility path; new work never creates that artifact chain.
 
 ## 8.2 Reconciliation and current truth
 
-Only `reconcile-monorepo-change` closes a normal active work item. It requires
-passed verification, records reconciliation evidence, updates the canonical
-plan and `NEXT.md` from verified reality, clears the active registration, and
-validates the completed state.
+Only `deliver-monorepo-change` closes a normal active work item. It requires an
+explicit `Result: passed` in final verification and no required review
+findings, updates the compact record, canonical plan, and `NEXT.md` from
+verified reality, reruns only checks invalidated by those delivery edits,
+clears active registration, and validates the completed state.
 
 The canonical plan must remain current coherent truth. Preserve historical
 rationale in evidence, ADRs, or Git history rather than plan-diff prose.
@@ -499,8 +500,8 @@ Repeated reconciliation with no new evidence must not create wording churn.
 
 ## 8.3 Structural repair and legacy use
 
-Malformed work-item metadata, stale approval, inconsistent revisions, or
-invalid active registration route to `initializing-living-plan-workflow`. That
+Malformed work-item metadata or invalid active registration routes to
+`initializing-living-plan-workflow`. That
 repair path preserves artifacts, does not infer user intent or approval, and
 returns to the router after validation.
 
@@ -511,37 +512,44 @@ stage.
 
 ## 8.4 Autonomy and escalation
 
-The pipeline is fully autonomous for bounded work. `approval.md` remains a
-digest-bound audit artifact and may be recorded by `autonomous-agent`. A plan
-containing dangerous deletion or similarly irreversible data loss requires
-direct user digest authorization at Stage 5 and fresh direct confirmation again
-immediately before the exact destructive operation. Escalate missing mandatory
-credentials/access, contradictory authority, impossible requirements, or another
-hard prerequisite that cannot be worked around honestly. Never replace required
-live/E2E evidence with mocks merely to avoid escalation. Routine planning,
-revisions, implementation, review repairs, commit, and push do not create
-permission stops.
+The pipeline is fully autonomous for bounded work. Routine work has no approval
+artifact. Dangerous deletion or similarly irreversible data loss awaiting
+direct user approval and an unavailable hard prerequisite are intentional
+valid blocked states, not structural corruption. Recorded approval still
+requires fresh direct confirmation immediately before the exact destructive
+operation. Never replace required live/E2E evidence with mocks merely to avoid
+escalation. Routine planning, revisions, implementation, review repairs,
+commit, and push do not create permission stops. Definition records a maximum
+estimate and start time. At the start of every agent turn that creates or
+resumes the item in any of the five stages, increment the durable turn counter
+once; when it reaches five, record the proportionality check, update the
+timestamp, and reset to zero. The validator checks only recorded state and
+cannot observe omitted conversational turns. Review consolidates findings,
+permits at most four repair/re-review cycles, fixes Critical/High/Medium and
+acceptance-related Minor findings, and excludes optional polish. Full gates run
+once on the stable final snapshot and only invalidated checks rerun after
+repair or delivery edits.
 
 ---
 
 # 9. Phase Map
 
-| Phase | Name                                                     | Current status  | Main output                                             | Approval gate        |
-| ----- | -------------------------------------------------------- | --------------- | ------------------------------------------------------- | -------------------- |
-| 0     | Workflow Bootstrap and Repository Orientation            | **Complete**    | Valid workflow state and organized inputs               | Satisfied            |
-| 1     | CLI Discovery, Workflow Observation, and Plan Grounding  | **Complete**    | Evidence-grounded canonical plan                        | Satisfied            |
-| 2     | Monorepo Foundation and Developer Workflow               | **Complete**    | pnpm/Turbo root and quality workflow                    | Satisfied            |
-| 3     | CLI Characterization and Migration Boundary              | **Complete**    | Behavior baseline and migrated package boundary         | Satisfied            |
-| 4     | Build, Packaging, and Distribution                       | **Complete**    | Verified distribution artifact                          | Satisfied            |
-| 5     | Domain and Filesystem Test Foundation                    | **Complete**    | Unit/integration confidence and data-safety contract    | Satisfied            |
-| 6     | CLI E2E and Distribution Testing                         | **Complete**    | Real process and clean-consumer confidence              | Satisfied            |
-| 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**    | Verified CI and safe consumer cutover                   | Source deletion gate |
-| 8     | Final Validation and Operating Documentation             | **Complete**    | Release-ready verified repository                       | Final acceptance     |
-| M1    | Flexible Feature Selector Compatibility                  | **Merged**      | Compatible public `--feature` selection                 | CI confirmation      |
-| M2    | Monorepo Work-Item Pipeline                              | **Complete**    | Verified artifact-driven maintenance workflow           | Satisfied            |
-| M3    | Trello Agent Development Workflow Protocol               | **Complete**    | Verified package-owned cross-harness protocol           | Satisfied            |
-| M4    | Open-Standard Trello Agent Skills                        | **Complete**    | Four verified canonical Agent Skills + adapter guide    | Satisfied            |
-| M5    | Autonomous Work-Item Governance                          | **In progress** | Autonomous digest authorization + escalation-only stops | Autonomous           |
+| Phase | Name                                                     | Current status | Main output                                          | Approval gate        |
+| ----- | -------------------------------------------------------- | -------------- | ---------------------------------------------------- | -------------------- |
+| 0     | Workflow Bootstrap and Repository Orientation            | **Complete**   | Valid workflow state and organized inputs            | Satisfied            |
+| 1     | CLI Discovery, Workflow Observation, and Plan Grounding  | **Complete**   | Evidence-grounded canonical plan                     | Satisfied            |
+| 2     | Monorepo Foundation and Developer Workflow               | **Complete**   | pnpm/Turbo root and quality workflow                 | Satisfied            |
+| 3     | CLI Characterization and Migration Boundary              | **Complete**   | Behavior baseline and migrated package boundary      | Satisfied            |
+| 4     | Build, Packaging, and Distribution                       | **Complete**   | Verified distribution artifact                       | Satisfied            |
+| 5     | Domain and Filesystem Test Foundation                    | **Complete**   | Unit/integration confidence and data-safety contract | Satisfied            |
+| 6     | CLI E2E and Distribution Testing                         | **Complete**   | Real process and clean-consumer confidence           | Satisfied            |
+| 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**   | Verified CI and safe consumer cutover                | Source deletion gate |
+| 8     | Final Validation and Operating Documentation             | **Complete**   | Release-ready verified repository                    | Final acceptance     |
+| M1    | Flexible Feature Selector Compatibility                  | **Merged**     | Compatible public `--feature` selection              | CI confirmation      |
+| M2    | Monorepo Work-Item Pipeline                              | **Complete**   | Verified compact Tier 2 maintenance workflow         | Satisfied            |
+| M3    | Trello Agent Development Workflow Protocol               | **Complete**   | Verified package-owned cross-harness protocol        | Satisfied            |
+| M4    | Open-Standard Trello Agent Skills                        | **Complete**   | Four verified canonical Agent Skills + adapter guide | Satisfied            |
+| M5    | Autonomous Work-Item Governance                          | **Complete**   | Five-stage autonomy + narrow escalation-only stops   | Satisfied            |
 
 ---
 
@@ -826,15 +834,15 @@ The user approved versioning, changelog generation, release verification, commit
 
 ### Resulting verified state
 
-- The read-only router, eight normal write-capable stages, direct revision-request stage, durable artifact validator, and stage skill packages are implemented.
-- Durable work-item artifacts use explicit revisions, prerequisite revisions, statuses, historical revision retention, and an approval record bound to the exact plan bytes by SHA-256.
-- Contract and plan revisions enter only from direct user intent, retain superseded request and artifact history, invalidate downstream evidence in reverse dependency order, and require fresh plan approval.
-- The 30-test workflow suite, all 144 package tests, root formatting, linting, typechecking, both workflow validators, and whitespace checks pass. Independent verification and final reconciliation are complete.
-- The pipeline remains separate from consumer `.scratch/features/` workflows and ends before release, packing, publication, global installation, or source deletion.
+- Workflow v2 uses define → implement → review/repair → verify → deliver and one compact `work-item.md` per current item.
+- The Tier 2 policy targets one to six trusted users, requires five-turn proportionality checks, caps repair/re-review at four cycles, and runs full gates once on the stable snapshot.
+- Routine work has no approval artifact. Dangerous deletion or irreversible data loss retains direct approval and fresh execution-time confirmation; unavailable hard prerequisites block honestly.
+- The validator routes compact v2 items and retains a read-only v1 compatibility path so historical work-item evidence remains readable without migration machinery.
+- The pipeline remains separate from consumer `.scratch/features/` workflows.
 
 ### Approval gate
 
-Implementation, independent verification, and reconciliation are complete. The user separately authorized committing and pushing the current verified worktree on 2026-07-24. Future publication, release, global-installation, and source-deletion actions retain their normal approval gates.
+Routine bounded implementation, review, verification, delivery, commit, and push are autonomous. Publication, release, global installation, and source deletion retain their applicable boundaries; dangerous deletion requires direct approval.
 
 ---
 
@@ -997,4 +1005,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-The package-owned protocol, four canonical open-standard Trello Agent Skills, adapter guide, repository-local CLI installer, deprecated-command documentation correction, and autonomous work-item governance are implemented, independently verified, and reconciled locally. Commit and push the exact verified attributable snapshot, then confirm the resulting `master` CI. Dangerous deletion, source removal, and similarly irreversible data loss remain direct-human approval gates; unavailable mandatory credentials/access or another hard prerequisite remains an escalation blocker.
+Workflow v2 and the previously delivered package-owned Trello protocol, four canonical open-standard skills, adapter guide, and repository-local installer are implemented and verified. Await the next explicit bounded request and route it through `orchestrate-monorepo-work`. Dangerous deletion, source removal, and similarly irreversible data loss remain direct-human approval gates; unavailable mandatory credentials/access or another hard prerequisite remains an escalation blocker.
