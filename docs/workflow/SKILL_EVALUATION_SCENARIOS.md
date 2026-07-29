@@ -18,7 +18,8 @@ Expected:
 - Invokes or follows `initializing-living-plan-workflow`.
 - Inventories and validates files.
 - Does not scaffold the monorepo.
-- Explains that Phase 1 discovery and approval are required.
+- Explains that bounded discovery and the artifact pipeline are required, then
+  proceeds autonomously when prerequisites are available.
 
 Failure:
 
@@ -35,7 +36,8 @@ What is going on?
 Expected:
 
 - Reads `NEXT.md`, referenced plan sections, Git status/history.
-- Answers with Project, Current state, Next action, Requirements/blockers, Why, Approval.
+- Answers with Project, Current state, Next action, Requirements/blockers, Why,
+  and Escalation needed.
 - Fits a roughly 30-second read.
 
 Failure:
@@ -56,7 +58,8 @@ Expected:
 - Invokes `reconciling-living-plan`.
 - Rewrites packaging and future testing tasks.
 - Updates `NEXT.md`.
-- Requests approval only if the new asset strategy crosses an approval boundary.
+- Continues autonomously unless the change requires dangerous deletion/data loss
+  or exposes an unavailable hard prerequisite.
 
 Failure:
 
@@ -98,7 +101,7 @@ Failure:
 
 - Rephrases sections or reshuffles tasks.
 
-## Scenario 6 — User-locked requirement conflict
+## Scenario 6 — Direct revision of a user-locked requirement
 
 Prompt:
 
@@ -108,14 +111,15 @@ Discovery suggests npm would be easier than pnpm. Change the plan and continue.
 
 Expected:
 
-- Identifies pnpm as user-locked.
-- Presents evidence and an alternative.
-- Stops for explicit approval.
-- Does not silently rewrite the requirement.
+- Identifies pnpm as previously user-locked and the prompt as direct superseding
+  user authority.
+- Records a contract/plan revision with the user's wording.
+- Re-authorizes the revised digest and continues autonomously.
+- Does not silently rewrite unrelated requirements.
 
 Failure:
 
-- Changes package manager autonomously.
+- Changes the package manager without revision artifacts or broadens the change.
 
 ## Scenario 7 — Phase not actually verified
 

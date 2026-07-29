@@ -45,14 +45,15 @@ not a normal work item before editing.
    verified reality.
 3. Record concise repair evidence under `docs/evidence/<phase-id>/`, run
    `node scripts/validate-living-workflow.mjs`, and preserve any required
-   approval gate.
+   dangerous-deletion gate or hard-prerequisite blocker.
 
 ## Boundaries
 
-Stop and ask the user before changing user-locked requirements, public
-behavior or persisted schemas, major dependencies/services, material scope,
-cost, security, privacy, operations, distribution direction, source deletion,
-or user data. Do not create or mutate a normal work-item artifact, implement
+Resolve routine legacy-plan corrections autonomously from repository authority.
+Stop for direct approval only immediately before dangerous deletion or
+irreversible data loss; escalate unavailable hard prerequisites, contradictory
+authority, or impossible requirements. Do not create or mutate a normal
+work-item artifact, implement
 product changes, invoke `features-cli`, release, pack, publish, globally
 install, or mutate Git history.
 
@@ -60,4 +61,4 @@ install, or mutate Git history.
 
 For a normal active item, stop after the redirect. For a verified legacy
 repair, report the current-truth updates, validation result, exact `NEXT.md`
-action, and any approval needed.
+action, and any narrow escalation needed.

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
+const autonomousApprovalSource = 'policy:ai-arsenal-autonomy-v1';
 const artifactDefinitions = [
   {
     key: 'request',
@@ -334,7 +335,7 @@ function validateActiveRoute(activeState, output) {
   return output;
 }
 
-function validateApproval(workItemDirectory, planContents) {
+function validateApproval(workItemDirectory, planContents, contractContents) {
   const approvalPath = path.join(workItemDirectory, 'approval.md');
   const approval = fs.readFileSync(approvalPath, 'utf8');
   const digestMatches = [
@@ -355,11 +356,56 @@ function validateApproval(workItemDirectory, planContents) {
       'approval.md must contain each approval field exactly once',
     );
   }
-  if (approvedByMatches[0][1] !== 'user') {
-    throw new Error('approval.md Approved by field must be user');
+  if (!['user', 'autonomous-agent'].includes(approvedByMatches[0][1])) {
+    throw new Error(
+      'approval.md Approved by field must be user or autonomous-agent',
+    );
   }
   if (sourceMatches[0][1].trim().length === 0) {
     throw new Error('approval.md Approval source must not be empty');
+  }
+  if (
+    approvedByMatches[0][1] === 'autonomous-agent' &&
+    sourceMatches[0][1] !== autonomousApprovalSource
+  ) {
+    throw new Error(
+      `approval.md autonomous Approval source must be ${autonomousApprovalSource}`,
+    );
+  }
+  const dangerousMatches = [
+    ...contractContents.matchAll(
+      /^Dangerous deletion or irreversible data loss: `(yes|no)`\r?$/gm,
+    ),
+  ];
+  const prerequisiteMatches = [
+    ...contractContents.matchAll(
+      /^Hard prerequisites: `(resolved|blocked)`\r?$/gm,
+    ),
+  ];
+  if (dangerousMatches.length > 1 || prerequisiteMatches.length > 1) {
+    throw new Error(
+      'contract authority classification fields must appear at most once',
+    );
+  }
+  if (
+    prerequisiteMatches.length === 1 &&
+    prerequisiteMatches[0][1] !== 'resolved'
+  ) {
+    throw new Error(
+      'approval cannot bypass blocked hard prerequisites; resolve or escalate them',
+    );
+  }
+  if (approvedByMatches[0][1] === 'autonomous-agent') {
+    if (dangerousMatches.length !== 1 || prerequisiteMatches.length !== 1) {
+      throw new Error(
+        'autonomous approval requires exactly one contract authority classification',
+      );
+    }
+    if (dangerousMatches[0][1] !== 'no') {
+      throw new Error(
+        'autonomous approval cannot authorize dangerous deletion or irreversible data loss',
+      );
+    }
   }
 
   const expectedDigest = createHash('sha256')
@@ -526,7 +572,15 @@ function validateWorkItem(workItem, activeState) {
       workItemDirectory,
       artifactByKey.get('plan').file,
     );
-    validateApproval(workItemDirectory, fs.readFileSync(planPath, 'utf8'));
+    const contractPath = path.join(
+      workItemDirectory,
+      artifactByKey.get('contract').file,
+    );
+    validateApproval(
+      workItemDirectory,
+      fs.readFileSync(planPath, 'utf8'),
+      fs.readFileSync(contractPath, 'utf8'),
+    );
   }
   if (artifacts.reconciliation && artifacts.verification.status !== 'passed') {
     throw new Error('reconciliation requires passed verification');
@@ -568,13 +622,7 @@ function validateWorkItem(workItem, activeState) {
   }
   if (!artifacts.approval) {
     return finish(
-      result(
-        workItem,
-        true,
-        null,
-        'Explicit user approval of the current implementation plan is required.',
-        artifacts,
-      ),
+      result(workItem, true, 'record-monorepo-approval', null, artifacts),
     );
   }
   if (!artifacts.implementation) {

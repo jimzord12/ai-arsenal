@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Trello Flow CLI `0.2.0` rename, exact installation, and allowlisted TestingBoard validation are complete
+> **Status:** Trello Flow CLI `0.3.0`, the package-owned workflow protocol, and four canonical open-standard Trello Agent Skills are verified locally
 > **Living-plan schema:** 1.0
-> **Last reconciled:** 2026-07-28
-> **Current phase:** Maintenance / verified Trello Work Unit CLI live boundary
+> **Last reconciled:** 2026-07-29
+> **Current phase:** Autonomous work-item governance final verification and Git delivery
 > **Operator view:** `NEXT.md`
 
 ---
@@ -113,6 +113,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Active canonical Trello workflow resolution and guarded initialization ignore archived exact-name candidates, keep two open namesakes ambiguous, create a new open canonical list when only archived namesakes exist, and reject archived configured mappings before active card-placement or transition handlers. Explicit archived-list ID reads, close replay, cleanup verification, and open/archived audit visibility remain supported because the Trello client still returns all lists.
 - `[VERIFIED]` The private `@jz/ai-arsenal-trello-work-cli` package is versioned and globally installed as `0.3.0`, exposing only the `jz-trello-flow` executable. Release commit `f4ed4923953a1b14ee2b9788cf0b718c159420f6` passed Quality run `30436554205` and Portability run `30436554208`. The exact-commit 26-file tarball has SHA-256 `0ac6fc4485ca387dad40cc7deac5d7383799ec31de29e3fb273fbac3630c4ab1`; attachment implementation/docs are present while tests/configuration/credentials and obsolete `work` alias are absent. Native Windows help and packaged attachment docs pass. Registry publication remains unapproved.
 - `[VERIFIED]` `jz-trello-flow get` always reports `attachmentCount` and complete normalized attachment metadata. Explicit `--attachments-dir <directory>` downloads uploaded files with authenticated binary-safe transport, lexical destination containment, deterministic duplicate naming, atomic no-overwrite creation, metadata-only external links, and truthful partial-failure recovery. JSON/text output, offline docs, packed contents, and 251 passing package tests cover the additive contract; independent review found no Critical, High, or Medium issue.
+- `[VERIFIED]` `packages/trello-work-cli/assets/agent-workflow-protocol.md` is the accepted package-owned protocol source for Trello-backed development through Claude Code, Codex, Pi, and Hermes Agent. Trello/`jz-trello-flow` owns durable lifecycle state while Superpowers or equivalent harness practice owns software design and implementation. Four canonical open-standard sources now implement that contract at `.agents/skills/trello-work-{orchestrator,design,deliver,recover}/SKILL.md`; all pass official `skills-ref` validation pinned to upstream commit `38a2ff82958afee88dadf4831509e6f7e9d8ef4e`, and fresh re-review found no Critical, High, or Medium issue. `packages/trello-work-cli/assets/agent-skills-adapters.md` defines downstream client adaptation without semantic forks. Protocol, skills, and adapter guidance remain outside the CLI packed boundary and offline docs.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[USER-LOCKED]` The approved Monorepo Work-Item Pipeline design and implementation plan define the current maintenance change. The user explicitly approved implementation on 2026-07-13, required subagent-driven execution and independent wide review, prohibited release/distribution automation, and prohibited commits or pushes without separate direction.
 
@@ -446,6 +447,15 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 - Preserve one-writer fail-fast locking for the migration release.
 - Treat incomplete atomicity and stale locks as explicit hardening work, not silent migration refactors.
 
+## 7.9 Trello-backed agent workflow boundary
+
+- Trello and `jz-trello-flow` are authoritative for durable Work Unit identity, status, assignment metadata, transition validation, operation identity, read-back, and recovery.
+- Superpowers owns engineering practice such as brainstorming, planning, TDD, debugging, implementation execution, review, and verification; Trello skills coordinate state and concise evidence without reimplementing that methodology.
+- Claiming is a guarded owner-update plus `Ready → In Progress` sequence whose owner and status must both be read back. It is not an atomic Trello lock.
+- Work Unit sections keep concise evidence summaries and repository links; detailed artifacts remain authoritative in the repository, Git, and CI.
+- Agents may complete `Review → Done` using judgment only after acceptance criteria, applicable verification, blocker absence, and concise evidence are satisfied. Humans alone own final Done-card review and manual archival.
+- Harness adapters may vary installation and bootstrap mechanics but must preserve one portable lifecycle core. Current Superpowers upstream documentation does not establish native Hermes Agent support.
+
 ---
 
 # 8. Monorepo Work-Item Pipeline and Legacy Plan Maintenance
@@ -461,14 +471,14 @@ self-hosting.
 The router selects the earliest eligible stage from validated current artifacts:
 
 ```text
-capture → orient → scope → plan → explicit approval → record approval
+capture → orient → scope → plan → record digest authorization
 → implement → verify → reconcile
 ```
 
 Each work item retains explicit revisions, prerequisite revisions, and
-historical superseded artifacts. Approval binds the exact implementation-plan
+historical superseded artifacts. Authorization binds the exact implementation-plan
 bytes by SHA-256. The router does not write files, change Git state, advance
-artifacts, or grant approval.
+artifacts, or grant authorization.
 
 ## 8.2 Reconciliation and current truth
 
@@ -493,31 +503,39 @@ compatibility paths for legacy instructions and verified legacy-plan repair.
 They must redirect normal active work items to the router and its selected
 stage.
 
-## 8.4 Approval triggers
+## 8.4 Autonomy and escalation
 
-Stop for user approval before a work item changes a user-locked requirement,
-public behavior or persisted schema, major dependency or service, material
-scope/cost/security/privacy/operations, distribution direction, source copy,
-or user data. Explicit plan approval is required before implementation and is
-never inferred from silence.
+The pipeline is fully autonomous for bounded work. `approval.md` remains a
+digest-bound audit artifact and may be recorded by `autonomous-agent`. A plan
+containing dangerous deletion or similarly irreversible data loss requires
+direct user digest authorization at Stage 5 and fresh direct confirmation again
+immediately before the exact destructive operation. Escalate missing mandatory
+credentials/access, contradictory authority, impossible requirements, or another
+hard prerequisite that cannot be worked around honestly. Never replace required
+live/E2E evidence with mocks merely to avoid escalation. Routine planning,
+revisions, implementation, review repairs, commit, and push do not create
+permission stops.
 
 ---
 
 # 9. Phase Map
 
-| Phase | Name                                                     | Current status | Main output                                          | Approval gate        |
-| ----- | -------------------------------------------------------- | -------------- | ---------------------------------------------------- | -------------------- |
-| 0     | Workflow Bootstrap and Repository Orientation            | **Complete**   | Valid workflow state and organized inputs            | Satisfied            |
-| 1     | CLI Discovery, Workflow Observation, and Plan Grounding  | **Complete**   | Evidence-grounded canonical plan                     | Satisfied            |
-| 2     | Monorepo Foundation and Developer Workflow               | **Complete**   | pnpm/Turbo root and quality workflow                 | Satisfied            |
-| 3     | CLI Characterization and Migration Boundary              | **Complete**   | Behavior baseline and migrated package boundary      | Satisfied            |
-| 4     | Build, Packaging, and Distribution                       | **Complete**   | Verified distribution artifact                       | Satisfied            |
-| 5     | Domain and Filesystem Test Foundation                    | **Complete**   | Unit/integration confidence and data-safety contract | Satisfied            |
-| 6     | CLI E2E and Distribution Testing                         | **Complete**   | Real process and clean-consumer confidence           | Satisfied            |
-| 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**   | Verified CI and safe consumer cutover                | Source deletion gate |
-| 8     | Final Validation and Operating Documentation             | **Complete**   | Release-ready verified repository                    | Final acceptance     |
-| M1    | Flexible Feature Selector Compatibility                  | **Merged**     | Compatible public `--feature` selection              | CI confirmation      |
-| M2    | Monorepo Work-Item Pipeline                              | **Complete**   | Verified artifact-driven maintenance workflow        | Satisfied            |
+| Phase | Name                                                     | Current status  | Main output                                             | Approval gate        |
+| ----- | -------------------------------------------------------- | --------------- | ------------------------------------------------------- | -------------------- |
+| 0     | Workflow Bootstrap and Repository Orientation            | **Complete**    | Valid workflow state and organized inputs               | Satisfied            |
+| 1     | CLI Discovery, Workflow Observation, and Plan Grounding  | **Complete**    | Evidence-grounded canonical plan                        | Satisfied            |
+| 2     | Monorepo Foundation and Developer Workflow               | **Complete**    | pnpm/Turbo root and quality workflow                    | Satisfied            |
+| 3     | CLI Characterization and Migration Boundary              | **Complete**    | Behavior baseline and migrated package boundary         | Satisfied            |
+| 4     | Build, Packaging, and Distribution                       | **Complete**    | Verified distribution artifact                          | Satisfied            |
+| 5     | Domain and Filesystem Test Foundation                    | **Complete**    | Unit/integration confidence and data-safety contract    | Satisfied            |
+| 6     | CLI E2E and Distribution Testing                         | **Complete**    | Real process and clean-consumer confidence              | Satisfied            |
+| 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**    | Verified CI and safe consumer cutover                   | Source deletion gate |
+| 8     | Final Validation and Operating Documentation             | **Complete**    | Release-ready verified repository                       | Final acceptance     |
+| M1    | Flexible Feature Selector Compatibility                  | **Merged**      | Compatible public `--feature` selection                 | CI confirmation      |
+| M2    | Monorepo Work-Item Pipeline                              | **Complete**    | Verified artifact-driven maintenance workflow           | Satisfied            |
+| M3    | Trello Agent Development Workflow Protocol               | **Complete**    | Verified package-owned cross-harness protocol           | Satisfied            |
+| M4    | Open-Standard Trello Agent Skills                        | **Complete**    | Four verified canonical Agent Skills + adapter guide    | Satisfied            |
+| M5    | Autonomous Work-Item Governance                          | **In progress** | Autonomous digest authorization + escalation-only stops | Autonomous           |
 
 ---
 
@@ -830,13 +848,46 @@ Commit `2e33014cecfd481993a799e1b7b4b7bb674d2d68` is present on `master` and `or
 
 ---
 
+## Maintenance update — Trello Agent Development Workflow Protocol
+
+### Resulting verified state
+
+- The package-owned protocol defines the full Work Unit lifecycle from Inbox intake through human archival after Done, including minimum transition preconditions, read-back, evidence, blocking, review, completion, and recovery semantics.
+- Durable task state belongs to Trello/`jz-trello-flow`; Superpowers or equivalent harness practice owns software-design and implementation methodology.
+- Normal ceremony is intentionally light. Strictness is limited to safety-critical board selection, latest reads, version guards, durable operation identity, postcondition verification, and exceptional recovery.
+- The proposed follow-on skill set is exactly `trello-work-orchestrator`, `trello-work-design`, `trello-work-deliver`, and `trello-work-recover`, with a verification matrix for Claude Code, Codex, Pi, and Hermes Agent.
+- The protocol source is not included in `package.json`, packed artifacts, or `jz-trello-flow docs`. No skill, release, installation, production Trello mutation, Git Bash repair, or automatic archival was implemented.
+
+### Approval gate
+
+Protocol design, documentation, and the four open-standard skills were digest-authorized and independently verified. Package/docs integration, release, installation, and production-board migration remain separate bounded work items, not routine permission prompts.
+
+---
+
+## Maintenance update — Open-Standard Trello Agent Skills
+
+### Resulting verified state
+
+- Exactly four canonical project-level Agent Skills implement the accepted protocol: read-only orchestration, intake/design through Ready, normal delivery from Ready through Done, and exceptional recovery.
+- The sources follow the Agent Skills open specification and cross-client `.agents/skills/` convention. Official `skills-ref` validation at upstream commit `38a2ff82958afee88dadf4831509e6f7e9d8ef4e` passes for every directory.
+- Draft creation explicitly reads back Inbox and then preserves the same card through `design start` to In Design. Claiming remains recovery-aware and non-atomic; engineering starts only after owner and In Progress are both read back.
+- `packages/trello-work-cli/assets/agent-skills-adapters.md` permits mechanical client integration differences while prohibiting lifecycle, mutation-safety, completion, recovery, and archival semantic changes.
+- Fresh re-review of current sources found no unresolved Critical, High, or Medium issue.
+- The implementation made no production Trello request, package-boundary/docs change, generated adapter, harness installation, release, publication, archival automation, commit, or push.
+
+### Delivery boundary
+
+The local protocol and skill implementation is complete and verified. Routine Git delivery proceeds autonomously after reconciliation. Package or offline-doc integration, generated client adapters, actual harness installation, release/publication, and production-board migration remain separate bounded work items.
+
+---
+
 # 19. Current Risks
 
 | Risk                                                                                                               | Current status                    | Required resolution                                                                                                             |
 | ------------------------------------------------------------------------------------------------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Source rollback copy can drift after its captured baseline                                                         | Controlled                        | The 14-file inventory matched during cutover; preserve the source copy through its explicit deletion gate                       |
-| Direct issue mutations can leave issue Markdown ahead of derived JSON and feature timestamps after a write failure | Characterized open risk           | Real-process boundary is verified; broaden transaction hardening only with approval                                             |
-| Stale locks require manual recovery                                                                                | Accepted, test-backed constraint  | Preserve fail-fast behavior; do not automate without evidence and approval                                                      |
+| Direct issue mutations can leave issue Markdown ahead of derived JSON and feature timestamps after a write failure | Characterized open risk           | Real-process boundary is verified; broaden transaction hardening through a bounded evidenced work item                          |
+| Stale locks require manual recovery                                                                                | Accepted, test-backed constraint  | Preserve fail-fast behavior; automate only through a bounded evidenced work item                                                |
 | Skills depend on paths, output, and schemas                                                                        | Controlled for cut-over consumers | Stable-command instructions and two read-only worktree smoke checks are verified; preserve the rollback command                 |
 | Wrong `cwd` targets the wrong `.scratch`                                                                           | Controlled by E2E                 | Preserve documented root invocation; no upward discovery                                                                        |
 | Windows junction/path behavior may regress                                                                         | Controlled by CI and smoke checks | Preserve the stable `cwd` contract and shared-junction rollback path                                                            |
@@ -851,6 +902,11 @@ Commit `2e33014cecfd481993a799e1b7b4b7bb674d2d68` is present on `master` and `or
 | Git Bash cannot currently resolve the generated global pnpm shim for `jz-trello-flow`                              | Open compatibility question       | Decide in a separate bounded change whether Git Bash invocation is a supported requirement; native Windows invocation passes    |
 | Attachment download containment is lexical and does not reject destination symlink/junction components             | Accepted Tier-2 residual risk     | Treat the explicitly supplied destination as trusted local configuration; harden separately if hostile local links are in scope |
 | A destination appearing after attachment preflight can waste download work before atomic `wx` creation rejects it  | Accepted Tier-2 residual risk     | Preserve atomic no-overwrite behavior; add a dedicated race regression only if this local race becomes a supported threat seam  |
+| Trello claim sequencing cannot atomically update owner and status                                                  | Explicitly bounded                | Preserve recovery-aware multi-step claiming; design a stronger allocation backend before claiming atomic production ownership   |
+| Superpowers does not currently document native Hermes Agent support                                                | Explicitly bounded                | Use equivalent Hermes engineering-practice skills and never claim native Superpowers execution without evidence                 |
+| The production Greek Essence board does not match the canonical seven-list lifecycle                               | Separate migration boundary       | Initialize or migrate it only through a dedicated bounded migration work item with guarded verification                         |
+| Canonical Trello skills, protocol, and autonomous governance are implemented locally                               | Verification in progress          | Complete independent review and reconciliation, then commit/push autonomously                                                   |
+| No generated adapter or client-specific installation has been produced                                             | Explicit distribution boundary    | Derive/install adapters only through separately bounded client or package work                                                  |
 
 Reconciliation must remove resolved risks and add newly material risks.
 
@@ -858,13 +914,15 @@ Reconciliation must remove resolved risks and add newly material risks.
 
 # 20. Current Open Decisions
 
-Phase 8 final validation is complete and accepted. Source deletion remains separately approval-controlled and is not approved.
+Phase 8 final validation is complete and accepted. Source deletion remains a dangerous-operation boundary requiring direct confirmation immediately before execution.
 
-Broad transaction hardening for issue Markdown, derived issue state, and feature registry timestamp coupling remains an approval-controlled decision. Phase 6 confirms the existing partial-write boundary without showing a distribution or process failure that changes that decision.
+Broad transaction hardening for issue Markdown, derived issue state, and feature registry timestamp coupling remains a separate bounded work item. Phase 6 confirms the existing partial-write boundary without showing a distribution or process failure that requires it now.
 
-Later explicit gates remain for any public behavior/schema change, material tooling or distribution deviation, and source deletion.
+Public behavior/schema, material tooling, and distribution changes require bounded contract/verification artifacts but proceed autonomously. Source deletion retains the narrow direct-confirmation gate.
 
-The dedicated TestingBoard identifier, process-environment credential source, and recovery-aware procedure are verified. Archived-list canonical resolution passed offline review, exact-SHA CI, exact-package installation, and revised seven-list dual-intake live validation on TestingBoard. Production-board use and the production atomic ID-allocation backend remain open and separately gated; dedicated-board validation is not production-board authorization and does not prove a Trello-backed concurrency mechanism. Git Bash global-shim compatibility is also an unapproved, separately bounded compatibility question because native Windows invocation passes while Git Bash path resolution does not.
+The dedicated TestingBoard identifier, process-environment credential source, and recovery-aware procedure are verified. Archived-list canonical resolution passed offline review, exact-SHA CI, exact-package installation, and revised seven-list dual-intake live validation on TestingBoard. Production-board use, migration of the noncanonical Greek Essence board, and a production atomic allocation backend remain separate bounded work items; dedicated-board validation does not prove a Trello-backed concurrency mechanism. Git Bash global-shim compatibility is likewise a separate compatibility work item because native Windows invocation passes while Git Bash path resolution does not.
+
+The package-owned protocol and four canonical open-standard Agent Skills are accepted and verified locally. Routine commit/push follows passed reconciliation autonomously. Including the protocol or skills in the packed package or offline `jz-trello-flow docs`, generating client-specific adapters, and installing them into harnesses remain separate bounded work items.
 
 ---
 
@@ -930,4 +988,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-No required Trello attachment release operation remains. `0.3.0` exact-SHA Git/CI, exact-tarball global installation, native Windows help/docs, and the read-only TestingBoard attachment workbook are complete. The installed CLI reported one attachment, downloaded the 15,182-byte Markdown file at SHA-256 `56ba0f503a27f310624d8b6eed645fac3f9cd84005666c4e5a9833f4c8955867`, and refused overwrite without changing bytes. Registry publication, production-board access, Trello mutation, Git Bash remediation, and source deletion remain unapproved.
+The package-owned protocol, four canonical open-standard Trello Agent Skills, adapter guide, deprecated-command documentation correction, and autonomous work-item governance are implemented locally. Complete final independent review, verification, and reconciliation, then commit and push the exact verified attributable snapshot autonomously. Dangerous deletion, source removal, and similarly irreversible data loss remain direct-human approval gates; unavailable mandatory credentials/access or another hard prerequisite remains an escalation blocker.

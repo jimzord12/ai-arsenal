@@ -67,6 +67,26 @@ or perform consumer or Git-history operations.
    read `packages/features-cli/AGENTS.md` and do not invoke `features-cli` to
    manage, plan, or track work on that package.
 
+## Execution-Time Dangerous-Operation Gate
+
+When the contract classification is `Dangerous deletion or irreversible data
+loss: yes`, Stage 5 must be `Approved by: user`, but that early digest approval
+does not itself authorize the eventual destructive command. Immediately before
+each exact irreversible operation:
+
+1. Re-read the current target state and verify it still matches the approved
+   plan and direct approval.
+2. Present the exact command/action, targets, expected loss, and available
+   recovery evidence to the user.
+3. Obtain direct confirmation for that current operation and state. Earlier
+   planning approval, silence, or approval for another target is insufficient.
+4. Record the execution-time confirmation source and observed result in the
+   implementation report.
+
+If state changed, confirmation is absent, or target coverage is ambiguous, do
+not execute the operation. This second prompt is required only at the dangerous
+operation boundary, never for routine implementation.
+
 ## Implement Test-First
 
 For every behavior change, use this order for the exact focused test seam in

@@ -3,7 +3,7 @@
 ## Purpose
 
 The repository uses a routed, artifact-driven workflow for monorepo changes.
-It preserves resumable context, explicit approval, and independently verifiable
+It preserves resumable context, digest authorization, and independently verifiable
 handoffs without replacing the consumer `.scratch/features/` workflow.
 
 ## Normal Route
@@ -12,14 +12,14 @@ Start with `orchestrate-monorepo-work`. It is read-only and selects the
 earliest eligible stage from `NEXT.md` and validated work-item artifacts:
 
 ```text
-capture → orient → scope → plan → explicit approval → record approval
+capture → orient → scope → plan → record digest authorization
 → implement → verify → reconcile
 ```
 
-A direct user request to revise the active current contract or plan enters
+An explicit user request or agent-detected in-contract defect in the active current contract or plan enters
 `request-monorepo-revision`. It records `revision-request.md`, changes no
-product state, and routes to scope or planning; it is never inferred from
-ordinary routing or a failed verification.
+product state, and routes to scope or planning. Optional expansion is not a
+revision defect; failed verification may identify a concrete plan defect.
 
 The complete stage contracts, artifacts, revisions, approval digest, and stop
 conditions are normative in
@@ -47,4 +47,6 @@ repair; normal passed work items use `reconcile-monorepo-change`.
 
 The normal pipeline ends after reconciliation. Release, packing, publication,
 global installation, source deletion, and consumer `.scratch` work remain
-outside it and keep their existing approval rules.
+outside it and require their own bounded work items. Routine work proceeds
+autonomously; dangerous deletion/data loss requires direct approval and
+unavailable hard prerequisites require escalation.

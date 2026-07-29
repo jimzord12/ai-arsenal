@@ -59,11 +59,20 @@ function addContext(workItemDirectory) {
   );
 }
 
-function addContract(workItemDirectory) {
+function addContract(
+  workItemDirectory,
+  dangerousOperation = 'no',
+  hardPrerequisites = 'resolved',
+) {
   writeArtifact(
     workItemDirectory,
     'change-contract.md',
-    artifact('contract', 'request@1,context@1', 'ready'),
+    artifact(
+      'contract',
+      'request@1,context@1',
+      'ready',
+      `\n## Authority classification\n\nDangerous deletion or irreversible data loss: \`${dangerousOperation}\`\nHard prerequisites: \`${hardPrerequisites}\`\n`,
+    ),
   );
 }
 
@@ -73,12 +82,23 @@ function addPlan(workItemDirectory) {
   return contents;
 }
 
-function addApproval(workItemDirectory, planContents, digestOverride) {
+function addApproval(
+  workItemDirectory,
+  planContents,
+  digestOverride,
+  approvedBy = 'user',
+  approvalSource,
+) {
   const digest =
     digestOverride ??
     createHash('sha256')
       .update(Buffer.from(planContents, 'utf8'))
       .digest('hex');
+  const source =
+    approvalSource ??
+    (approvedBy === 'autonomous-agent'
+      ? 'policy:ai-arsenal-autonomy-v1'
+      : 'User approved the implementation plan.');
   writeArtifact(
     workItemDirectory,
     'approval.md',
@@ -86,7 +106,7 @@ function addApproval(workItemDirectory, planContents, digestOverride) {
       'approval',
       'plan@1',
       'approved',
-      `\nApproved plan SHA-256: \`${digest}\`\nApproved by: \`user\`\nApproval source: \`User approved the implementation plan.\`\n`,
+      `\nApproved plan SHA-256: \`${digest}\`\nApproved by: \`${approvedBy}\`\nApproval source: \`${source}\`\n`,
     ),
   );
 }
@@ -189,7 +209,7 @@ test('ready request and context route to scoping', (t) => {
   assert.equal(result.json.nextSkill, 'scope-monorepo-change');
 });
 
-test('a ready plan without approval blocks for explicit user approval', (t) => {
+test('a ready plan routes to autonomous digest authorization', (t) => {
   const fixture = createFixture(t);
   addRequest(fixture.workItemDirectory);
   addContext(fixture.workItemDirectory);
@@ -201,8 +221,129 @@ test('a ready plan without approval blocks for explicit user approval', (t) => {
 
   assert.equal(result.status, 0);
   assert.equal(result.json.valid, true);
-  assert.equal(result.json.nextSkill, null);
-  assert.match(result.json.blocker, /explicit user approval/i);
+  assert.equal(result.json.nextSkill, 'record-monorepo-approval');
+  assert.equal(result.json.blocker, null);
+});
+
+test('an autonomous digest authorization routes to implementation', (t) => {
+  const fixture = createFixture(t);
+  addRequest(fixture.workItemDirectory);
+  addContext(fixture.workItemDirectory);
+  addContract(fixture.workItemDirectory);
+  const planContents = addPlan(fixture.workItemDirectory);
+  addApproval(
+    fixture.workItemDirectory,
+    planContents,
+    undefined,
+    'autonomous-agent',
+  );
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 0);
+  assert.equal(result.json.valid, true);
+  assert.equal(result.json.nextSkill, 'implement-monorepo-change');
+  assert.equal(result.json.blocker, null);
+});
+
+test('an unknown authorization principal is invalid', (t) => {
+  const fixture = createFixture(t);
+  addRequest(fixture.workItemDirectory);
+  addContext(fixture.workItemDirectory);
+  addContract(fixture.workItemDirectory);
+  const planContents = addPlan(fixture.workItemDirectory);
+  addApproval(fixture.workItemDirectory, planContents, undefined, 'robot');
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.equal(result.json.valid, false);
+  assert.match(result.json.blocker, /user or autonomous-agent/i);
+});
+
+test('autonomous authorization requires canonical policy provenance', (t) => {
+  const fixture = createFixture(t);
+  addRequest(fixture.workItemDirectory);
+  addContext(fixture.workItemDirectory);
+  addContract(fixture.workItemDirectory);
+  const planContents = addPlan(fixture.workItemDirectory);
+  addApproval(
+    fixture.workItemDirectory,
+    planContents,
+    undefined,
+    'autonomous-agent',
+    'Agent decided this was fine.',
+  );
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.equal(result.json.valid, false);
+  assert.match(result.json.blocker, /policy:ai-arsenal-autonomy-v1/i);
+});
+
+test('autonomous authorization cannot cover dangerous deletion', (t) => {
+  const fixture = createFixture(t);
+  addRequest(fixture.workItemDirectory);
+  addContext(fixture.workItemDirectory);
+  addContract(fixture.workItemDirectory, 'yes');
+  const planContents = addPlan(fixture.workItemDirectory);
+  addApproval(
+    fixture.workItemDirectory,
+    planContents,
+    undefined,
+    'autonomous-agent',
+  );
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /cannot authorize dangerous deletion/i);
+});
+
+test('autonomous authorization requires resolved hard prerequisites', (t) => {
+  const fixture = createFixture(t);
+  addRequest(fixture.workItemDirectory);
+  addContext(fixture.workItemDirectory);
+  addContract(fixture.workItemDirectory, 'no', 'blocked');
+  const planContents = addPlan(fixture.workItemDirectory);
+  addApproval(
+    fixture.workItemDirectory,
+    planContents,
+    undefined,
+    'autonomous-agent',
+  );
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(
+    result.json.blocker,
+    /cannot bypass blocked hard prerequisites/i,
+  );
+});
+
+test('user authorization cannot bypass blocked hard prerequisites', (t) => {
+  const fixture = createFixture(t);
+  addRequest(fixture.workItemDirectory);
+  addContext(fixture.workItemDirectory);
+  addContract(fixture.workItemDirectory, 'no', 'blocked');
+  const planContents = addPlan(fixture.workItemDirectory);
+  addApproval(fixture.workItemDirectory, planContents, undefined, 'user');
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(
+    result.json.blocker,
+    /cannot bypass blocked hard prerequisites/i,
+  );
 });
 
 test('an approval with a stale plan digest is invalid', (t) => {
@@ -479,11 +620,14 @@ test('a failed verification recovery archives and increments attempt records', (
 
   const planContents = addPlan(fixture.workItemDirectory);
   writeActiveState(fixture.root, workItemId, 'record-monorepo-approval');
-  const awaitingApproval = runValidator(fixture.root);
-  assert.equal(awaitingApproval.status, 0);
-  assert.equal(awaitingApproval.json.valid, true);
-  assert.equal(awaitingApproval.json.nextSkill, null);
-  assert.match(awaitingApproval.json.blocker, /explicit user approval/i);
+  const awaitingAuthorization = runValidator(fixture.root);
+  assert.equal(awaitingAuthorization.status, 0);
+  assert.equal(awaitingAuthorization.json.valid, true);
+  assert.equal(
+    awaitingAuthorization.json.nextSkill,
+    'record-monorepo-approval',
+  );
+  assert.equal(awaitingAuthorization.json.blocker, null);
 
   addApproval(fixture.workItemDirectory, planContents);
   writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
@@ -728,8 +872,8 @@ test('contract and plan revisions archive downstream state before rerouting', (t
 
   assert.equal(afterPlanRevision.status, 0);
   assert.equal(afterPlanRevision.json.valid, true);
-  assert.equal(afterPlanRevision.json.nextSkill, null);
-  assert.match(afterPlanRevision.json.blocker, /explicit user approval/i);
+  assert.equal(afterPlanRevision.json.nextSkill, 'record-monorepo-approval');
+  assert.equal(afterPlanRevision.json.blocker, null);
   assert.match(
     fs.readFileSync(
       path.join(

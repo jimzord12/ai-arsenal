@@ -1,6 +1,6 @@
 ---
 name: plan-monorepo-change
-description: Use when an active AI Arsenal monorepo work item has a ready change contract and needs an executable implementation plan before explicit user approval.
+description: Use when an active AI Arsenal monorepo work item has a ready change contract and needs an executable implementation plan before digest-bound autonomous authorization.
 ---
 
 # Plan Monorepo Change
@@ -9,9 +9,9 @@ description: Use when an active AI Arsenal monorepo work item has a ready change
 
 Planning translates a ready, bounded change contract into one executable
 revision-one implementation plan. It does not change the contract, authorize
-implementation, create an approval record, or make product changes. The plan
-is presented to the user and remains blocked until the user explicitly
-approves its exact current contents.
+implementation, create an authorization record, or make product changes. The plan
+routes to digest authorization and remains blocked only until the next stage
+records the exact current plan digest.
 
 ## Preconditions
 
@@ -45,7 +45,7 @@ artifacts in reverse dependency order: reconciliation, verification,
 implementation, and approval. Archive the current plan and consumed request
 under their `revisions/<filename>/v<N>.md` identities with only `Status:`
 changed to `superseded`. Then write `plan@N+1` against the current contract and
-route to `record-monorepo-approval` for fresh explicit approval.
+route to `record-monorepo-approval` for fresh digest authorization.
 
 Stop if the preflight is invalid, an archive cannot preserve its bytes except
 for status, or the request target is not the current plan.
@@ -103,7 +103,7 @@ entry and verification command. Include only contract-required stateful
 rollback; do not invent a rollback action for a stateless documentation or
 source-only change.
 
-## Validate the Approval Block
+## Validate the Authorization Route
 
 After the complete plan is written, change only the existing `NEXT.md`
 pipeline-step value to:
@@ -119,22 +119,18 @@ Preserve the active work-item value, required headings, and every other
 node scripts/validate-monorepo-work-item.mjs --work-item <id> --json
 ```
 
-Success requires JSON `valid: true`, `nextSkill: null`, and a blocker stating
-that explicit user approval of the current implementation plan is required.
+Success requires JSON `valid: true`,
+`nextSkill: "record-monorepo-approval"`, and no blocker.
 If any value differs, report the JSON blocker and do not advance further.
-This is a valid human-approval stop, not permission to implement.
+This is an executable autonomous stage, not a human-permission stop.
 
-## Present for Explicit Approval
+## Continue to Digest Authorization
 
-End by presenting the complete plan to the user and asking a direct approval
-question, for example: `Do you approve implementation of the current
-implementation plan for <id>?` State that implementation remains blocked and
-that a later `record-monorepo-approval` stage will create the digest-bound
-`approval.md` only after an explicit user response.
-
-Conversation silence, an acknowledgement, a request for a summary, or a
-question is not approval. Do not create `approval.md`, compute an approval
-digest, edit product files, or invoke the implementation stage in this skill.
+Do not ask the user to approve a routine bounded plan. Route immediately to
+`record-monorepo-approval`, which classifies narrow escalation conditions and
+otherwise records autonomous digest authorization. This planning skill does not
+itself create `approval.md`, compute its digest, edit product files, or invoke
+implementation.
 
 ## Boundary
 
@@ -154,9 +150,10 @@ otherwise mutate Git history.
   acceptance criteria, test seams, or ungrounded paths.
 - Writing a task without exact paths, inputs, output, test command, expected
   result, and an explicit stateful rollback note.
-- Treating a validator result with `nextSkill: null` as failure or implied
-  approval instead of the required explicit-approval stop.
+- Asking for routine permission instead of requiring the validator's
+  `record-monorepo-approval` route.
 - Creating `approval.md`, editing production files, or advancing to
-  implementation before the user directly approves the exact current plan.
+  implementation within the planning stage instead of routing to the dedicated
+  authorization stage.
 - Overwriting a plan, inventing a revision, changing active-work-item fields,
   or changing `NEXT.md` before the complete plan exists.

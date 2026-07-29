@@ -8,9 +8,10 @@ description: Use when an active AI Arsenal monorepo work item has ready request 
 ## Overview
 
 Scoping converts verified request and context evidence into one complete,
-bounded contract. It commits neither implementation nor approval; public,
-schema, operational, distribution, deletion, and user-data decisions remain
-with the user.
+bounded contract. The agent owns routine bounded product, schema, operational,
+distribution, and user-data decisions grounded in current authority. Direct
+approval is reserved for dangerous deletion or irreversible data loss; hard
+missing prerequisites are escalation blockers.
 
 ## Preconditions
 
@@ -65,47 +66,37 @@ Status: ready
 Fill every template section from the request, context, applicable instructions,
 and established repository evidence:
 
-| Section                  | Required content                                                                                                                                        |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `# Goal`                 | Exactly one bounded, observable outcome.                                                                                                                |
-| `## Non-goals`           | Explicit exclusions, including unrelated requests and work outside the approved scope.                                                                  |
-| `## Hard walls`          | Constraints implementation must not cross. Copy every user-locked constraint verbatim; do not paraphrase, weaken, or silently add a competing decision. |
-| `## Acceptance criteria` | Observable completion conditions, not implementation tasks.                                                                                             |
-| `## Test seams`          | Observable behavior, state, integration, or boundary seams that can be exercised.                                                                       |
-| `## Verification`        | Exact applicable verification categories and the evidence each must establish, derived from the acceptance criteria and existing repository commands.   |
-| `## Approval required`   | `Yes` or `No`, with the reason. State that plan implementation still needs the later explicit approval record when applicable.                          |
+| Section                       | Required content                                                                                                                                                                                                                |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `# Goal`                      | Exactly one bounded, observable outcome.                                                                                                                                                                                        |
+| `## Non-goals`                | Explicit exclusions, including unrelated requests and work outside the approved scope.                                                                                                                                          |
+| `## Hard walls`               | Constraints implementation must not cross. Copy every user-locked constraint verbatim; do not paraphrase, weaken, or silently add a competing decision.                                                                         |
+| `## Acceptance criteria`      | Observable completion conditions, not implementation tasks.                                                                                                                                                                     |
+| `## Test seams`               | Observable behavior, state, integration, or boundary seams that can be exercised.                                                                                                                                               |
+| `## Verification`             | Exact applicable verification categories and the evidence each must establish, derived from the acceptance criteria and existing repository commands.                                                                           |
+| `## Approval required`        | `Yes` only for dangerous deletion or similarly irreversible data loss; otherwise `No` with autonomous authority. Record hard missing prerequisites separately as blockers.                                                      |
+| `## Authority classification` | Include exactly `Dangerous deletion or irreversible data loss: yes/no` and `Hard prerequisites: resolved/blocked`, with each value wrapped in backticks in the artifact. Autonomous authorization requires `no` and `resolved`. |
 
 Do not invent a requirement to fill a gap. If the request or evidence cannot
 support a complete bounded contract, identify the exact unanswered question and
 stop before the successful handoff.
 
-## Approval Stop Before Contract Creation
+## Autonomous Scope Resolution and Escalation
 
-Before creating or updating a current contract, stop and ask the user when
-reliable contract scope depends on an unanswered decision in any of these
-areas:
+Resolve routine product, schema, dependency, distribution, cost, security,
+privacy, and operational decisions from the direct request, repository
+authority, current architecture, and smallest safe bounded interpretation. Do
+not ask for permission merely because a decision is consequential.
 
-- public CLI or other public behavior;
-- a persisted schema;
-- a major production dependency;
-- material operational cost, security, privacy, or support burden;
-- package/distribution direction;
-- source deletion; or
-- user data.
-
-Identify the exact unanswered decision and ask one direct user question. Do
-not select a default, create or update `change-contract.md`, write a plan,
-change product files, update `NEXT.md`, run the post-write handoff validator,
-or represent this as a successful scope handoff. The active work item therefore
-remains routed to `scope-monorepo-change` until the user answers directly.
-
-After the user resolves the decision, resume normal contract creation from the
-template and complete the successful-handoff validation below. Preserve any
-supplied user-locked wording verbatim in the completed contract.
+Stop for direct approval only when the contract necessarily includes dangerous
+deletion or similarly irreversible data loss. Escalate when a hard prerequisite
+is unavailable or no honest interpretation can satisfy contradictory authority,
+including missing credentials/access required for mandatory E2E tests. Do not
+mock, skip, or downgrade the required evidence to keep moving.
 
 ## Successful Handoff
 
-Only after the contract is complete and no approval-stop decision is pending,
+Only after the contract is complete and no hard escalation blocker is pending,
 change only the existing `NEXT.md` pipeline-step value to:
 
 ```markdown
@@ -136,8 +127,9 @@ history.
 
 ## Common Mistakes
 
-- Treating a ready request and context as permission to decide public behavior
-  or schema details; ask and record the pending decision instead.
+- Guessing past a genuinely unavailable hard prerequisite or dangerous deletion
+  boundary; escalate those narrow conditions without turning routine design
+  judgment into a permission prompt.
 - Writing a vague goal, implicit non-goals, test tasks as acceptance criteria,
   or generic verification; complete each template slot with observable content.
 - Omitting the preflight validator or updating `NEXT.md` before the contract is

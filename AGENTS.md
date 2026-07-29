@@ -19,7 +19,7 @@ At the beginning of every Codex session:
 1. Read `NEXT.md`.
 2. Read the sections of `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md` referenced by `NEXT.md`.
 3. Inspect `git status --short` and the latest relevant commits when a Git repository exists.
-4. Check whether the required phase approval, prerequisites, and verification evidence exist.
+4. Check whether required digest authorization, prerequisites, and verification evidence exist.
 5. Do not begin work from memory or from an older plan.
 
 When the user asks **“What is going on?”**, **“Where are we?”**, or anything equivalent, answer in this exact compact shape:
@@ -30,7 +30,7 @@ Current state:
 Next action:
 Requirements/blockers:
 Why this is next:
-Approval needed:
+Escalation needed:
 ```
 
 The answer must be understandable in approximately 30 seconds. Do not give a wall of text unless the user asks for detail.
@@ -130,10 +130,11 @@ Use the router-selected stage only after its prerequisites are valid:
 
 ### Direct Revision Entry
 
-`request-monorepo-revision` is available only when the user directly requests
-revision of the active current contract or plan. It records
+`request-monorepo-revision` is available when the user directly requests
+revision of the active current contract or plan or when an agent discovers a
+concrete in-contract defect in either artifact. It records
 `revision-request.md` and routes to the owning scope or plan stage; it does not
-change product state or infer revision intent.
+change product state or broaden revision intent.
 
 ### `initializing-living-plan-workflow`
 
@@ -156,12 +157,11 @@ Normal passed work items must use `reconcile-monorepo-change`.
 ```text
 orchestrate-monorepo-work (read-only)
 → capture-monorepo-change (only for an explicit new request with no active item)
-→ request-monorepo-revision (only for a direct active contract/plan revision request)
+→ request-monorepo-revision (for a direct request or concrete in-contract contract/plan defect)
 → orient-monorepo-change
 → scope-monorepo-change
 → plan-monorepo-change
-→ explicit user approval
-→ record-monorepo-approval
+→ record-monorepo-approval (autonomous digest authorization unless escalation is required)
 → implement-monorepo-change
 → verify-monorepo-change
 → reconcile-monorepo-change
@@ -178,7 +178,7 @@ A normal work item is complete only after:
 - Passed verification and reconciliation evidence exist.
 - The canonical plan and `NEXT.md` reflect verified current truth.
 - Active work-item fields are cleared and both workflow validators pass.
-- Required user approval has been obtained.
+- A current digest-bound authorization record exists. Routine plans may be authorized by the agent under this repository's autonomy policy.
 
 ## Living-Plan Rules
 
@@ -196,9 +196,16 @@ After reconciliation:
 
 Do not churn wording when no material fact changed. Reconciliation must be idempotent.
 
-## Approval Boundaries
+## Autonomy and Escalation Boundaries
 
-The agent may autonomously reconcile:
+Agents are fully autonomous for bounded repository work. The work-item pipeline
+is an evidence and safety system, not a sequence of permission prompts. Continue
+through planning, digest authorization, implementation, repair, verification,
+reconciliation, routine commit, and routine push without asking the user again
+when the operation is within the recorded contract and required prerequisites
+are available.
+
+The agent may autonomously perform:
 
 - Verified file paths and package structure.
 - Task ordering and decomposition.
@@ -206,17 +213,25 @@ The agent may autonomously reconcile:
 - Technical corrections that preserve user-locked intent.
 - Removal of obsolete assumptions and tasks.
 - Narrow testability refactors already within approved scope.
+- Public CLI and schema changes explicitly contained in the work-item contract.
+- Routine dependency, Git, review, and recoverable external operations required
+  by the bounded plan.
 
-Stop and request approval before:
+For a plan containing dangerous deletion or similarly irreversible data loss,
+obtain direct user digest authorization at Stage 5 and obtain fresh direct
+confirmation again immediately before executing the exact destructive
+operation. Escalate, without fabricating a substitute, when a hard prerequisite
+is unavailable or no honest workaround can satisfy the contract, including
+missing credentials/access required for E2E tests, contradictory authority, or
+a technically impossible requirement.
 
-- Changing a user-locked requirement.
-- Changing public CLI behavior or persisted schemas.
-- Adding a major production dependency or service.
-- Expanding project scope materially.
-- Introducing meaningful cost, security, privacy, or operational burden.
-- Changing the selected monorepo/package-manager direction.
-- Deleting the source CLI or user data.
-- Starting implementation after the discovery-plan approval gate.
+Do not replace required live/E2E evidence with mocks merely to avoid escalation.
+Do not turn normal uncertainty, a failed test, review findings, plan revision,
+commit, push, or an in-contract recoverable mutation into a permission stop.
+Resolve routine ambiguity from repository authority and recorded acceptance
+criteria. When a new request materially changes the active contract, revise the
+artifacts and continue autonomously unless one of the narrow stop conditions
+above applies.
 
 ## File Organization
 
@@ -255,8 +270,8 @@ Whenever the user says a change will be released, including a private packed-tar
 
 1. Use SemVer to choose the package bump, create a Changeset, and apply it with `pnpm version-packages`; do not hand-edit package versions or changelogs. The configured Changesets workflow versions private packages and generates their changelogs.
 2. Include the resulting package-manifest version and generated `CHANGELOG.md` in the release commit, then run the package and packed-artifact verification required by the release scope.
-3. Before packing for, installing into, or replacing the Windows user's global pnpm package, ask the user explicitly. Never perform a global package update automatically.
-4. Treat the flexible feature selector enhancement as a recommended first feature release of `0.1.0` from the current `0.0.0` baseline when the user authorizes its release; it is not released merely because its source change was merged.
+3. Packing, installing, or replacing the Windows user's global pnpm package requires an explicit bounded release/local-distribution work item, preflight, rollback path, and verification. Proceed autonomously when those exist; escalate only for unavailable access, an unworkable rollback requirement, or a dangerous deletion/data-loss step.
+4. Treat the flexible feature selector enhancement as a recommended first feature release of `0.1.0` from the current `0.0.0` baseline when a bounded work item explicitly includes its release; it is not released merely because its source change was merged.
 
 These are direction and constraints. Exact manifests, commands, architecture, build strategy, distribution model, and tests must be derived from repository evidence.
 

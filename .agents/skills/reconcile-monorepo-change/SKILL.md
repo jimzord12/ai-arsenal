@@ -51,10 +51,11 @@ as reconcilable completion, and it does not create a follow-on work item.
 5. Before changing every planning record, read all applicable scoped
    instructions. Base resulting state, risks, decisions, and next action on
    passed verification and current artifacts, not on intent, the plan, or the
-   implementation report alone. Stop for a user-locked change, public
-   behavior or schema change, major dependency or service, material scope,
-   cost, security, privacy, operations, distribution-direction change, source
-   deletion, or user-data action requiring approval.
+   implementation report alone. Reconcile in-contract product, schema,
+   dependency, service, scope, cost, security, privacy, operations, and
+   distribution changes autonomously. Stop only for an actual out-of-contract
+   or user-locked contradiction, dangerous deletion/irreversible data loss, or
+   an unavailable hard prerequisite.
 
 ## Record Passed Reconciliation Evidence First
 
@@ -138,9 +139,11 @@ truth and clear the active registration after passed evidence. Do not edit
 product source, tests, package metadata, consumer documentation, request,
 context, contract, implementation plan, approval, implementation report, or
 verification record. Do not invoke `features-cli`, inspect or mutate consumer
-`.scratch` state, perform release, packing, publishing, global-install, or
-source-deletion actions, or commit, amend, push, or otherwise mutate Git
-history.
+`.scratch` state, perform release, packing, publishing, global-install,
+source-deletion, destructive history rewriting, force-push, or amend shared
+history. After reconciliation artifacts and validators pass, this stage may
+commit and push the exact verified, attributable snapshot when the contract does
+not explicitly forbid Git delivery. Do not insert a redundant permission stop.
 
 ## Common Mistakes
 
@@ -153,5 +156,5 @@ history.
 - Turning the canonical plan into a chronological change diary instead of
   reconciling current truth, decisions, risks, and remaining work.
 - Omitting the completed validator route or the living-workflow validation.
-- Releasing, changing consumer state, invoking `features-cli`, or mutating Git
-  history as part of reconciliation.
+- Releasing, changing consumer state, invoking `features-cli`, or rewriting Git
+  history; routine verified commit/push is allowed, destructive rewriting is not.

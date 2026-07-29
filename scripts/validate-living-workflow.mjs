@@ -144,8 +144,12 @@ for (const skillPath of requiredFiles.filter((f) => f.endsWith('/SKILL.md'))) {
 for (const { skill, label, tokens } of [
   {
     skill: 'orchestrate-monorepo-work',
-    label: 'orchestrate-monorepo-work direct user revision request',
-    tokens: ['request-monorepo-revision', 'direct user revision request'],
+    label: 'orchestrate-monorepo-work bounded revision entry',
+    tokens: [
+      'request-monorepo-revision',
+      'direct user revision request',
+      'in-contract defect',
+    ],
   },
   {
     skill: 'scope-monorepo-change',
@@ -174,6 +178,7 @@ for (const { skill, label, tokens } of [
     label: 'request-monorepo-revision contract',
     tokens: [
       'direct user revision request',
+      'in-contract defect',
       'revision-request.md',
       'scope-monorepo-change',
       'plan-monorepo-change',

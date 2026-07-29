@@ -29,7 +29,8 @@ the earliest eligible stage.
 Do not create a work item, write an artifact, approve a plan, implement,
 verify, reconcile, release, pack, publish, globally install, delete source,
 or invoke `features-cli`. A request to begin or resume work is not authority to
-skip the router, an approval gate, or the validator-selected stage.
+skip the router, digest-authorization stage, or validator-selected stage; the
+selected stages then continue autonomously under repository policy.
 
 For a valid no-active-item state, report the current `NEXT.md` action. Name
 `capture-monorepo-change` only after the user has described a new normal-scope

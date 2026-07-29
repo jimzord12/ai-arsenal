@@ -41,17 +41,19 @@ from consumer state.
 ## Routing Rules
 
 Use validator JSON as the routing authority for an active work item. Its
-`nextSkill` selects the earliest eligible normal stage. A valid plan awaiting
-approval has no normal next skill: require explicit user approval, then name
-`record-monorepo-approval` as the stage that can record it.
+`nextSkill` selects the earliest eligible normal stage. A valid plan without `approval.md` routes directly to
+`record-monorepo-approval`. Treat this as autonomous digest authorization, not a
+human-permission stop, unless the contract includes dangerous deletion/data loss
+or a hard prerequisite is unavailable.
 
 For a valid no-active-item result, report the current `NEXT.md` action. Do not
 recommend `capture-monorepo-change` until the user has described a new change
 that is within the normal pipeline.
 
-Select `request-monorepo-revision` only for a direct user revision request for
-the active work item's current contract or plan. Do not infer that intent from
-an agent finding, a failed verification, ambiguity, or a request for status.
+Select `request-monorepo-revision` for either a direct user revision request or
+a concrete agent-detected in-contract defect in the active current contract or
+plan. A failed verification may establish such a defect, but failure alone,
+optional expansion, ambiguity, or a status request does not.
 
 Release, packing, publishing, global installation, and source deletion are
 outside the normal pipeline. When a user describes one of those actions, do
@@ -93,12 +95,13 @@ input** to the explicit change request.
 | Direct user revision request         | `request-monorepo-revision`            |
 | Release/distribution/source deletion | Stop; outside the normal pipeline      |
 | Valid active state                   | Validator `nextSkill`                  |
-| Valid plan awaiting approval         | Stop for explicit approval             |
+| Valid plan awaiting authorization    | `record-monorepo-approval`             |
 | Invalid or malformed state           | `initializing-living-plan-workflow`    |
 
 ## Common Mistakes
 
-- Treating conversation silence as approval. It is never approval.
+- Asking for routine plan permission instead of routing to autonomous digest
+  authorization. Silence never authorizes dangerous deletion.
 - Using missing or unreadable active-work-item metadata as evidence that no
   work item exists. Stop for workflow repair instead.
 - Routing a release, packing, publishing, global-installation, or source-

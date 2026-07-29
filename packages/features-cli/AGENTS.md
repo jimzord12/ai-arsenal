@@ -11,7 +11,7 @@ Maintain this package through the AI Arsenal monorepo living-plan workflow:
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - verification evidence under `docs/evidence/`
 - package tests and release validation
-- Changesets and required approval gates
+- Changesets, digest authorization, and narrow escalation gates
 
 Use `features-cli` only for feature workflows in consumer projects. This keeps
 the package's behavior and its own maintenance authority separate.

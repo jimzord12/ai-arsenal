@@ -31,3 +31,8 @@ Status: ready
 ## Approval required
 
 <Yes, with reason, or No>
+
+## Authority classification
+
+Dangerous deletion or irreversible data loss: `<yes|no>`
+Hard prerequisites: `<resolved|blocked>`

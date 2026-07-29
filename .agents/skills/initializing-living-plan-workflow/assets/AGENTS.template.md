@@ -18,18 +18,26 @@ Current state:
 Next action:
 Requirements/blockers:
 Why this is next:
-Approval needed:
+Escalation needed:
 ```
 
 ## Mandatory Workflow
 
 ```text
-Execute one approved phase
+Execute one bounded phase autonomously
 → verify acceptance criteria
 → reconcile the canonical plan
 → update NEXT.md
 → continue only when gates allow
 ```
+
+Routine gates are evidence checks, not permission prompts. A plan containing
+dangerous deletion or similarly irreversible data loss requires direct user
+digest authorization at Stage 5 and fresh direct confirmation again immediately
+before the exact destructive operation. Escalate unavailable hard prerequisites
+such as mandatory credentials/access, contradictory authority, or impossible
+requirements; never mock away required live/E2E evidence merely to avoid
+escalation.
 
 Required skills:
 

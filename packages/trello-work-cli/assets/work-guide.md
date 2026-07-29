@@ -202,7 +202,7 @@ reported with a credential-free recovery record.
 
 1. Draft the canonical Work Unit.
 2. Run `jz-trello-flow validate --file draft.md`.
-3. Run `jz-trello-flow create --file draft.md --dry-run --operation-id <durable-id>`.
+3. Run `jz-trello-flow draft create --file draft.md --dry-run --operation-id <durable-id>`.
 4. Confirm the explicit board selector, resolved board ID, list, and plan.
 5. Execute once with the same operation ID.
 6. Preserve JSON output and recovery data.
@@ -243,7 +243,7 @@ Every failure has a stable code. JSON errors contain an `error` object and may i
 jz-trello-flow validate --file draft.md --output json
 jz-trello-flow boards list --output json
 jz-trello-flow lists create --board "Testing" --name Disposable --dry-run --operation-id list-42
-jz-trello-flow create --board "Testing" --file draft.md --dry-run --operation-id planning-42
+jz-trello-flow draft create --board "Testing" --file draft.md --dry-run --operation-id planning-42
 jz-trello-flow get WU-42 --board "Testing" --output json
 jz-trello-flow list --board "Testing" --status ready --priority high --output json
 jz-trello-flow metadata update WU-42 --board "Testing" --json '{"priority":"high"}' --dry-run --operation-id priority-42

@@ -71,13 +71,13 @@ function createFixture() {
   ]) {
     const body =
       skill === 'orchestrate-monorepo-work'
-        ? '\n## Revision routing\nSelect `request-monorepo-revision` only for a direct user revision request.\n'
+        ? '\n## Revision routing\nSelect `request-monorepo-revision` for a direct user revision request or a concrete in-contract defect.\n'
         : skill === 'scope-monorepo-change'
           ? '\n## Contract revision recovery\nConsume `revision-request.md`, archive downstream current artifacts in reverse dependency order, archive the current contract and request, then write `contract@N+1` and route to `plan-monorepo-change`.\n'
           : skill === 'plan-monorepo-change'
             ? '\n## Plan revision recovery\nConsume `revision-request.md`, archive downstream current artifacts in reverse dependency order, archive the current plan and request, then write `plan@N+1` and route to `record-monorepo-approval`.\n'
             : skill === revisionSkill
-              ? '\n## Direct revision intent\nRun only for a direct user revision request. Record `revision-request.md` and route only to `scope-monorepo-change` for contract or `plan-monorepo-change` for plan.\n'
+              ? '\n## Bounded revision intent\nRun for a direct user revision request or concrete in-contract defect. Record `revision-request.md` and route only to `scope-monorepo-change` for contract or `plan-monorepo-change` for plan.\n'
               : '';
     write(
       `.agents/skills/${skill}/SKILL.md`,
@@ -212,7 +212,7 @@ test('rejects fixture skills without contract and plan revision recovery rules',
   assert.match(result.stderr, /plan-monorepo-change.*revision recovery/i);
 });
 
-test('rejects a router that offers revision entry without direct user intent', () => {
+test('rejects a router that offers revision entry without bounded revision authority', () => {
   const fixture = createFixture();
   write(
     '.agents/skills/orchestrate-monorepo-work/SKILL.md',
@@ -224,7 +224,7 @@ test('rejects a router that offers revision entry without direct user intent', (
   assert.equal(result.status, 1);
   assert.match(
     result.stderr,
-    /orchestrate-monorepo-work.*direct user revision request/i,
+    /orchestrate-monorepo-work.*bounded revision entry/i,
   );
 });
 
