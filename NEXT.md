@@ -3,41 +3,38 @@
 **Workflow version:** 1.0
 **Last reconciled:** 2026-07-29
 **Project:** AI Arsenal monorepo
-**State:** Trello Flow CLI `0.3.0` release metadata is verified; Git/CI, exact global installation, and read-only live capture remain.
-**Current phase:** Maintenance / Trello Work Unit attachment release
+**State:** Trello Flow CLI `0.3.0` attachment release, exact-SHA CI, global installation, and read-only live validation are complete.
+**Current phase:** Maintenance / verified Trello attachment retrieval
 **Active work item:** `none`
 **Pipeline step:** `none`
 
 ## Next Action
 
-Commit and push the exact verified `0.3.0` release snapshot, require Quality and Portability for its full SHA, then pack/install that exact commit and rerun the read-only TestingBoard attachment workbook.
+Select the next explicitly bounded AI Arsenal maintenance objective.
 
 ## Why This Is Next
 
-- Changesets generated the correct additive minor release from `0.2.0` to `0.3.0`.
-- Changelog, package manifest, 251 package tests, strict packed validation, root gates, workflow validators, and independent release review pass.
-- The global package remains the rollback-safe `0.2.0` until exact-SHA CI passes.
+- Release commit `f4ed4923953a1b14ee2b9788cf0b718c159420f6` passed Quality `30436554205` and Portability `30436554208`.
+- The exact 26-file tarball is globally installed as `@jz/ai-arsenal-trello-work-cli@0.3.0`; native Windows help and packaged attachment docs pass.
+- The installed CLI passed the read-only TestingBoard workbook: metadata-only no-write, exact 15,182-byte Markdown download, and atomic no-overwrite rejection with unchanged SHA-256.
 
 ## Requirements
 
-- [ ] Commit/push only the verified release and work-item snapshot; prove fetched `origin/master` equals the full release SHA.
-- [ ] Require Quality and Portability to pass for that exact SHA.
-- [ ] Pack from the clean exact commit, record tarball SHA-256, inspect its manifest/files, and install that exact tarball globally.
-- [ ] Verify native Windows `jz-trello-flow` reports `0.3.0` behavior and exposes `--attachments-dir`.
-- [ ] Run metadata-only, binary-download/hash, and no-overwrite checks only on TestingBoard/card `6a691ff583597d8cfdd0c780`.
+- [ ] Define one bounded objective before modifying product, package, or external state.
+- [ ] Continue to use the monorepo work-item pipeline for substantive changes.
 
 ## Blockers / Approval
 
-- No blocker remains; the user explicitly authorized versioning, global replacement, commit, and push.
-- Do not publish, mutate Trello, access another board, delete rollback sources, or remediate Git Bash shims.
+- No blocker remains for the completed attachment release.
+- Registry publication, production-board access, Trello mutation, source deletion, and Git Bash shim remediation remain unapproved.
 
 ## Done When
 
-- Exact Git/CI, tarball checksum, global `0.3.0`, native help, and read-only live attachment evidence all pass; final current-truth docs are committed/pushed and CI-green.
+- A new objective is explicitly selected or the repository remains at its verified baseline.
 
 ## After This
 
-- Resume the next explicitly selected bounded monorepo change.
+- Follow the canonical plan and repository workflow for the selected objective.
 
 ## Source of Truth
 
