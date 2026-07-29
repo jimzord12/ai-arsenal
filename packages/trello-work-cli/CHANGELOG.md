@@ -1,5 +1,11 @@
 # @jz/ai-arsenal-trello-work-cli
 
+## 0.4.0
+
+### Minor Changes
+
+- Release the additive offline managed Trello Agent Skills installer and its packed payload for exact local distribution.
+
 ## 0.3.0
 
 ### Minor Changes

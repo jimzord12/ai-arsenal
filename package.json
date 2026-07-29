@@ -17,7 +17,7 @@
     "lint:root": "eslint .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "test:workflow": "node --test scripts/validate-living-workflow.test.mjs scripts/validate-monorepo-work-item.test.mjs",
+    "test:workflow": "node --test scripts/validate-living-workflow.test.mjs scripts/validate-monorepo-work-item.test.mjs scripts/verify-trello-skills-install-bytes.test.mjs",
     "pack": "turbo run pack",
     "validate": "turbo run validate",
     "validate:workflow": "node scripts/validate-living-workflow.mjs && node scripts/validate-monorepo-work-item.mjs --current --json",
