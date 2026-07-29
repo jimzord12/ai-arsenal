@@ -41,6 +41,11 @@ import {
   type ListFilters,
 } from './read-commands';
 import { reconcileWorkUnit } from './reconcile';
+import {
+  installSkills,
+  type SkillsInstallOptions,
+  type SkillsInstallResult,
+} from './skills-install';
 import { transitionWorkUnit } from './transition';
 import { TrelloClient } from './trello-client';
 import { descriptionPatch, descriptionReplace, metadataUpdate } from './update';
@@ -54,6 +59,9 @@ export type CliResult = {
 export type CliDependencies = {
   config?: WorkConfig;
   client?: TrelloClient;
+  installSkills?: (
+    options: SkillsInstallOptions,
+  ) => Promise<SkillsInstallResult>;
   readFile?: (path: string) => Promise<string>;
   readStdin?: () => Promise<string>;
 };
@@ -97,6 +105,7 @@ function commandOptions(command: string, positionals: string[]): Set<string> {
   ];
   if (command === 'docs')
     return new Set(['--list', '--topic', '--search', ...common]);
+  if (command === 'skills') return new Set(['--dry-run', ...common]);
   if (command === 'doctor') return new Set(configured);
   if (command === 'boards')
     return new Set(
@@ -154,6 +163,10 @@ function expectedPositionals(
 ): number | undefined {
   if (command === 'docs' || command === 'create' || command === 'list')
     return 0;
+  if (command === 'skills') {
+    if (positionals[0] !== 'install') usage('Unknown skills command.');
+    return 1;
+  }
   if (command === 'inbox') {
     if (positionals[0] !== 'list') usage('Unknown inbox command.');
     return 1;
@@ -545,6 +558,16 @@ export async function runWorkCli(
     if (args[0] === 'validate' && args.includes('--file')) {
       return success(
         validateLocalWorkUnit(await readText(requiredValue(args, '--file'))),
+        json,
+      );
+    }
+
+    if (args[0] === 'skills' && args[1] === 'install') {
+      return success(
+        await (dependencies.installSkills ?? installSkills)({
+          cwd: process.cwd(),
+          dryRun: args.includes('--dry-run'),
+        }),
         json,
       );
     }

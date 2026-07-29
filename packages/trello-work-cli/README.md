@@ -79,6 +79,14 @@ jz-trello-flow docs --output json
 
 `jz-trello-flow docs` is packaged, offline, and version-matched. It covers the complete command contract, recommended human and agent workflows, configuration, credential safety, outputs, exit codes, examples, expected failures, and recovery.
 
+## Managed Trello skills
+
+`jz-trello-flow skills install` asks Git for the actual Git top level and installs the four version-matched `trello-work-*` skills beneath that repository's `.agents/skills/` directory. Every run replaces those four CLI-managed directories, marks their files as managed and replaceable, and preserves unrelated skills. A symbolic link or junction in `.agents`, `.agents/skills`, or a managed target is rejected before any write can escape the repository.
+
+The command stages the complete payload and executes the official `skills-ref@0.1.0` source against all four skills before replacing a target. Set `JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT` to the actual Git top level of a clean `agentskills/agentskills` checkout pinned to `38a2ff82958afee88dadf4831509e6f7e9d8ef4e`, and set `JZ_TRELLO_FLOW_SKILLS_REF_PYTHON` to a Python environment containing that tool's dependencies. The installer verifies the checkout top level, exact commit, and clean `skills-ref` source, then imports `skills_ref` directly from that pinned source; it never trusts an unqualified `skills-ref` on `PATH`. Missing or mismatched provenance and failed validation exit nonzero before target mutation. Use `--dry-run` to validate and report each planned `installed` or `replaced` action without changing the repository.
+
+Replacement uses a repository-local transaction. If automatic restoration fails, the installer does not delete its sole backups: it returns `SKILLS_RECOVERY_REQUIRED` and ends the message with `Recovery data preserved at: <exact path>`. Retain that path for manual recovery. This command does not load Trello configuration or credentials and does not access Trello.
+
 ## Card attachments
 
 Every successful `jz-trello-flow get` includes `attachmentCount` and the full

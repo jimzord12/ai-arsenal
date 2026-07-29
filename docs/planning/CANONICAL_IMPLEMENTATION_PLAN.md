@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Trello Flow CLI `0.3.0`, the package-owned workflow protocol, and four canonical open-standard Trello Agent Skills are verified locally
+> **Status:** Trello Flow CLI `0.3.0`, the package-owned workflow protocol, four canonical open-standard Trello Agent Skills, and their CLI installer are verified locally
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-29
-> **Current phase:** Autonomous work-item governance delivered; awaiting the next bounded request
+> **Current phase:** Trello Agent Skills installer verified and reconciled; awaiting Git delivery
 > **Operator view:** `NEXT.md`
 
 ---
@@ -113,7 +113,8 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Active canonical Trello workflow resolution and guarded initialization ignore archived exact-name candidates, keep two open namesakes ambiguous, create a new open canonical list when only archived namesakes exist, and reject archived configured mappings before active card-placement or transition handlers. Explicit archived-list ID reads, close replay, cleanup verification, and open/archived audit visibility remain supported because the Trello client still returns all lists.
 - `[VERIFIED]` The private `@jz/ai-arsenal-trello-work-cli` package is versioned and globally installed as `0.3.0`, exposing only the `jz-trello-flow` executable. Release commit `f4ed4923953a1b14ee2b9788cf0b718c159420f6` passed Quality run `30436554205` and Portability run `30436554208`. The exact-commit 26-file tarball has SHA-256 `0ac6fc4485ca387dad40cc7deac5d7383799ec31de29e3fb273fbac3630c4ab1`; attachment implementation/docs are present while tests/configuration/credentials and obsolete `work` alias are absent. Native Windows help and packaged attachment docs pass. Registry publication remains unapproved.
 - `[VERIFIED]` `jz-trello-flow get` always reports `attachmentCount` and complete normalized attachment metadata. Explicit `--attachments-dir <directory>` downloads uploaded files with authenticated binary-safe transport, lexical destination containment, deterministic duplicate naming, atomic no-overwrite creation, metadata-only external links, and truthful partial-failure recovery. JSON/text output, offline docs, packed contents, and 251 passing package tests cover the additive contract; independent review found no Critical, High, or Medium issue.
-- `[VERIFIED]` `packages/trello-work-cli/assets/agent-workflow-protocol.md` is the accepted package-owned protocol source for Trello-backed development through Claude Code, Codex, Pi, and Hermes Agent. Trello/`jz-trello-flow` owns durable lifecycle state while Superpowers or equivalent harness practice owns software design and implementation. Four canonical open-standard sources now implement that contract at `.agents/skills/trello-work-{orchestrator,design,deliver,recover}/SKILL.md`; all pass official `skills-ref` validation pinned to upstream commit `38a2ff82958afee88dadf4831509e6f7e9d8ef4e`, and fresh re-review found no Critical, High, or Medium issue. `packages/trello-work-cli/assets/agent-skills-adapters.md` defines downstream client adaptation without semantic forks. Protocol, skills, and adapter guidance remain outside the CLI packed boundary and offline docs.
+- `[VERIFIED]` `packages/trello-work-cli/assets/agent-workflow-protocol.md` is the accepted package-owned protocol source for Trello-backed development through Claude Code, Codex, Pi, and Hermes Agent. Trello/`jz-trello-flow` owns durable lifecycle state while Superpowers or equivalent harness practice owns software design and implementation. Four canonical open-standard sources implement that contract at `.agents/skills/trello-work-{orchestrator,design,deliver,recover}/SKILL.md`; all pass official `skills-ref` validation pinned to upstream commit `38a2ff82958afee88dadf4831509e6f7e9d8ef4e`, and fresh re-review found no Critical, High, or Medium issue. `packages/trello-work-cli/assets/agent-skills-adapters.md` defines downstream client adaptation without semantic forks.
+- `[VERIFIED]` `jz-trello-flow skills install` is an offline, credential-free command that discovers the containing Git repository from nested paths, ignores inherited `GIT_*` repository selectors, and installs the four package-bundled managed Trello skills under `.agents/skills/`. Every run prepares and validates the full staged payload through the provenance-verified pinned `skills-ref` source before mutation, replaces only the four managed targets with rollback for later swap failure, preserves unrelated skills, and supports no-write `--dry-run` action reporting. The actual tarball passes disposable consumer installation and invocation through paths with spaces and Unicode; consumer Python import state cannot shadow validation. No release, publication, global installation, non-disposable skill installation, or Trello call was performed.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[VERIFIED]` The 2026-07-13 Monorepo Work-Item Pipeline implementation was approved under then-applicable restrictions on release/distribution automation and commit/push delivery. Dimitris's explicit 2026-07-29 standing-autonomy directive supersedes those restrictions for routine bounded work: agents proceed through review, commit, and push without a separate permission stop. Dangerous deletion or irreversible data loss still requires direct-user digest authorization at Stage 5 plus fresh execution-time confirmation, and unavailable hard prerequisites still escalate.
 
@@ -302,7 +303,10 @@ ai-arsenal/
 │   ├── features-cli/
 │   │   └── package.json
 │   └── trello-work-cli/
+│       ├── assets/
+│       │   └── agent-skills/
 │       ├── src/
+│       ├── test/
 │       └── package.json
 ├── scripts/
 ├── AGENTS.md
@@ -419,7 +423,7 @@ Required layers:
 
 Current verified coverage includes colocated domain/filesystem suites, an in-process command-characterization suite, and a real-process E2E/distribution suite: 144 tests across seven Jest suites. It covers schema/domain validation, slug/ID/full-name feature selection, status/review/dependency selection, real temporary filesystem persistence, corrupt JSON rejection, recovery-journal fail-closed behavior, stale and held lock behavior, direct issue-write partial failure characterization, strict `cwd` rooting, paths with spaces and Unicode, milestone byte preservation, real concurrent writer fail-fast behavior, and actual packed-artifact installation/invocation from a clean consumer. Public GitHub Actions verifies the quality workflow on Linux and the process/distribution suite on both Windows and Linux.
 
-The Trello Work Unit CLI has 251 passing offline tests plus 2 opt-in live cases across 20 suites. They cover schema and parser strictness, mixed Inbox classification, explicit board resolution, seven-list defaults and overrides, open-only active canonical resolution, archived-only guarded initialization, pre-handler rejection of archived configured targets, list CRUD, dry-run and request construction, executable command routing, in-place design promotion, Ready completeness gating, version preflight, board-wide operation-ID replay/collision ordering, retained-marker postcondition drift, partial recovery, checklist mutations, redaction, API error mapping, attachment metadata/download safety, docs, and package boundaries. Its gated live harness passed all 14 checks on the allowlisted TestingBoard, including both intake paths, same-card identity, transition completion, and run-owned cleanup.
+The Trello Work Unit CLI has 266 passing offline tests plus 2 opt-in live cases across 22 suites when the pinned official validator is supplied directly. They cover schema and parser strictness, mixed Inbox classification, explicit board resolution, seven-list defaults and overrides, open-only active canonical resolution, archived-only guarded initialization, pre-handler rejection of archived configured targets, list CRUD, dry-run and request construction, executable command routing, in-place design promotion, Ready completeness gating, version preflight, board-wide operation-ID replay/collision ordering, retained-marker postcondition drift, partial recovery, checklist mutations, redaction, API error mapping, attachment metadata/download safety, docs, package boundaries, managed skill installation, adversarial Git/Python environment isolation, and actual packed-consumer invocation. Its gated live harness passed all 14 checks on the allowlisted TestingBoard, including both intake paths, same-card identity, transition completion, and run-owned cleanup.
 
 Preserve Jest initially because the existing 109-test suite uses Jest-specific spies, fake timers, and module access. Use Node subprocess APIs in tests to invoke the real Bun executable; do not couple tests to `Bun.spawn` unless production needs it.
 
@@ -455,6 +459,8 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 - Work Unit sections keep concise evidence summaries and repository links; detailed artifacts remain authoritative in the repository, Git, and CI.
 - Agents may complete `Review → Done` using judgment only after acceptance criteria, applicable verification, blocker absence, and concise evidence are satisfied. Humans alone own final Done-card review and manual archival.
 - Harness adapters may vary installation and bootstrap mechanics but must preserve one portable lifecycle core. Current Superpowers upstream documentation does not establish native Hermes Agent support.
+- The package ships a version-matched copy of the four canonical skills and their protocol authority for `jz-trello-flow skills install`; generated managed markers and the one local protocol-link rewrite distinguish installed payloads without creating a semantic fork.
+- Skill installation is offline and must complete repository discovery, full payload preparation, and official pinned validation before replacing any managed target. It never loads Trello configuration or credentials and never modifies unrelated skill directories.
 
 ---
 
@@ -864,7 +870,7 @@ Protocol design, documentation, and the four open-standard skills were digest-au
 
 ---
 
-## Maintenance update — Open-Standard Trello Agent Skills
+## Maintenance update — Open-Standard Trello Agent Skills and CLI Installation
 
 ### Resulting verified state
 
@@ -873,11 +879,13 @@ Protocol design, documentation, and the four open-standard skills were digest-au
 - Draft creation explicitly reads back Inbox and then preserves the same card through `design start` to In Design. Claiming remains recovery-aware and non-atomic; engineering starts only after owner and In Progress are both read back.
 - `packages/trello-work-cli/assets/agent-skills-adapters.md` permits mechanical client integration differences while prohibiting lifecycle, mutation-safety, completion, recovery, and archival semantic changes.
 - Fresh re-review of current sources found no unresolved Critical, High, or Medium issue.
-- The implementation made no production Trello request, package-boundary/docs change, generated adapter, harness installation, release, publication, archival automation, commit, or push.
+- `jz-trello-flow skills install` ships version-matched package copies of the four skills and their protocol authority, marks them as CLI-managed, and installs them under the selected repository's `.agents/skills/` directory.
+- Nested Git-root discovery is contained and ignores inherited repository selectors. Complete staged preparation and isolated official validation precede four-target replacement; later swap failure rolls prior replacements back. Unrelated skills are preserved, and `--dry-run` reports the same installed/replaced plan without target mutation.
+- Focused, package, official-validator, packed-consumer, root, workflow, and whitespace gates pass. The direct pinned package run passes 266 tests across 22 suites with 2 credential-gated live cases skipped; no Trello call, release, publication, global installation, non-disposable installation, commit, or push occurred.
 
 ### Delivery boundary
 
-The local protocol and skill implementation is complete and verified. Routine Git delivery proceeds autonomously after reconciliation. Package or offline-doc integration, generated client adapters, actual harness installation, release/publication, and production-board migration remain separate bounded work items.
+The protocol, canonical skill sources, package payload, offline installer command, help, and offline documentation are complete and verified. Routine Git delivery proceeds after reconciliation. Generated client adapters, automatic client bootstrap beyond repository-local `.agents/skills/` installation, release/publication, global installation, and production-board migration remain separate bounded work items.
 
 ---
 
@@ -905,8 +913,9 @@ The local protocol and skill implementation is complete and verified. Routine Gi
 | Trello claim sequencing cannot atomically update owner and status                                                  | Explicitly bounded                | Preserve recovery-aware multi-step claiming; design a stronger allocation backend before claiming atomic production ownership   |
 | Superpowers does not currently document native Hermes Agent support                                                | Explicitly bounded                | Use equivalent Hermes engineering-practice skills and never claim native Superpowers execution without evidence                 |
 | The production Greek Essence board does not match the canonical seven-list lifecycle                               | Separate migration boundary       | Initialize or migrate it only through a dedicated bounded migration work item with guarded verification                         |
-| Canonical Trello skills, protocol, and autonomous governance are implemented locally                               | Verification in progress          | Complete independent review and reconciliation, then commit/push autonomously                                                   |
-| No generated adapter or client-specific installation has been produced                                             | Explicit distribution boundary    | Derive/install adapters only through separately bounded client or package work                                                  |
+| CLI-managed skill directories intentionally replace local edits on every install                                   | Accepted product behavior         | Preserve managed markers, explicit action reporting, unrelated-skill isolation, and documentation of replacement semantics      |
+| Skill installation depends on the pinned official validator source and a usable Python runtime                     | Controlled prerequisite           | Fail before target mutation when the verified validator cannot be invoked; preserve isolated-source and UTF-8 execution         |
+| No generated client adapter or automatic harness bootstrap has been produced                                       | Explicit distribution boundary    | Derive adapters or broader bootstrap only through separately bounded client work                                                |
 
 Reconciliation must remove resolved risks and add newly material risks.
 
@@ -922,7 +931,7 @@ Public behavior/schema, material tooling, and distribution changes require bound
 
 The dedicated TestingBoard identifier, process-environment credential source, and recovery-aware procedure are verified. Archived-list canonical resolution passed offline review, exact-SHA CI, exact-package installation, and revised seven-list dual-intake live validation on TestingBoard. Production-board use, migration of the noncanonical Greek Essence board, and a production atomic allocation backend remain separate bounded work items; dedicated-board validation does not prove a Trello-backed concurrency mechanism. Git Bash global-shim compatibility is likewise a separate compatibility work item because native Windows invocation passes while Git Bash path resolution does not.
 
-The package-owned protocol and four canonical open-standard Agent Skills are accepted and verified locally. Routine commit/push follows passed reconciliation autonomously. Including the protocol or skills in the packed package or offline `jz-trello-flow docs`, generating client-specific adapters, and installing them into harnesses remain separate bounded work items.
+The package-owned protocol, four canonical open-standard Agent Skills, their version-matched packed payload, and repository-local `jz-trello-flow skills install` workflow are accepted and verified locally. Routine commit/push follows passed reconciliation. Generated client-specific adapters, automatic harness bootstrap beyond `.agents/skills/`, a release or global installation of this source snapshot, and production Trello use remain separate bounded work items.
 
 ---
 
@@ -988,4 +997,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-The package-owned protocol, four canonical open-standard Trello Agent Skills, adapter guide, deprecated-command documentation correction, and autonomous work-item governance are implemented locally. Complete final independent review, verification, and reconciliation, then commit and push the exact verified attributable snapshot autonomously. Dangerous deletion, source removal, and similarly irreversible data loss remain direct-human approval gates; unavailable mandatory credentials/access or another hard prerequisite remains an escalation blocker.
+The package-owned protocol, four canonical open-standard Trello Agent Skills, adapter guide, repository-local CLI installer, deprecated-command documentation correction, and autonomous work-item governance are implemented, independently verified, and reconciled locally. Commit and push the exact verified attributable snapshot, then confirm the resulting `master` CI. Dangerous deletion, source removal, and similarly irreversible data loss remain direct-human approval gates; unavailable mandatory credentials/access or another hard prerequisite remains an escalation blocker.

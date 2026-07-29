@@ -12,7 +12,7 @@ describe('offline Work CLI documentation', () => {
     for (const command of COMMAND_CATALOG) {
       expect(help).toContain(command.syntax);
       expect(guide).toContain(command.syntax);
-      if (command.mutating) {
+      if (command.mutating && command.id !== 'skills-install') {
         expect(command.options).toEqual(
           expect.arrayContaining([
             '--dry-run',
@@ -20,6 +20,11 @@ describe('offline Work CLI documentation', () => {
             '--operation-id',
           ]),
         );
+      }
+      if (command.id === 'skills-install') {
+        expect(command.options).toContain('--dry-run');
+        expect(command.options).not.toContain('--if-version');
+        expect(command.options).not.toContain('--operation-id');
       }
     }
   });
@@ -108,7 +113,8 @@ describe('offline Work CLI documentation', () => {
       (command) =>
         command.id !== 'validate-file' &&
         command.id !== 'docs' &&
-        command.id !== 'boards-list',
+        command.id !== 'boards-list' &&
+        command.id !== 'skills-install',
     )) {
       expect(command.options).toContain('--hermes-env');
       expect(command.options).toContain('--board');
@@ -138,5 +144,24 @@ describe('offline Work CLI documentation', () => {
     ]) {
       expect(guide.toLowerCase()).toContain(phrase.toLowerCase());
     }
+  });
+
+  it('documents managed skill replacement and official preflight validation', () => {
+    const rendered = renderDocs({
+      mode: 'topic',
+      output: 'text',
+      value: 'skills',
+    });
+
+    expect(rendered).toContain('jz-trello-flow skills install');
+    expect(rendered).toContain('skills-ref@0.1.0');
+    expect(rendered).toContain('JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT');
+    expect(rendered).toContain('JZ_TRELLO_FLOW_SKILLS_REF_PYTHON');
+    expect(rendered).toContain('38a2ff82958afee88dadf4831509e6f7e9d8ef4e');
+    expect(rendered).toContain('actual Git top level');
+    expect(rendered).toContain('symbolic link or junction');
+    expect(rendered).toContain('Recovery data preserved at');
+    expect(rendered).toContain('unrelated skill directories');
+    expect(rendered).toContain('--dry-run');
   });
 });

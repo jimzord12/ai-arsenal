@@ -9,6 +9,7 @@
   },
   "exports": {},
   "files": [
+    "assets/agent-skills",
     "assets/work-guide.md",
     "assets/work-unit-metadata.schema.json",
     "src/attachments.ts",
@@ -27,6 +28,7 @@
     "src/read-commands.ts",
     "src/reconcile.ts",
     "src/reference.ts",
+    "src/skills-install.ts",
     "src/transition.ts",
     "src/trello-client.ts",
     "src/trello-types.ts",

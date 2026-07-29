@@ -10,6 +10,13 @@ const MUTATION_SAFETY = ['--dry-run', '--if-version', '--operation-id'];
 
 const BASE_COMMAND_CATALOG: CommandDefinition[] = [
   {
+    id: 'skills-install',
+    syntax: 'jz-trello-flow skills install',
+    summary: 'Install or replace the four bundled managed Trello skills.',
+    options: ['--dry-run', '--output'],
+    mutating: true,
+  },
+  {
     id: 'boards-list',
     syntax: 'jz-trello-flow boards list',
     summary: 'List authenticated readable boards without mutation.',
@@ -206,7 +213,8 @@ export const COMMAND_CATALOG: CommandDefinition[] = BASE_COMMAND_CATALOG.map(
   (command) =>
     command.id === 'docs' ||
     command.id === 'validate-file' ||
-    command.id === 'boards-list'
+    command.id === 'boards-list' ||
+    command.id === 'skills-install'
       ? command
       : {
           ...command,

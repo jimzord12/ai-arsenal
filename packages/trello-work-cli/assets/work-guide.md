@@ -19,6 +19,14 @@ A `<reference>` is exactly one of `WU-N`, a 24-character Trello card ID, or an H
 
 ## Commands
 
+### jz-trello-flow skills install
+
+Ask Git for the actual Git top level, then install the four bundled `trello-work-*` skills beneath that repository's `.agents/skills/` directory. Every invocation replaces exactly those four CLI-managed directories, marks their files as managed and replaceable, and preserves unrelated skill directories. A symbolic link or junction in `.agents`, `.agents/skills`, or a managed target is rejected before any write.
+
+The command first stages the complete payload and validates every skill by executing official `skills-ref@0.1.0` source. Set `JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT` to the actual Git top level of a clean `agentskills/agentskills` checkout pinned to `38a2ff82958afee88dadf4831509e6f7e9d8ef4e`, and set `JZ_TRELLO_FLOW_SKILLS_REF_PYTHON` to a Python environment containing the tool's dependencies. The installer verifies that exact top level, commit, and clean `skills-ref` source before importing `skills_ref` from the checkout; it never trusts an unqualified PATH executable.
+
+Missing/mismatched provenance or failed validation exits nonzero before replacement. `--dry-run` performs discovery, preparation, and validation and reports `installed` or `replaced` for every target without changing the repository. If automatic restoration fails, sole backups remain intact and `SKILLS_RECOVERY_REQUIRED` reports `Recovery data preserved at: <exact path>`. The installer does not load Trello configuration or credentials and does not access Trello.
+
 ### jz-trello-flow get <reference>
 
 Read and normalize one Work Unit. Use `--board <id-or-exact-name>` on every

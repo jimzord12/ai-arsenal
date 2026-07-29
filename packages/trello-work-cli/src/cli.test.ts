@@ -820,3 +820,35 @@ describe('mutation family CLI outcomes', () => {
     );
   });
 });
+
+describe('skills install CLI route', () => {
+  it('routes the offline dry run without loading Trello configuration', async () => {
+    const installed = {
+      dryRun: true,
+      repositoryRoot: 'C:\\repo',
+      skills: [
+        {
+          action: 'installed' as const,
+          name: 'trello-work-orchestrator' as const,
+          target: 'C:\\repo\\.agents\\skills\\trello-work-orchestrator',
+        },
+      ],
+    };
+    const install = jest.fn(async () => installed);
+
+    const result = await runWorkCli(
+      ['skills', 'install', '--dry-run', '--output', 'json'],
+      { installSkills: install } as never,
+    );
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stderr: '',
+      stdout: `${JSON.stringify(installed)}\n`,
+    });
+    expect(install).toHaveBeenCalledWith({
+      cwd: process.cwd(),
+      dryRun: true,
+    });
+  });
+});
