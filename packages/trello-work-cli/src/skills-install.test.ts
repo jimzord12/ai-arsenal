@@ -137,20 +137,23 @@ describe('skills install', () => {
     await rm(temporaryRoot, { force: true, recursive: true });
   });
 
-  it('rejects validator source whose Git provenance is not the official pinned commit', async () => {
+  it('ignores obsolete runtime validator variables and installs without external validation', async () => {
     const temporaryRoot = await mkdtemp(
       join(tmpdir(), 'jz-skills-validator-provenance-'),
     );
     const repositoryRoot = join(temporaryRoot, 'repo');
-    const validatorCheckout = join(temporaryRoot, 'validator-checkout');
     await mkdir(repositoryRoot, { recursive: true });
-    await mkdir(validatorCheckout, { recursive: true });
     execFileSync('git', ['init', '--quiet', repositoryRoot]);
-    execFileSync('git', ['init', '--quiet', validatorCheckout]);
     const previousCheckout = process.env.JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT;
     const previousPython = process.env.JZ_TRELLO_FLOW_SKILLS_REF_PYTHON;
-    process.env.JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT = validatorCheckout;
-    process.env.JZ_TRELLO_FLOW_SKILLS_REF_PYTHON = process.execPath;
+    process.env.JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT = join(
+      temporaryRoot,
+      'must-not-be-read',
+    );
+    process.env.JZ_TRELLO_FLOW_SKILLS_REF_PYTHON = join(
+      temporaryRoot,
+      'must-not-run-python',
+    );
 
     try {
       await expect(
@@ -159,10 +162,10 @@ describe('skills install', () => {
           cwd: repositoryRoot,
           dryRun: false,
         }),
-      ).rejects.toMatchObject({ code: 'SKILLS_VALIDATOR_PROVENANCE' });
+      ).resolves.toMatchObject({ dryRun: false });
       await expect(
         lstat(join(repositoryRoot, '.agents', 'skills')),
-      ).rejects.toThrow(/ENOENT/);
+      ).resolves.toBeDefined();
     } finally {
       if (previousCheckout === undefined) {
         delete process.env.JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT;
@@ -325,6 +328,51 @@ describe('skills install', () => {
     }
     await rm(temporaryRoot, { force: true, recursive: true });
   });
+
+  it.each([
+    [
+      'missing skill',
+      async (assetsRoot: string) =>
+        rm(join(assetsRoot, MANAGED_SKILL_NAMES[2]), {
+          force: true,
+          recursive: true,
+        }),
+    ],
+    [
+      'malformed canonical link',
+      async (assetsRoot: string) =>
+        writeFile(
+          join(assetsRoot, MANAGED_SKILL_NAMES[1], 'SKILL.md'),
+          '---\nname: trello-work-design\ndescription: malformed\n---\n\n# Missing protocol link\n',
+        ),
+    ],
+  ])(
+    'rejects a %s before mutating managed targets',
+    async (_label, corrupt) => {
+      const temporaryRoot = await mkdtemp(join(tmpdir(), 'jz-skills-corrupt-'));
+      const repositoryRoot = join(temporaryRoot, 'repo');
+      const skillsRoot = join(repositoryRoot, '.agents', 'skills');
+      await mkdir(repositoryRoot, { recursive: true });
+      execFileSync('git', ['init', '--quiet', repositoryRoot]);
+      await mkdir(join(skillsRoot, MANAGED_SKILL_NAMES[0]), {
+        recursive: true,
+      });
+      await writeFile(
+        join(skillsRoot, MANAGED_SKILL_NAMES[0], 'SKILL.md'),
+        'preserve existing bytes\n',
+      );
+      const assetsRoot = await createPayload(temporaryRoot);
+      await corrupt(assetsRoot);
+
+      await expect(
+        installSkills({ assetsRoot, cwd: repositoryRoot, dryRun: false }),
+      ).rejects.toMatchObject({ code: 'SKILLS_PAYLOAD_INVALID' });
+      await expect(
+        readFile(join(skillsRoot, MANAGED_SKILL_NAMES[0], 'SKILL.md'), 'utf8'),
+      ).resolves.toBe('preserve existing bytes\n');
+      await rm(temporaryRoot, { force: true, recursive: true });
+    },
+  );
 
   it('restores prior targets when a later replacement step fails', async () => {
     const temporaryRoot = await mkdtemp(join(tmpdir(), 'jz-skills-rollback-'));

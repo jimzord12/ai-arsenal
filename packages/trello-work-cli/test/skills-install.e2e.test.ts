@@ -11,10 +11,9 @@ import { dirname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 
 const packageRoot = resolve(__dirname, '..');
-const validatorCheckout = process.env.JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT;
-const validatorPython = process.env.JZ_TRELLO_FLOW_SKILLS_REF_PYTHON;
-const packedOfficialAcceptance =
-  validatorCheckout && validatorPython ? it : it.skip;
+const canonicalProtocolLink =
+  '../../../packages/trello-work-cli/assets/agent-workflow-protocol.md';
+const installedProtocolLink = 'references/agent-workflow-protocol.md';
 const managedNames = [
   'trello-work-orchestrator',
   'trello-work-design',
@@ -47,16 +46,12 @@ function runInstalled(
   shim: string,
   args: string[],
   cwd: string,
-  includeValidator = true,
   extraEnv: NodeJS.ProcessEnv = {},
 ): { status: number | null; stderr: string; stdout: string } {
-  const env = { ...process.env, ...extraEnv };
+  const env = { ...process.env };
   delete env.JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT;
   delete env.JZ_TRELLO_FLOW_SKILLS_REF_PYTHON;
-  if (includeValidator && validatorCheckout && validatorPython) {
-    env.JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT = validatorCheckout;
-    env.JZ_TRELLO_FLOW_SKILLS_REF_PYTHON = validatorPython;
-  }
+  Object.assign(env, extraEnv);
   const result =
     process.platform === 'win32'
       ? spawnSync(
@@ -79,7 +74,7 @@ function runInstalled(
 }
 
 describe('packed skills installer', () => {
-  it('always packs and installs the actual tarball, then fails safely without pinned provenance', () => {
+  it('packs the actual tarball and installs through its generated shim without validator provenance', () => {
     const temporaryRoot = mkdtempSync(
       join(tmpdir(), 'jz-trello-flow-packed-required-'),
     );
@@ -108,157 +103,170 @@ describe('packed skills installer', () => {
         '.bin',
         process.platform === 'win32' ? 'jz-trello-flow.CMD' : 'jz-trello-flow',
       );
-      const result = runInstalled(
+      const dryRun = runInstalled(
         shim,
-        ['skills', 'install', '--output', 'json'],
+        ['skills', 'install', '--dry-run', '--output', 'json'],
         repositoryRoot,
-        false,
       );
-
-      expect(result.status).toBe(1);
-      expect(result.stderr).toContain('SKILLS_VALIDATOR_UNAVAILABLE');
+      expect(dryRun).toMatchObject({ status: 0, stderr: '' });
+      expect(JSON.parse(dryRun.stdout).skills).toHaveLength(4);
       expect(
         readdirSync(repositoryRoot).filter((name) => name === '.agents'),
       ).toEqual([]);
+
+      const installed = runInstalled(
+        shim,
+        ['skills', 'install', '--output', 'json'],
+        repositoryRoot,
+      );
+      expect(installed).toMatchObject({ status: 0, stderr: '' });
+      expect(JSON.parse(installed.stdout).skills).toHaveLength(4);
     } finally {
       rmSync(temporaryRoot, { force: true, recursive: true });
     }
   }, 120_000);
 
-  packedOfficialAcceptance(
-    'installs the actual tarball and invokes its generated shim in a disposable repository',
-    () => {
-      const temporaryRoot = mkdtempSync(
-        join(tmpdir(), 'jz-trello-flow-packed-skills-'),
+  it('installs the actual tarball and invokes its generated shim in a disposable repository', () => {
+    const temporaryRoot = mkdtempSync(
+      join(tmpdir(), 'jz-trello-flow-packed-skills-'),
+    );
+    try {
+      const packRoot = join(temporaryRoot, 'packed');
+      const consumerRoot = join(temporaryRoot, 'consumer');
+      const repositoryRoot = join(temporaryRoot, 'repository with spaces Ω');
+      const nested = join(repositoryRoot, 'packages', 'nested');
+      mkdirSync(packRoot, { recursive: true });
+      mkdirSync(consumerRoot, { recursive: true });
+      mkdirSync(nested, { recursive: true });
+      execFileSync('git', ['init', '--quiet', repositoryRoot]);
+      writeFileSync(
+        join(consumerRoot, 'package.json'),
+        '{"name":"skills-consumer","private":true}\n',
       );
-      try {
-        const packRoot = join(temporaryRoot, 'packed');
-        const consumerRoot = join(temporaryRoot, 'consumer');
-        const repositoryRoot = join(temporaryRoot, 'repository with spaces Ω');
-        const nested = join(repositoryRoot, 'packages', 'nested');
-        mkdirSync(packRoot, { recursive: true });
-        mkdirSync(consumerRoot, { recursive: true });
-        mkdirSync(nested, { recursive: true });
-        execFileSync('git', ['init', '--quiet', repositoryRoot]);
-        writeFileSync(
-          join(consumerRoot, 'package.json'),
-          '{"name":"skills-consumer","private":true}\n',
-        );
 
-        runPnpm(['pack', '--pack-destination', packRoot], packageRoot);
-        const tarball = join(
-          packRoot,
-          readdirSync(packRoot).find((name) => name.endsWith('.tgz')) as string,
-        );
-        runPnpm(['add', tarball], consumerRoot);
-        const shim = join(
-          consumerRoot,
-          'node_modules',
-          '.bin',
-          process.platform === 'win32'
-            ? 'jz-trello-flow.CMD'
-            : 'jz-trello-flow',
-        );
+      runPnpm(['pack', '--pack-destination', packRoot], packageRoot);
+      const tarball = join(
+        packRoot,
+        readdirSync(packRoot).find((name) => name.endsWith('.tgz')) as string,
+      );
+      runPnpm(['add', tarball], consumerRoot);
+      const shim = join(
+        consumerRoot,
+        'node_modules',
+        '.bin',
+        process.platform === 'win32' ? 'jz-trello-flow.CMD' : 'jz-trello-flow',
+      );
 
-        const unrelated = join(
-          repositoryRoot,
-          '.agents',
-          'skills',
-          'personal-skill',
-          'notes.txt',
-        );
-        mkdirSync(dirname(unrelated), { recursive: true });
-        writeFileSync(unrelated, 'preserve me\n');
-        const pythonShadowRoot = join(nested, 'python-shadow');
-        const pythonShadowMarker = join(temporaryRoot, 'python-shadow-loaded');
-        mkdirSync(join(pythonShadowRoot, 'skills_ref'), { recursive: true });
-        writeFileSync(
-          join(pythonShadowRoot, 'sitecustomize.py'),
-          `from pathlib import Path\nimport sys\nPath(${JSON.stringify(pythonShadowMarker)}).write_text('sitecustomize loaded')\nsys.path.insert(0, ${JSON.stringify(pythonShadowRoot)})\n`,
-        );
-        writeFileSync(join(pythonShadowRoot, 'skills_ref', '__init__.py'), '');
-        writeFileSync(
-          join(pythonShadowRoot, 'skills_ref', 'cli.py'),
-          "raise RuntimeError('consumer skills_ref shadow loaded')\n",
-        );
-        const adversarialPythonEnv = { PYTHONPATH: pythonShadowRoot };
+      const unrelated = join(
+        repositoryRoot,
+        '.agents',
+        'skills',
+        'personal-skill',
+        'notes.txt',
+      );
+      mkdirSync(dirname(unrelated), { recursive: true });
+      writeFileSync(unrelated, 'preserve me\n');
+      const pythonShadowRoot = join(temporaryRoot, 'python-shadow');
+      const pythonShadowMarker = join(temporaryRoot, 'python-shadow-loaded');
+      mkdirSync(join(pythonShadowRoot, 'skills_ref'), { recursive: true });
+      writeFileSync(
+        join(pythonShadowRoot, 'sitecustomize.py'),
+        `from pathlib import Path\nimport sys\nPath(${JSON.stringify(pythonShadowMarker)}).write_text('sitecustomize loaded')\nsys.path.insert(0, ${JSON.stringify(pythonShadowRoot)})\n`,
+      );
+      writeFileSync(join(pythonShadowRoot, 'skills_ref', '__init__.py'), '');
+      writeFileSync(
+        join(pythonShadowRoot, 'skills_ref', 'cli.py'),
+        "raise RuntimeError('consumer skills_ref shadow loaded')\n",
+      );
+      const adversarialPythonEnv = {
+        JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT: join(
+          temporaryRoot,
+          'missing-validator-checkout',
+        ),
+        JZ_TRELLO_FLOW_SKILLS_REF_PYTHON: join(temporaryRoot, 'missing-python'),
+        PYTHONPATH: pythonShadowRoot,
+      };
 
-        const missingValidator = runInstalled(
-          shim,
-          ['skills', 'install', '--output', 'json'],
-          nested,
-          false,
-        );
-        expect(missingValidator.status).toBe(1);
-        expect(missingValidator.stdout).toBe('');
-        expect(missingValidator.stderr).toContain(
-          'SKILLS_VALIDATOR_UNAVAILABLE',
-        );
-        expect(readFileSync(unrelated, 'utf8')).toBe('preserve me\n');
-        expect(readdirSync(join(repositoryRoot, '.agents', 'skills'))).toEqual([
-          'personal-skill',
-        ]);
+      const dryRun = runInstalled(
+        shim,
+        ['skills', 'install', '--dry-run', '--output', 'json'],
+        nested,
+        adversarialPythonEnv,
+      );
+      expect(dryRun).toMatchObject({ status: 0, stderr: '' });
+      expect(JSON.parse(dryRun.stdout).skills).toHaveLength(4);
+      expect(readdirSync(join(repositoryRoot, '.agents', 'skills'))).toEqual([
+        'personal-skill',
+      ]);
 
-        const dryRun = runInstalled(
-          shim,
-          ['skills', 'install', '--dry-run', '--output', 'json'],
-          nested,
-          true,
-          adversarialPythonEnv,
-        );
-        expect(dryRun).toMatchObject({ status: 0, stderr: '' });
-        expect(JSON.parse(dryRun.stdout).skills).toHaveLength(4);
-        expect(readdirSync(join(repositoryRoot, '.agents', 'skills'))).toEqual([
-          'personal-skill',
-        ]);
+      const installed = runInstalled(
+        shim,
+        ['skills', 'install', '--output', 'json'],
+        nested,
+        adversarialPythonEnv,
+      );
+      expect(installed).toMatchObject({ status: 0, stderr: '' });
+      expect(
+        JSON.parse(installed.stdout).skills.map(
+          ({ action }: { action: string }) => action,
+        ),
+      ).toEqual(['installed', 'installed', 'installed', 'installed']);
 
-        const installed = runInstalled(
-          shim,
-          ['skills', 'install', '--output', 'json'],
-          nested,
-          true,
-          adversarialPythonEnv,
+      const repeated = runInstalled(
+        shim,
+        ['skills', 'install', '--output', 'json'],
+        nested,
+        adversarialPythonEnv,
+      );
+      expect(repeated).toMatchObject({ status: 0, stderr: '' });
+      expect(
+        JSON.parse(repeated.stdout).skills.map(
+          ({ action }: { action: string }) => action,
+        ),
+      ).toEqual(['replaced', 'replaced', 'replaced', 'replaced']);
+      expect(readFileSync(unrelated, 'utf8')).toBe('preserve me\n');
+      expect(() => readFileSync(pythonShadowMarker, 'utf8')).toThrow();
+      const packedPayload = join(
+        consumerRoot,
+        'node_modules',
+        '@jz',
+        'ai-arsenal-trello-work-cli',
+        'assets',
+        'agent-skills',
+      );
+      const expectedProtocol = readFileSync(
+        join(packedPayload, 'agent-workflow-protocol.md'),
+      );
+      expect(
+        readdirSync(join(repositoryRoot, '.agents', 'skills')).sort(),
+      ).toEqual([...managedNames, 'personal-skill'].sort());
+      for (const name of managedNames) {
+        const installedRoot = join(repositoryRoot, '.agents', 'skills', name);
+        expect(readdirSync(installedRoot).sort()).toEqual(
+          ['.jz-trello-flow-managed.json', 'SKILL.md', 'references'].sort(),
         );
-        expect(installed).toMatchObject({ status: 0, stderr: '' });
-        expect(
-          JSON.parse(installed.stdout).skills.map(
-            ({ action }: { action: string }) => action,
+        expect(readFileSync(join(installedRoot, 'SKILL.md'), 'utf8')).toBe(
+          readFileSync(join(packedPayload, name, 'SKILL.md'), 'utf8').replace(
+            canonicalProtocolLink,
+            installedProtocolLink,
           ),
-        ).toEqual(['installed', 'installed', 'installed', 'installed']);
-
-        const repeated = runInstalled(
-          shim,
-          ['skills', 'install', '--output', 'json'],
-          nested,
-          true,
-          adversarialPythonEnv,
         );
-        expect(repeated).toMatchObject({ status: 0, stderr: '' });
         expect(
-          JSON.parse(repeated.stdout).skills.map(
-            ({ action }: { action: string }) => action,
+          readFileSync(
+            join(installedRoot, 'references', 'agent-workflow-protocol.md'),
           ),
-        ).toEqual(['replaced', 'replaced', 'replaced', 'replaced']);
-        expect(readFileSync(unrelated, 'utf8')).toBe('preserve me\n');
-        expect(() => readFileSync(pythonShadowMarker, 'utf8')).toThrow();
-        for (const name of managedNames) {
-          const installedRoot = join(repositoryRoot, '.agents', 'skills', name);
-          expect(
-            readFileSync(join(installedRoot, 'SKILL.md'), 'utf8'),
-          ).toContain('references/agent-workflow-protocol.md');
-          expect(
-            JSON.parse(
-              readFileSync(
-                join(installedRoot, '.jz-trello-flow-managed.json'),
-                'utf8',
-              ),
-            ),
-          ).toMatchObject({ managedBy: 'jz-trello-flow', replaceable: true });
-        }
-      } finally {
-        rmSync(temporaryRoot, { force: true, recursive: true });
+        ).toEqual(expectedProtocol);
+        expect(
+          readFileSync(
+            join(installedRoot, '.jz-trello-flow-managed.json'),
+            'utf8',
+          ),
+        ).toBe(
+          `${JSON.stringify({ managedBy: 'jz-trello-flow', replaceable: true, skill: name, version: 1 })}\n`,
+        );
       }
-    },
-    120_000,
-  );
+    } finally {
+      rmSync(temporaryRoot, { force: true, recursive: true });
+    }
+  }, 120_000);
 });

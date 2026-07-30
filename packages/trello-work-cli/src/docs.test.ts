@@ -154,9 +154,10 @@ describe('offline Work CLI documentation', () => {
     });
 
     expect(rendered).toContain('jz-trello-flow skills install');
-    expect(rendered).toContain('skills-ref@0.1.0');
-    expect(rendered).toContain('JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT');
-    expect(rendered).toContain('JZ_TRELLO_FLOW_SKILLS_REF_PYTHON');
+    expect(rendered).toContain('self-contained');
+    expect(rendered).toContain('no Python');
+    expect(rendered).not.toContain('JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT');
+    expect(rendered).not.toContain('JZ_TRELLO_FLOW_SKILLS_REF_PYTHON');
     expect(rendered).toContain('38a2ff82958afee88dadf4831509e6f7e9d8ef4e');
     expect(rendered).toContain('actual Git top level');
     expect(rendered).toContain('symbolic link or junction');

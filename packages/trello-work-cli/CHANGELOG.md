@@ -1,5 +1,11 @@
 # @jz/ai-arsenal-trello-work-cli
 
+## 0.4.2
+
+### Patch Changes
+
+- Make bundled Trello Agent Skill installation self-contained and move official `skills-ref` validation to release verification.
+
 ## 0.4.1
 
 ### Patch Changes

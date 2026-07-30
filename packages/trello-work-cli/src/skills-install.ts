@@ -24,8 +24,6 @@ export const MANAGED_SKILL_NAMES = [
 const CANONICAL_PROTOCOL_LINK =
   '../../../packages/trello-work-cli/assets/agent-workflow-protocol.md';
 const INSTALLED_PROTOCOL_LINK = 'references/agent-workflow-protocol.md';
-export const SKILLS_REF_PINNED_COMMIT =
-  '38a2ff82958afee88dadf4831509e6f7e9d8ef4e';
 
 export type SkillInstallAction = {
   action: 'installed' | 'replaced';
@@ -77,36 +75,8 @@ function withoutEnvironmentPrefixes(
   );
 }
 
-function withoutEnvironmentKeys(
-  environment: NodeJS.ProcessEnv,
-  keys: string[],
-): NodeJS.ProcessEnv {
-  const blocked = new Set(keys.map((key) => key.toUpperCase()));
-  return Object.fromEntries(
-    Object.entries(environment).filter(
-      ([key]) => !blocked.has(key.toUpperCase()),
-    ),
-  );
-}
-
 function gitEnvironment(): NodeJS.ProcessEnv {
   return withoutEnvironmentPrefixes(process.env, ['GIT_']);
-}
-
-function pythonEnvironment(): NodeJS.ProcessEnv {
-  return withoutEnvironmentKeys(process.env, [
-    'PYTHONPATH',
-    'PYTHONHOME',
-    'PYTHONUSERBASE',
-    'PYTHONSAFEPATH',
-    'PYTHONNOUSERSITE',
-    'PYTHONSTARTUP',
-    'PYTHONINSPECT',
-    'PYTHONCASEOK',
-    'PYTHONPLATLIBDIR',
-    'PYTHONEXECUTABLE',
-    '__PYVENV_LAUNCHER__',
-  ]);
 }
 
 export async function findRepositoryRoot(cwd: string): Promise<string> {
@@ -203,142 +173,44 @@ async function assertSafeSkillsPath(repositoryRoot: string): Promise<void> {
   }
 }
 
-function runProcess(
-  command: string,
-  args: string[],
-  env?: NodeJS.ProcessEnv,
-): Promise<{ stderr: string; stdout: string }> {
-  return new Promise((resolveProcess, rejectProcess) => {
-    const child = spawn(command, args, {
-      env,
-      shell: false,
-      windowsHide: true,
-    });
-    let stdout = '';
-    let stderr = '';
-    child.stdout.setEncoding('utf8');
-    child.stderr.setEncoding('utf8');
-    child.stdout.on('data', (chunk: string) => {
-      stdout += chunk;
-    });
-    child.stderr.on('data', (chunk: string) => {
-      stderr += chunk;
-    });
-    child.once('error', (error) => {
-      rejectProcess(error);
-    });
-    child.once('close', (code) => {
-      if (code === 0) {
-        resolveProcess({ stderr, stdout });
-        return;
-      }
-      rejectProcess(
-        new Error(
-          stderr.trim() ||
-            `Command ${command} exited with code ${code ?? 'unknown'}.`,
-        ),
-      );
-    });
-  });
-}
-
-async function officialValidate(skillRoot: string): Promise<void> {
-  const checkout = process.env.JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT;
-  const python = process.env.JZ_TRELLO_FLOW_SKILLS_REF_PYTHON;
-  if (!checkout || !python) {
-    throw new WorkCliError(
-      'SKILLS_VALIDATOR_UNAVAILABLE',
-      'Official skills-ref validation requires JZ_TRELLO_FLOW_SKILLS_REF_CHECKOUT and JZ_TRELLO_FLOW_SKILLS_REF_PYTHON.',
-    );
-  }
-
-  let checkoutRoot: string;
-  try {
-    checkoutRoot = await realpath(checkout);
-    const topLevel = (
-      await runProcess(
-        'git',
-        ['-C', checkoutRoot, 'rev-parse', '--show-toplevel'],
-        gitEnvironment(),
-      )
-    ).stdout.trim();
-    const canonicalTopLevel = await realpath(topLevel);
-    const commit = (
-      await runProcess(
-        'git',
-        ['-C', checkoutRoot, 'rev-parse', 'HEAD'],
-        gitEnvironment(),
-      )
-    ).stdout.trim();
-    const sourceChanges = (
-      await runProcess(
-        'git',
-        [
-          '-C',
-          checkoutRoot,
-          'status',
-          '--porcelain',
-          '--untracked-files=all',
-          '--',
-          'skills-ref',
-        ],
-        gitEnvironment(),
-      )
-    ).stdout.trim();
-    if (
-      canonicalTopLevel !== checkoutRoot ||
-      commit !== SKILLS_REF_PINNED_COMMIT ||
-      sourceChanges
-    ) {
-      throw new Error(
-        `expected clean Git top level ${checkoutRoot} at ${SKILLS_REF_PINNED_COMMIT}, observed ${canonicalTopLevel} at ${commit}${sourceChanges ? ' with modified or untracked skills-ref source' : ''}`,
-      );
-    }
-  } catch (error) {
-    throw new WorkCliError(
-      'SKILLS_VALIDATOR_PROVENANCE',
-      `Official skills-ref source provenance check failed: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-
-  const sourceRoot = join(checkoutRoot, 'skills-ref', 'src');
-  try {
-    await runProcess(
-      python,
-      [
-        '-I',
-        '-X',
-        'utf8',
-        '-c',
-        'import sys; sys.path.insert(0, sys.argv.pop(1)); from skills_ref.cli import main; main()',
-        sourceRoot,
-        'validate',
-        skillRoot,
-      ],
-      pythonEnvironment(),
-    );
-  } catch (error) {
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      error.code === 'ENOENT'
-    ) {
-      throw new WorkCliError(
-        'SKILLS_VALIDATOR_UNAVAILABLE',
-        `Configured skills-ref Python environment is unavailable: ${python}`,
-      );
-    }
+async function validatePreparedSkill(
+  name: (typeof MANAGED_SKILL_NAMES)[number],
+  skillRoot: string,
+): Promise<void> {
+  const skill = await readFile(join(skillRoot, 'SKILL.md'), 'utf8');
+  const protocol = await readFile(
+    join(skillRoot, 'references', 'agent-workflow-protocol.md'),
+    'utf8',
+  );
+  const marker = JSON.parse(
+    await readFile(join(skillRoot, '.jz-trello-flow-managed.json'), 'utf8'),
+  ) as Record<string, unknown>;
+  const headerEnd = skill.indexOf('\n---', 4);
+  const header = headerEnd >= 0 ? skill.slice(4, headerEnd) : '';
+  const names = header.match(/^name:\s*(.+)$/gm) ?? [];
+  const descriptions = header.match(/^description:\s*(.+)$/gm) ?? [];
+  if (
+    !skill.startsWith('---\n') ||
+    names.length !== 1 ||
+    names[0] !== `name: ${name}` ||
+    descriptions.length !== 1 ||
+    !protocol.trim() ||
+    skill.split(INSTALLED_PROTOCOL_LINK).length !== 2 ||
+    marker.managedBy !== 'jz-trello-flow' ||
+    marker.replaceable !== true ||
+    marker.skill !== name ||
+    marker.version !== 1
+  ) {
     throw new WorkCliError(
       'SKILLS_PAYLOAD_INVALID',
-      `Official pinned skills-ref validation failed: ${error instanceof Error ? error.message : String(error)}`,
+      `Bundled ${name} failed self-contained structural validation.`,
     );
   }
 }
 
-async function preparePayload(
+export async function prepareSkillsPayload(
   assetsRoot: string,
-  validateSkill: (skillRoot: string) => Promise<void>,
+  validateSkill?: (skillRoot: string) => Promise<void>,
 ): Promise<string> {
   const stageRoot = await mkdtemp(join(tmpdir(), 'jz-trello-flow-skills-'));
   try {
@@ -379,12 +251,18 @@ async function preparePayload(
       );
     }
     for (const name of MANAGED_SKILL_NAMES) {
-      await validateSkill(join(stageRoot, name));
+      const skillRoot = join(stageRoot, name);
+      await validatePreparedSkill(name, skillRoot);
+      await validateSkill?.(skillRoot);
     }
     return stageRoot;
   } catch (error) {
     await rm(stageRoot, { force: true, recursive: true });
-    throw error;
+    if (error instanceof WorkCliError) throw error;
+    throw new WorkCliError(
+      'SKILLS_PAYLOAD_INVALID',
+      `Bundled skill payload is missing or malformed: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
@@ -395,9 +273,9 @@ export async function installSkills(
   const assetsRoot =
     options.assetsRoot ??
     resolve(dirname(process.argv[1] ?? ''), '..', 'assets', 'agent-skills');
-  const stageRoot = await preparePayload(
+  const stageRoot = await prepareSkillsPayload(
     assetsRoot,
-    options.validateSkill ?? officialValidate,
+    options.validateSkill,
   );
   try {
     const skillsRoot = join(repositoryRoot, '.agents', 'skills');

@@ -4,13 +4,13 @@
 **Last reconciled:** 2026-07-30
 **Project:** AI Arsenal monorepo
 **State:** Private Trello CLI `0.4.1` release `59e04349e56d984bf22021a8dd1fb30f563b65e7` and evidence snapshot `1149b5044594dc3a0c53e62d1e4360fa5b88ca34` passed exact-SHA Quality and Portability CI. The exact SHA-256 `7d52253d335e9555d1fede9693955522611c8e58dfdbfae61469ace68d546035` artifact is globally registered and independently passes generated-shim help/docs, installed compact-record/preflight smoke, and repeatable managed-skill byte proof. The work item is delivered; Greek Essence WU-20 remains untouched.
-**Current phase:** Await the next explicit bounded monorepo request
-**Active work item:** `none`
-**Pipeline step:** `none`
+**Current phase:** Implement the self-contained bundled Trello skill installer
+**Active work item:** `2026-07-30-make-trello-skills-install-self-contained`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Route the next explicit bounded request through `orchestrate-monorepo-work`.
+Implement the validated compact contract in `docs/work-items/2026-07-30-make-trello-skills-install-self-contained/work-item.md` through `implement-monorepo-change`.
 
 ## Why This Is Next
 
