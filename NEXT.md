@@ -3,14 +3,14 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-30
 **Project:** AI Arsenal monorepo
-**State:** Reviewed private Trello CLI `0.4.1` candidate passes 274 package tests, strict publint, repository/workflow gates, credential-free live boundaries, clean-consumer install, generated-shim help/docs, and direct packed-source compact-record/preflight smoke. Exact-SHA CI, global replacement, installed-artifact evidence, and final closure remain; Greek Essence WU-20 remains outside the work item and untouched.
-**Current phase:** Deliver the verified Trello mutation/recovery patch and complete its versioned local-install chain
+**State:** Private Trello CLI `0.4.1` release `59e04349e56d984bf22021a8dd1fb30f563b65e7` passed exact-SHA Quality and Portability CI. Its exact SHA-256 `7d52253d335e9555d1fede9693955522611c8e58dfdbfae61469ace68d546035` artifact is globally registered and independently passes generated-shim help/docs, installed compact-record/preflight smoke, and repeatable managed-skill byte proof. Greek Essence WU-20 remains outside the work item and untouched.
+**Current phase:** Commit post-install evidence, confirm its exact-SHA CI, and close the Trello mutation/recovery work item
 **Active work item:** `2026-07-30-fix-trello-mutation-recovery`
 **Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Use `deliver-monorepo-change` for `2026-07-30-fix-trello-mutation-recovery`.
+Commit and push the post-install evidence, require successful exact-SHA Quality and Portability CI, then use `deliver-monorepo-change` to close and clear `2026-07-30-fix-trello-mutation-recovery`.
 
 ## Why This Is Next
 
@@ -24,7 +24,9 @@ Use `deliver-monorepo-change` for `2026-07-30-fix-trello-mutation-recovery`.
 - [x] Write compact versioned operation records while preserving exact legacy replay semantics.
 - [x] Repair transition dry-run CLI output and resolved Open Questions readiness semantics.
 - [x] Align protocol, packaged managed skills, docs, tests, and installer byte proof.
-- [ ] Commit/push `0.4.1`, pass exact-SHA CI, pack and globally install that commit, verify the installed artifact, close the item, and pass final evidence CI.
+- [x] Commit/push `0.4.1`, pass exact-SHA CI, pack that exact commit, and prove the globally registered artifact is byte-identical.
+- [x] Verify installed package/version, generated shim, help/docs, compact-record/preflight behavior, and first/repeat managed-skill bytes.
+- [ ] Commit/push durable post-install evidence, pass its exact-SHA CI, close the item, and clear active registration.
 
 ## Blockers / Escalation
 
