@@ -3,6 +3,7 @@ import { WorkCliError } from './errors';
 import {
   operationRecord,
   operationRecordState,
+  preflightDescription,
   validateOperationId,
 } from './mutation';
 import { normalizeRemoteCard, resolveCard } from './read-commands';
@@ -133,6 +134,12 @@ export async function startDesign(
     },
   };
   const desc = renderWorkUnit(document);
+  preflightDescription({
+    current: card.desc,
+    proposed: desc,
+    operation: 'design-start',
+    operationRecord: marker,
+  });
   if (options.dryRun)
     return {
       outcome: 'planned',

@@ -92,6 +92,24 @@ async function setup(): Promise<FakeUpdateClient> {
   return client;
 }
 
+function expandCardNearLimit(client: FakeUpdateClient): void {
+  const document = parseWorkUnit(client.card.desc);
+  const oneCharacterScope = renderWorkUnit({
+    ...document,
+    sections: { ...document.sections, Scope: 'x' },
+  });
+  client.card = {
+    ...client.card,
+    desc: renderWorkUnit({
+      ...document,
+      sections: {
+        ...document.sections,
+        Scope: 'x'.repeat(16_301 - oneCharacterScope.length),
+      },
+    }),
+  };
+}
+
 const options = {
   operationId: 'update-42',
   now: '2026-07-26T12:05:00.000Z',
@@ -275,5 +293,64 @@ describe('metadata and description mutations', () => {
       outcome: 'partial',
       recovery: { operationId: 'update-42', cardId, action: 'reconcile' },
     });
+  });
+
+  it('rejects an over-budget exact final description before writing with size evidence', async () => {
+    const client = await setup();
+    await expect(
+      descriptionPatch(cardId, 'Scope', 'x'.repeat(17_000), config(), client, {
+        ...options,
+        operationId: 'oversized-update',
+      }),
+    ).rejects.toMatchObject({
+      code: 'DESCRIPTION_BUDGET_EXCEEDED',
+      recovery: {
+        operation: 'description patch',
+        limit: { characters: 16_384, basis: 'atlassian-card-desc' },
+        current: {
+          characters: expect.any(Number),
+          utf8Bytes: expect.any(Number),
+        },
+        proposed: {
+          characters: expect.any(Number),
+          utf8Bytes: expect.any(Number),
+        },
+        operationRecord: { characters: expect.any(Number) },
+        action:
+          'shorten-description-or-operation-history-and-retry-with-the-same-operation-id',
+      },
+    });
+    expect(client.calls).toEqual(['get']);
+  });
+
+  it('preflights near-limit metadata and replacement payloads before writing', async () => {
+    const metadataClient = await setup();
+    expandCardNearLimit(metadataClient);
+    await expect(
+      metadataUpdate(cardId, { owner: 'jim' }, config(), metadataClient, {
+        ...options,
+        operationId: 'oversized-metadata',
+      }),
+    ).rejects.toMatchObject({
+      code: 'DESCRIPTION_BUDGET_EXCEEDED',
+      recovery: { operation: 'metadata update' },
+    });
+    expect(metadataClient.calls).toEqual(['get']);
+
+    const replaceClient = await setup();
+    expandCardNearLimit(replaceClient);
+    await expect(
+      descriptionReplace(
+        cardId,
+        replaceClient.card.desc,
+        config(),
+        replaceClient,
+        { ...options, operationId: 'oversized-replace' },
+      ),
+    ).rejects.toMatchObject({
+      code: 'DESCRIPTION_BUDGET_EXCEEDED',
+      recovery: { operation: 'description replace' },
+    });
+    expect(replaceClient.calls).toEqual(['get']);
   });
 });

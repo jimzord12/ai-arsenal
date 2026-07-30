@@ -176,6 +176,37 @@ async function setup(withChecklist = false): Promise<FakeChecklistClient> {
 }
 
 describe('basic checklist operations', () => {
+  it('preflights record capacity before creating a checklist', async () => {
+    const client = await setup();
+    const document = parseWorkUnit(client.card.desc);
+    const oneCharacterScope = renderWorkUnit({
+      ...document,
+      sections: { ...document.sections, Scope: 'x' },
+    });
+    client.card = {
+      ...client.card,
+      desc: renderWorkUnit({
+        ...document,
+        sections: {
+          ...document.sections,
+          Scope: 'x'.repeat(16_301 - oneCharacterScope.length),
+        },
+      }),
+    };
+
+    await expect(
+      checklistCreate('WU-42', 'Verification', config(), client, {
+        operationId: 'oversized-checklist',
+        ifVersion: 'v1',
+      }),
+    ).rejects.toMatchObject({
+      code: 'DESCRIPTION_BUDGET_EXCEEDED',
+      recovery: { operation: 'checklist-create' },
+    });
+    expect(client.calls).not.toContain('create');
+    expect(client.calls).not.toContain('record');
+  });
+
   it('lists stable checklist and item IDs without mutation', async () => {
     const client = await setup(true);
     await expect(

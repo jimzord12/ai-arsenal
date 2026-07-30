@@ -51,6 +51,8 @@ Use this order when facts conflict:
 
 Git, CI, repository artifacts, and Superpowers outputs are authoritative for their own details, but none independently advances Trello status.
 
+Treat `DESCRIPTION_BUDGET_EXCEEDED` as a confirmed local no-write and route it to `trello-work-recover` with its non-secret size evidence. A remote deterministic description size/value rejection or dry-run wrapper/rendering failure must be read back before classification; never infer a mutation from the error alone or recommend a blind retry/content deletion.
+
 ## Workflow
 
 1. **Orient.** Read repository instructions, current planning/status files, and Git state relevant to the task. Completion: repository scope and any approval boundary are explicit.

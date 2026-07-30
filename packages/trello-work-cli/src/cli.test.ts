@@ -714,6 +714,58 @@ function routingFixture() {
 }
 
 describe('mutation family CLI outcomes', () => {
+  it.each(['json', 'text'] as const)(
+    'reports transition dry-run through the executable in %s mode',
+    async (output) => {
+      const fixture = routingFixture();
+      const draft = parseWorkUnit(fixture.draft);
+      const sections = { ...draft.sections };
+      delete sections['Open Questions'];
+      const canonicalCard = {
+        ...fixture.card,
+        desc: renderWorkUnit({
+          metadata: {
+            ...draft.metadata,
+            id: 'WU-42',
+            trello_card_id: fixture.card.id,
+            created_at: '2026-07-28T12:00:00.000Z',
+            updated_at: '2026-07-28T12:00:00.000Z',
+          },
+          sections,
+        }),
+      };
+      const updateCard = jest.fn();
+      const result = await runWorkCli(
+        [
+          'transition',
+          'WU-42',
+          'in_design',
+          '--dry-run',
+          '--operation-id',
+          `cli-transition-${output}`,
+          '--board',
+          'Testing',
+          '--output',
+          output,
+        ],
+        {
+          config: fixture.config,
+          client: {
+            ...fixture.client,
+            listBoardCards: async () => [canonicalCard],
+            getCard: async () => canonicalCard,
+            updateCard,
+          } as never,
+        },
+      );
+
+      expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+      expect(result.stdout).toContain('planned');
+      expect(result.stdout).toContain('proposedDescription');
+      expect(updateCard).not.toHaveBeenCalled();
+    },
+  );
+
   it('rejects an archived transition target before card access or mutation', async () => {
     const { config, client } = routingFixture();
     const lists = await client.listBoardLists();

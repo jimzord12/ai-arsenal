@@ -6,6 +6,7 @@ import { assertCurrentVersion } from './version';
 import {
   operationRecord,
   operationRecordState,
+  preflightDescription,
   validateOperationId,
 } from './mutation';
 import {
@@ -155,6 +156,12 @@ export async function reconcileWorkUnit(
     now,
     postcondition,
   );
+  preflightDescription({
+    current: card.desc,
+    proposed: desc,
+    operation: 'reconcile',
+    operationRecord: operationRecord(options.operationId, postcondition),
+  });
   const repair = { source, targetStatus, targetListId };
   if (options.dryRun) {
     return {

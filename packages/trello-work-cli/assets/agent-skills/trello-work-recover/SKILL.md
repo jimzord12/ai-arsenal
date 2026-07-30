@@ -90,6 +90,8 @@ Reconciliation repairs authorized status/list drift under configured source-of-t
 
 Always inspect `reconcile --dry-run` before a write when reconciliation is applicable.
 
+For `DESCRIPTION_BUDGET_EXCEEDED`, record the non-secret current/proposed character and byte counts, marker contribution, operation kind, and documented limit. It is a confirmed local no-write. For a remote deterministic description size/value rejection or a dry-run wrapper/rendering failure, read back first; never blind-retry, change the operation ID, discard card content, or remove legacy/compact recovery markers merely to fit. Retry unchanged state at most once only when the exact payload now preflights and the ordinary unchanged-state rule authorizes it.
+
 ## Evidence
 
 Record recovery evidence only when state changed, uncertainty remains, or another actor needs it. Keep it concise:

@@ -6,6 +6,7 @@ import { assertCurrentVersion } from './version';
 import {
   operationRecord,
   operationRecordState,
+  preflightDescription,
   validateOperationId,
 } from './mutation';
 import {
@@ -40,6 +41,17 @@ const STATUSES: WorkUnitStatus[] = [
   'done',
 ];
 
+const RESOLVED_OPEN_QUESTIONS = /^(?:none\.?|n\/a\.?|no open questions\.?)$/i;
+
+function hasUnresolvedOpenQuestions(value: string | undefined): boolean {
+  if (value === undefined) return false;
+  const normalized = value
+    .trim()
+    .replace(/^[-*]\s+/, '')
+    .trim();
+  return !RESOLVED_OPEN_QUESTIONS.test(normalized);
+}
+
 function configuredPolicy(
   config: WorkConfig,
 ): NonNullable<WorkConfig['transitionGraph']> {
@@ -61,13 +73,21 @@ function proposedDescription(
 ): string {
   const current = normalizeRemoteCard(card);
   const marker = operationRecord(operationId, postcondition);
+  const sections = { ...current.sections };
+  if (
+    target === 'ready' &&
+    sections['Open Questions'] !== undefined &&
+    !hasUnresolvedOpenQuestions(sections['Open Questions'])
+  ) {
+    delete sections['Open Questions'];
+  }
   const document = {
     metadata: { ...current.metadata, status: target, updated_at: now },
     sections: {
-      ...current.sections,
-      Context: current.sections.Context.includes(marker)
-        ? current.sections.Context
-        : `${current.sections.Context}\n\n${marker}`,
+      ...sections,
+      Context: sections.Context.includes(marker)
+        ? sections.Context
+        : `${sections.Context}\n\n${marker}`,
     },
   };
   const description = renderWorkUnit(document).replace(
@@ -161,7 +181,7 @@ export async function transitionWorkUnit(
   if (
     current.metadata.status === 'in_design' &&
     targetStatus === 'ready' &&
-    (current.sections['Open Questions'] !== undefined ||
+    (hasUnresolvedOpenQuestions(current.sections['Open Questions']) ||
       Object.values(current.sections).some((section) =>
         /\bpending\s*:/i.test(section),
       ))
@@ -179,14 +199,24 @@ export async function transitionWorkUnit(
     now,
     postcondition,
   );
+  const marker = operationRecord(options.operationId, postcondition);
+  preflightDescription({
+    current: card.desc,
+    proposed: desc,
+    operation: 'transition',
+    operationRecord: marker,
+  });
   if (options.dryRun) {
     return {
       outcome: 'planned',
-      operationId: options.operationId,
-      from: current.metadata.status,
-      to: targetStatus,
-      targetListId,
-      currentVersion: current.version,
+      plan: {
+        operationId: options.operationId,
+        from: current.metadata.status,
+        to: targetStatus,
+        targetListId,
+        currentVersion: current.version,
+        proposedDescription: desc,
+      },
     };
   }
   try {

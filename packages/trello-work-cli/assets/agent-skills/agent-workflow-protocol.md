@@ -129,6 +129,8 @@ Trello does not provide atomic conditional writes. `--if-version` is a best-effo
 
 Use `--dry-run` when the target, policy, operation, or consequences need inspection. Do not require duplicate dry runs for routine, already-understood, reversible operations.
 
+Before any description-writing mutation, inspect the CLI's exact final-payload preflight. Trello documents a 16,384-character card-description limit; byte counts and operation-record contribution are diagnostics, not substitute limits. A local `DESCRIPTION_BUDGET_EXCEEDED` result means no write occurred. After a remote deterministic description size/value rejection, read back before classifying the operation, preserve the same operation ID, and stop rather than blindly retrying, deleting card content, or replacing recovery markers. A dry-run rendering/wrapper error is also no-write unless read-back proves otherwise.
+
 ## 6. Intake, creation, and clarification
 
 ### Ordinary Inbox card

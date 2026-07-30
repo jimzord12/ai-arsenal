@@ -2,7 +2,12 @@ import type { WorkConfig } from './config';
 import { WorkCliError } from './errors';
 import { normalizeRemoteCard, type NormalizedWorkUnit } from './read-commands';
 import type { TrelloCard } from './trello-types';
-import { operationRecord, validateOperationId } from './mutation';
+import {
+  operationRecord,
+  operationRecordState,
+  preflightDescription,
+  validateOperationId,
+} from './mutation';
 import {
   parseWorkUnit,
   renderWorkUnit,
@@ -93,6 +98,12 @@ async function finalizeAndVerify(
 ): Promise<NormalizedWorkUnit> {
   let expectedDocument = persistedDocument(draft, card);
   let description = renderWorkUnit(expectedDocument);
+  preflightDescription({
+    current: card.desc,
+    proposed: description,
+    operation: 'create-finalize',
+    operationRecord: operationMarker(operationId, request),
+  });
   let finalCard = card;
   if (
     card.desc !== description ||
@@ -114,6 +125,12 @@ async function finalizeAndVerify(
       };
       description = renderWorkUnit(expectedDocument);
       if (updated.desc !== description) {
+        preflightDescription({
+          current: updated.desc,
+          proposed: description,
+          operation: 'create-finalize',
+          operationRecord: operationMarker(operationId, request),
+        });
         finalCard = await client.updateCard(card.id, { desc: description });
       }
     } catch (error) {
@@ -165,7 +182,8 @@ function isCompleteCreatePostcondition(
   card: TrelloCard,
   workUnit: NormalizedWorkUnit,
   inboxId: string,
-  marker: string,
+  operationId: string,
+  request: Record<string, unknown>,
 ): boolean {
   const generatedMetadata = new Set([
     'id',
@@ -179,6 +197,13 @@ function isCompleteCreatePostcondition(
       JSON.stringify(workUnit.metadata[key as keyof typeof draft.metadata]) ===
         JSON.stringify(value),
   );
+  const withoutMarkers = (sections: Record<string, string>) =>
+    Object.fromEntries(
+      Object.entries(sections).map(([key, value]) => [
+        key,
+        value.replace(/\n*<!-- work-operation: [^>]+ -->/g, ''),
+      ]),
+    );
   return (
     card.name === draft.metadata.title &&
     card.idList === inboxId &&
@@ -188,8 +213,9 @@ function isCompleteCreatePostcondition(
     workUnit.metadata.updated_at !== null &&
     callerMetadataMatches &&
     card.desc === renderWorkUnit(workUnit) &&
-    JSON.stringify(workUnit.sections) === JSON.stringify(draft.sections) &&
-    card.desc.includes(marker)
+    JSON.stringify(withoutMarkers(workUnit.sections)) ===
+      JSON.stringify(withoutMarkers(draft.sections)) &&
+    operationRecordState(card.desc, operationId, request) === 'match'
   );
 }
 
@@ -210,6 +236,13 @@ export async function createWorkUnit(
   const missing = missingConfiguration(config);
   const request = createRequest(parsed, config.listIds.inbox ?? null);
   const draft = withOperationMarker(parsed, options.operationId, request);
+  const draftDescription = renderWorkUnit(draft);
+  preflightDescription({
+    current: '',
+    proposed: draftDescription,
+    operation: 'create',
+    operationRecord: operationMarker(options.operationId, request),
+  });
   if (options.dryRun) {
     return {
       outcome: 'planned',
@@ -250,7 +283,10 @@ export async function createWorkUnit(
     );
   }
   if (matches[0]) {
-    if (!matches[0].desc.includes(marker)) {
+    if (
+      operationRecordState(matches[0].desc, options.operationId, request) !==
+      'match'
+    ) {
       return {
         outcome: 'partial',
         recovery: {
@@ -269,7 +305,8 @@ export async function createWorkUnit(
           readBack,
           workUnit,
           inboxId,
-          marker,
+          options.operationId,
+          request,
         )
       ) {
         return {
@@ -308,7 +345,7 @@ export async function createWorkUnit(
     created = await client.createCard({
       idList: inboxId,
       name: draft.metadata.title,
-      desc: renderWorkUnit(draft),
+      desc: draftDescription,
     });
   } catch (error) {
     if (

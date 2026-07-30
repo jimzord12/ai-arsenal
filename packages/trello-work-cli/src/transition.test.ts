@@ -142,6 +142,45 @@ describe('configured transitions', () => {
     expect(client.calls).toEqual(['get']);
   });
 
+  it('accepts explicitly resolved Open Questions but still rejects a real question', async () => {
+    const resolved = new FakeTransitionClient();
+    const current = await card();
+    const document = parseWorkUnit(current.desc);
+    resolved.card = {
+      ...current,
+      idList: 'list-in-design',
+      desc: renderWorkUnit({
+        ...document,
+        metadata: { ...document.metadata, status: 'in_design' },
+        sections: { ...document.sections, 'Open Questions': 'None.' },
+      }),
+    };
+    await expect(
+      transitionWorkUnit(cardId, 'ready', config(), resolved, {
+        operationId: 'resolved-open-questions',
+        dryRun: true,
+      }),
+    ).resolves.toMatchObject({ outcome: 'planned' });
+
+    const unresolved = new FakeTransitionClient();
+    unresolved.card = {
+      ...resolved.card,
+      desc: renderWorkUnit({
+        ...document,
+        metadata: { ...document.metadata, status: 'in_design' },
+        sections: {
+          ...document.sections,
+          'Open Questions': 'Which deployment evidence is required?',
+        },
+      }),
+    };
+    await expect(
+      transitionWorkUnit(cardId, 'ready', config(), unresolved, {
+        operationId: 'unresolved-open-questions',
+      }),
+    ).rejects.toMatchObject({ code: 'WORK_UNIT_NOT_READY' });
+  });
+
   it('returns a dry-run plan without writes', async () => {
     const client = new FakeTransitionClient();
     client.card = await card();
@@ -152,9 +191,43 @@ describe('configured transitions', () => {
     });
     expect(result).toMatchObject({
       outcome: 'planned',
-      from: 'inbox',
-      to: 'ready',
-      targetListId: 'list-ready',
+      plan: {
+        from: 'inbox',
+        to: 'ready',
+        targetListId: 'list-ready',
+        proposedDescription: expect.any(String),
+      },
+    });
+    expect(client.calls).toEqual(['get']);
+  });
+
+  it('preflights the exact near-limit transition description before writing', async () => {
+    const client = new FakeTransitionClient();
+    const current = await card();
+    const document = parseWorkUnit(current.desc);
+    const oneCharacterScope = renderWorkUnit({
+      ...document,
+      sections: { ...document.sections, Scope: 'x' },
+    });
+    client.card = {
+      ...current,
+      desc: renderWorkUnit({
+        ...document,
+        sections: {
+          ...document.sections,
+          Scope: 'x'.repeat(16_301 - oneCharacterScope.length),
+        },
+      }),
+    };
+
+    await expect(
+      transitionWorkUnit(cardId, 'ready', config(), client, {
+        operationId: 'oversized-transition',
+        dryRun: true,
+      }),
+    ).rejects.toMatchObject({
+      code: 'DESCRIPTION_BUDGET_EXCEEDED',
+      recovery: { operation: 'transition' },
     });
     expect(client.calls).toEqual(['get']);
   });

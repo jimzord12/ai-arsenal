@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { WorkCliError } from './errors';
 import { assertCurrentVersion } from './version';
 
@@ -9,6 +9,47 @@ export type MutationOptions = {
 };
 
 const OPERATION_ID = /^[A-Za-z0-9._:-]{1,128}$/;
+const OPERATION_RECORD_PREFIX = '<!-- work-operation:';
+export const TRELLO_DESCRIPTION_MAX_CHARACTERS = 16_384;
+
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+        .map(([key, entry]) => [key, canonicalize(entry)]),
+    );
+  }
+  return value;
+}
+
+function canonicalBytes(value: unknown): Buffer {
+  return Buffer.from(JSON.stringify(canonicalize(value)), 'utf8');
+}
+
+function operationKind(postcondition: unknown): string {
+  if (postcondition && typeof postcondition === 'object') {
+    const record = postcondition as Record<string, unknown>;
+    const candidate = record.operation ?? record.family;
+    if (
+      typeof candidate === 'string' &&
+      /^[A-Za-z0-9 _:-]{1,64}$/.test(candidate)
+    )
+      return candidate;
+  }
+  return 'mutation';
+}
+
+function legacyOperationRecord(
+  operationId: string,
+  postcondition: unknown,
+): string {
+  const encoded = Buffer.from(JSON.stringify(postcondition), 'utf8').toString(
+    'base64url',
+  );
+  return `<!-- work-operation: ${operationId} ${encoded} -->`;
+}
 
 export function validateOperationId(operationId: string): void {
   if (!OPERATION_ID.test(operationId)) {
@@ -25,10 +66,20 @@ export function operationRecord(
   postcondition: unknown,
 ): string {
   validateOperationId(operationId);
-  const encoded = Buffer.from(JSON.stringify(postcondition), 'utf8').toString(
-    'base64url',
-  );
-  return `<!-- work-operation: ${operationId} ${encoded} -->`;
+  const kind = operationKind(postcondition);
+  const encodedKind = Buffer.from(kind, 'utf8').toString('base64url');
+  const digest = createHash('sha256')
+    .update(canonicalBytes(postcondition))
+    .digest('base64url');
+  return `<!-- work-operation: ${operationId} v2 ${encodedKind} ${digest} -->`;
+}
+
+export function operationRecordPresent(
+  text: string,
+  operationId: string,
+): boolean {
+  validateOperationId(operationId);
+  return text.includes(`${OPERATION_RECORD_PREFIX} ${operationId} `);
 }
 
 export function operationRecordState(
@@ -37,8 +88,9 @@ export function operationRecordState(
   postcondition: unknown,
 ): 'absent' | 'match' | 'conflict' {
   validateOperationId(operationId);
-  if (!text.includes(`<!-- work-operation: ${operationId} `)) return 'absent';
-  return text.includes(operationRecord(operationId, postcondition))
+  if (!operationRecordPresent(text, operationId)) return 'absent';
+  return text.includes(operationRecord(operationId, postcondition)) ||
+    text.includes(legacyOperationRecord(operationId, postcondition))
     ? 'match'
     : 'conflict';
 }
@@ -49,6 +101,22 @@ export function operationRecordValue(
 ): unknown | null {
   validateOperationId(operationId);
   const escaped = operationId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const compact = text.match(
+    new RegExp(
+      `<!-- work-operation: ${escaped} v2 ([A-Za-z0-9_-]+) ([A-Za-z0-9_-]{43}) -->`,
+    ),
+  );
+  if (compact) {
+    try {
+      return {
+        version: 2,
+        operation: Buffer.from(compact[1], 'base64url').toString('utf8'),
+        digest: compact[2],
+      };
+    } catch {
+      return { malformed: true };
+    }
+  }
   const match = text.match(
     new RegExp(`<!-- work-operation: ${escaped} ([A-Za-z0-9_-]+) -->`),
   );
@@ -58,6 +126,44 @@ export function operationRecordValue(
   } catch {
     return { malformed: true };
   }
+}
+
+function descriptionSize(text: string): {
+  characters: number;
+  utf8Bytes: number;
+} {
+  return {
+    characters: Array.from(text).length,
+    utf8Bytes: Buffer.byteLength(text, 'utf8'),
+  };
+}
+
+export function preflightDescription(input: {
+  current: string;
+  proposed: string;
+  operation: string;
+  operationRecord?: string;
+}): void {
+  const proposed = descriptionSize(input.proposed);
+  if (proposed.characters <= TRELLO_DESCRIPTION_MAX_CHARACTERS) return;
+  throw new WorkCliError(
+    'DESCRIPTION_BUDGET_EXCEEDED',
+    'The exact final Trello card description exceeds the documented character limit; no write was attempted.',
+    {
+      recovery: {
+        operation: input.operation,
+        limit: {
+          characters: TRELLO_DESCRIPTION_MAX_CHARACTERS,
+          basis: 'atlassian-card-desc',
+        },
+        current: descriptionSize(input.current),
+        proposed,
+        operationRecord: descriptionSize(input.operationRecord ?? ''),
+        action:
+          'shorten-description-or-operation-history-and-retry-with-the-same-operation-id',
+      },
+    },
+  );
 }
 
 export type MutationPlan<T extends { version: string }> = {

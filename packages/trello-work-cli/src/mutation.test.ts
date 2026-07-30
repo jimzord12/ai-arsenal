@@ -1,11 +1,57 @@
 import { WorkCliError } from './errors';
-import { executeMutation, planMutation } from './mutation';
+import {
+  executeMutation,
+  operationRecord,
+  operationRecordState,
+  operationRecordValue,
+  planMutation,
+} from './mutation';
 
 type State = { value: string; version: string; operationId?: string };
 
 const current: State = { value: 'before', version: 'v1' };
 
 describe('mutation planning and execution', () => {
+  it('writes bounded canonical v2 records and still recognizes legacy records', () => {
+    const large = {
+      operation: 'metadata update',
+      sections: { Scope: 'x'.repeat(20_000) },
+      metadata: { z: 1, a: 2 },
+    };
+    const reordered = {
+      metadata: { a: 2, z: 1 },
+      sections: { Scope: 'x'.repeat(20_000) },
+      operation: 'metadata update',
+    };
+    const marker = operationRecord('compact-1', large);
+
+    expect(marker).toContain('<!-- work-operation: compact-1 v2 ');
+    expect(marker.length).toBeLessThan(180);
+    expect(operationRecord('compact-1', reordered)).toBe(marker);
+    expect(operationRecordState(marker, 'compact-1', reordered)).toBe('match');
+    expect(
+      operationRecordState(marker, 'compact-1', {
+        ...large,
+        metadata: { a: 3, z: 1 },
+      }),
+    ).toBe('conflict');
+    expect(operationRecordValue(marker, 'compact-1')).toMatchObject({
+      version: 2,
+      operation: 'metadata update',
+    });
+
+    const legacyPayload = Buffer.from(JSON.stringify(large), 'utf8').toString(
+      'base64url',
+    );
+    const legacy = `<!-- work-operation: legacy-1 ${legacyPayload} -->`;
+    expect(operationRecordState(legacy, 'legacy-1', large)).toBe('match');
+    expect(operationRecordValue(legacy, 'legacy-1')).toEqual(large);
+
+    const malformed = '<!-- work-operation: broken-1 v2 bm9wZQ short -->';
+    expect(operationRecordState(malformed, 'broken-1', large)).toBe('conflict');
+    expect(operationRecordValue(malformed, 'broken-1')).toBeNull();
+  });
+
   it('returns deterministic dry-run plans with zero transport calls', async () => {
     const writes: State[] = [];
     const plan = planMutation(

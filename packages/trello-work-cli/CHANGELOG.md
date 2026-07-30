@@ -1,5 +1,11 @@
 # @jz/ai-arsenal-trello-work-cli
 
+## 0.4.1
+
+### Patch Changes
+
+- Preflight exact Trello descriptions, compact operation records without breaking legacy replay, repair transition dry-runs, and align resolved-question recovery guidance.
+
 ## 0.4.0
 
 ### Minor Changes

@@ -8,7 +8,7 @@ import {
 import { createWorkUnit, type CreateClient } from './create';
 import { WorkCliError } from './errors';
 import type { TrelloCard } from './trello-types';
-import { parseWorkUnit } from './work-unit';
+import { parseWorkUnit, renderWorkUnit } from './work-unit';
 
 const draftPath = resolve(
   __dirname,
@@ -167,6 +167,40 @@ describe('verified Inbox creation', () => {
       outcome: 'recovered',
       operationId: 'same-operation',
     });
+    expect(client.calls).toEqual(['list', 'get']);
+  });
+
+  it('recovers a complete card carrying the legacy full create marker', async () => {
+    const source = await readFile(draftPath, 'utf8');
+    const client = new FakeCreateClient();
+    await createWorkUnit(source, config(), client, {
+      operationId: 'legacy-create',
+    });
+    const parsed = parseWorkUnit(source);
+    const request = {
+      operation: 'create',
+      title: parsed.metadata.title,
+      body: renderWorkUnit(parsed),
+      listId: 'list-inbox',
+      metadata: parsed.metadata,
+    };
+    const encoded = Buffer.from(JSON.stringify(request), 'utf8').toString(
+      'base64url',
+    );
+    client.cards[0] = {
+      ...client.cards[0],
+      desc: client.cards[0].desc.replace(
+        /<!-- work-operation: legacy-create v2 [^>]+ -->/,
+        `<!-- work-operation: legacy-create ${encoded} -->`,
+      ),
+    };
+    client.calls.length = 0;
+
+    await expect(
+      createWorkUnit(source, config(), client, {
+        operationId: 'legacy-create',
+      }),
+    ).resolves.toMatchObject({ outcome: 'recovered' });
     expect(client.calls).toEqual(['list', 'get']);
   });
 

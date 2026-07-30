@@ -58,6 +58,8 @@ For every mutation:
 
 Use a dry run when target, policy, operation, or consequences are not already established. Do not add duplicate ceremony to understood routine changes.
 
+Before writing a description, inspect the exact final-payload preflight. `DESCRIPTION_BUDGET_EXCEEDED` is a confirmed no-write result: preserve the operation ID and content, shorten deliberately, and never delete recovery markers or retry blindly. A dry-run wrapper/rendering error does not imply a mutation; read back before classifying any uncertain result.
+
 ## Workflow A — ordinary Inbox card
 
 1. **Read the card.** Confirm explicit board, Inbox state, identity, attachments/comments, and latest version. Completion: the same-card target is unambiguous.
@@ -84,7 +86,7 @@ Before transition, confirm:
 
 - Required canonical sections exist.
 - Material `Pending:` entries are resolved.
-- Material Open Questions are resolved.
+- Material Open Questions are resolved. The section may be omitted or contain only `None`, `N/A`, or `No open questions` (optionally as one bullet and with a terminal period); the Ready transition removes that resolved optional section. Any other content remains unresolved.
 - Objective, scope, non-goals, acceptance criteria, and verification expectations are observable and claimable.
 - Dependencies and blockers are explicit and use Work Unit IDs where applicable.
 - Routine scoped decisions are resolved from Work Unit and repository authority;

@@ -42,7 +42,7 @@ export const DOCS_TOPICS: DocsTopic[] = [
     id: 'safety',
     title: 'Safety, concurrency, and idempotency',
     content:
-      'Mutations validate current and proposed state, honor dry-run without writes, perform best-effort optimistic concurrency through a check-before-write --if-version comparison (not an atomic conditional Trello write), preserve an operation ID through --operation-id, perform minimum Trello operations, and read back before success. List delete means close/archive; a nonempty list is never closed. Boards are read-only. Unsupported transitions, wrong-board resources, and unresolved board/list configuration fail before mutation.',
+      "Mutations validate current and proposed state, honor dry-run without writes, preflight each exact final card description against Trello's documented 16384-character limit, perform best-effort optimistic concurrency through a check-before-write --if-version comparison (not an atomic conditional Trello write), preserve an operation ID through --operation-id, perform minimum Trello operations, and read back before success. DESCRIPTION_BUDGET_EXCEEDED includes non-secret current/proposed character and UTF-8 byte sizes plus compact operation-record contribution and confirms no write was attempted. New versioned records bind canonical postconditions by SHA-256 digest; legacy full records remain readable. List delete means close/archive; a nonempty list is never closed. Boards are read-only. Unsupported transitions, wrong-board resources, and unresolved board/list configuration fail before mutation.",
   },
   {
     id: 'output',
@@ -60,7 +60,7 @@ export const DOCS_TOPICS: DocsTopic[] = [
     id: 'recovery',
     title: 'Recovery and reconciliation',
     content:
-      'A partial or ambiguous mutation is not blindly retried. Preserve its operation ID, card/reference data, expected version, and recovery payload. Run jz-trello-flow get and then jz-trello-flow reconcile --dry-run. Reconciliation detects description/metadata and status/list drift and applies only an explicitly configured source-of-truth policy.',
+      'A partial or ambiguous mutation is not blindly retried. Preserve its operation ID, card/reference data, expected version, and recovery payload. Run jz-trello-flow get and then jz-trello-flow reconcile --dry-run. A deterministic remote description size/value rejection and any dry-run wrapper/rendering error require read-back before classification; do not discard content or recovery markers. Reconciliation detects description/metadata and status/list drift and applies only an explicitly configured source-of-truth policy.',
   },
   {
     id: 'doctor',

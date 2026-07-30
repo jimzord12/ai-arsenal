@@ -8,12 +8,14 @@ The planning skill extracts and presents human-facing Work Unit drafts. This CLI
 
 The canonical document is one `# Work Unit` heading, one immediately following fenced `yaml` metadata block in canonical field order, and the required ordered sections. `parent` and `blocked_by` use `WU-N`; Trello card IDs are separate 24-character hexadecimal identifiers.
 
-Inbox supports two intake paths: ordinary Trello cards listed by `jz-trello-flow inbox list`, and agent-prepared Draft Work Units created by `jz-trello-flow draft create`. `jz-trello-flow create` remains a deprecated warning-emitting alias. `jz-trello-flow design start` converts the selected card in place to In Design, preserving its Trello identity and history. In Design requires every canonical section and permits explicit `Pending:` content and `Open Questions`; transition to Ready is rejected until both are resolved.
+Inbox supports two intake paths: ordinary Trello cards listed by `jz-trello-flow inbox list`, and agent-prepared Draft Work Units created by `jz-trello-flow draft create`. `jz-trello-flow create` remains a deprecated warning-emitting alias. `jz-trello-flow design start` converts the selected card in place to In Design, preserving its Trello identity and history. In Design requires every canonical section and permits explicit `Pending:` content and `Open Questions`; transition to Ready is rejected until both are resolved. A resolved Open Questions section may say only `None`, `N/A`, or `No open questions` (optionally as one bullet and with a terminal period), and is removed by the Ready transition.
 
 ## Safety boundaries
 
 - `status`, IDs, and timestamps are system-managed.
 - Every mutating command supports `--dry-run`, `--if-version`, and `--operation-id`.
+- Every exact final card description is preflighted against Trello's documented 16,384-character limit before a write. Structured failures include non-secret character/UTF-8 byte sizes and compact operation-record contribution.
+- New operation records store a versioned SHA-256 digest of canonical postcondition bytes rather than the full postcondition. Exact legacy Base64URL records remain readable for replay and collision checks.
 - Missing board/list configuration, transition policy, or reconciliation policy fails before mutation.
 - Ambiguous mutation outcomes return recovery data and are never blindly retried.
 - Mutations read back and verify postconditions before reporting success.

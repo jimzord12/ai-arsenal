@@ -10,6 +10,7 @@ import { assertCurrentVersion } from './version';
 import {
   operationRecord,
   operationRecordState,
+  preflightDescription,
   validateOperationId,
 } from './mutation';
 import {
@@ -141,6 +142,12 @@ async function mutateDescription(
   );
   const description = renderWorkUnit(finalDocument);
   parseWorkUnit(description);
+  preflightDescription({
+    current: card.desc,
+    proposed: description,
+    operation,
+    operationRecord: operationRecord(options.operationId, postcondition),
+  });
   if (options.dryRun) {
     return {
       outcome: 'planned',

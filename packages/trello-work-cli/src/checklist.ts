@@ -9,7 +9,10 @@ import type {
 import { assertCurrentVersion } from './version';
 import {
   operationRecord,
+  operationRecordPresent,
+  operationRecordState,
   operationRecordValue,
+  preflightDescription,
   validateOperationId,
 } from './mutation';
 import { parseWorkUnit, renderWorkUnit } from './work-unit';
@@ -129,10 +132,26 @@ async function persistRecord(
   operationId: string,
   record: ChecklistRecord,
 ): Promise<void> {
+  const desc = preflightChecklistRecord(card, operationId, record);
+  await client.updateCard(card.id, { desc });
+}
+
+function preflightChecklistRecord(
+  card: TrelloCard,
+  operationId: string,
+  record: ChecklistRecord,
+): string {
   const document = parseWorkUnit(card.desc);
   const marker = operationRecord(operationId, record);
   document.sections.Context = `${document.sections.Context}\n\n${marker}`;
-  await client.updateCard(card.id, { desc: renderWorkUnit(document) });
+  const desc = renderWorkUnit(document);
+  preflightDescription({
+    current: card.desc,
+    proposed: desc,
+    operation: record.family,
+    operationRecord: marker,
+  });
+  return desc;
 }
 
 function conflict(
@@ -164,6 +183,30 @@ export async function checklistCreate(
   const card = await currentCard(reference, config, client, options);
   const requested = { name };
   const recorded = operationRecordValue(card.desc, options.operationId);
+  if (
+    recorded &&
+    typeof recorded === 'object' &&
+    (recorded as { version?: unknown }).version === 2
+  ) {
+    const existing = (await client.listChecklists(card.id)).find(
+      (candidate) =>
+        candidate.name === name &&
+        operationRecordState(card.desc, options.operationId, {
+          family: 'checklist-create',
+          cardId: card.id,
+          checklistId: candidate.id,
+          requested,
+        }) === 'match',
+    );
+    return existing
+      ? {
+          outcome: 'recovered',
+          operationId: options.operationId,
+          checklist: existing,
+          value: { checklist: existing },
+        }
+      : conflict(options, card.id);
+  }
   if (recorded !== null) {
     if (!sameRequest(recorded, 'checklist-create', card.id, requested))
       return conflict(options, card.id);
@@ -189,6 +232,12 @@ export async function checklistCreate(
       { recovery: { operationId: options.operationId, cardId: card.id } },
     );
   }
+  preflightChecklistRecord(card, options.operationId, {
+    family: 'checklist-create',
+    cardId: card.id,
+    checklistId: '000000000000000000000000',
+    requested,
+  });
   if (options.dryRun) {
     return {
       outcome: 'planned',
@@ -258,9 +307,19 @@ export async function checklistUpdate(
   const name = validateName(nameInput);
   const card = await currentCard(reference, config, client, options);
   const requested = { checklistId, name };
+  const expectedRecord: ChecklistRecord = {
+    family: 'checklist-update',
+    cardId: card.id,
+    checklistId,
+    requested,
+  };
   const recorded = operationRecordValue(card.desc, options.operationId);
-  if (recorded !== null) {
-    if (!sameRequest(recorded, 'checklist-update', card.id, requested))
+  if (operationRecordPresent(card.desc, options.operationId)) {
+    if (
+      operationRecordState(card.desc, options.operationId, expectedRecord) !==
+        'match' &&
+      !sameRequest(recorded, 'checklist-update', card.id, requested)
+    )
       return conflict(options, card.id);
     const existing = (await client.listChecklists(card.id)).find(
       (candidate) => candidate.id === checklistId && candidate.name === name,
@@ -283,6 +342,7 @@ export async function checklistUpdate(
       `Checklist ${checklistId} was not found.`,
     );
   }
+  preflightChecklistRecord(card, options.operationId, expectedRecord);
   if (options.dryRun) {
     return {
       outcome: 'planned',
@@ -345,9 +405,20 @@ export async function checklistItemSet(
   const card = await currentCard(reference, config, client, options);
   const expectedState = checked ? 'complete' : 'incomplete';
   const requested = { checklistId, itemId, state: expectedState };
+  const expectedRecord: ChecklistRecord = {
+    family: 'checklist-item-set',
+    cardId: card.id,
+    checklistId,
+    itemId,
+    requested,
+  };
   const recorded = operationRecordValue(card.desc, options.operationId);
-  if (recorded !== null) {
-    if (!sameRequest(recorded, 'checklist-item-set', card.id, requested))
+  if (operationRecordPresent(card.desc, options.operationId)) {
+    if (
+      operationRecordState(card.desc, options.operationId, expectedRecord) !==
+        'match' &&
+      !sameRequest(recorded, 'checklist-item-set', card.id, requested)
+    )
       return conflict(options, card.id);
     const existing = (await client.listChecklists(card.id))
       .find((candidate) => candidate.id === checklistId)
@@ -376,6 +447,7 @@ export async function checklistItemSet(
       `Checklist item ${itemId} was not found in checklist ${checklistId}.`,
     );
   }
+  preflightChecklistRecord(card, options.operationId, expectedRecord);
   if (options.dryRun) {
     return {
       outcome: 'planned',

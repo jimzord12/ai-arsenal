@@ -54,6 +54,8 @@ For every mutation:
 
 `--if-version` is a best-effort stale-read check, not a lock or transaction.
 
+Before writing a description or metadata, inspect the exact final-payload preflight. `DESCRIPTION_BUDGET_EXCEEDED` is a confirmed no-write result: preserve the operation ID and content, shorten deliberately, and never delete recovery markers or retry blindly. A dry-run wrapper/rendering error does not imply a mutation; read back before classifying any uncertain result.
+
 ## Claim Ready work
 
 Claiming has two required postconditions: expected stable owner and `in_progress` status. Current Trello operations do not make these atomic.
