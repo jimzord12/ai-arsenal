@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 is delivered; Trello Flow CLI `0.4.1` passed exact-SHA CI and its byte-identical global artifact passes installed-package and managed-skill verification
+> **Status:** Workflow v2 and Trello Flow CLI `0.4.1` reliability delivery are complete; no work item is active
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-30
-> **Current phase:** Commit post-install evidence, require its exact-SHA CI, then close and clear the active work item
+> **Current phase:** Await the next explicit bounded monorepo request
 > **Operator view:** `NEXT.md`
 
 ---
@@ -1006,4 +1006,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-The private Trello Flow CLI `0.4.1` release commit `59e04349e56d984bf22021a8dd1fb30f563b65e7` passed exact-SHA Quality and Portability CI. Its exact SHA-256 `7d52253d335e9555d1fede9693955522611c8e58dfdbfae61469ace68d546035` artifact is globally registered and independently passes version, generated-shim help/docs, installed compact-record/preflight behavior, and first/repeat managed-skill byte proof. Commit and push this post-install evidence, require successful exact-SHA CI, then close and clear the compact work item. Do not access or mutate Greek Essence WU-20 during this delivery.
+The Trello Flow CLI `0.4.1` reliability work item is delivered. Release commit `59e04349e56d984bf22021a8dd1fb30f563b65e7` and evidence snapshot `1149b5044594dc3a0c53e62d1e4360fa5b88ca34` passed exact-SHA Quality and Portability CI. The exact SHA-256 `7d52253d335e9555d1fede9693955522611c8e58dfdbfae61469ace68d546035` artifact is globally registered and independently passes version, generated-shim help/docs, installed compact-record/preflight behavior, and first/repeat managed-skill byte proof. No item is active; route the next explicit bounded request through Workflow v2. Greek Essence WU-20 was not accessed or mutated.

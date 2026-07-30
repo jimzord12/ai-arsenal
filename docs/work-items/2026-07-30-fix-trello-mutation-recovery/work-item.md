@@ -3,7 +3,7 @@
 Work item: 2026-07-30-fix-trello-mutation-recovery
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-07-30T19:35:54.015+03:00
 Max time: 8 hours
 Last time check: 2026-07-30T19:35:54.015+03:00
@@ -79,3 +79,5 @@ Result: passed
 - Global-install provenance: preflight observed that a concurrent prior process had already registered `@jz/ai-arsenal-trello-work-cli@0.4.1` through native global pnpm from `C:\c\Users\jimzord12\AppData\Local\Temp\ai-arsenal-trello-cli-repair\.artifacts\jz-ai-arsenal-trello-work-cli-0.4.1.tgz`. That source tarball's SHA-256 and the deployment lockfile's SHA-512 integrity exactly equal the post-CI artifact values above, so no redundant global overwrite was performed. `pnpm list -g --depth=0` reports the exact package/version, the generated `jz-trello-flow` shim runs help and `docs --topic safety`, and installed-source smoke reports a compact versioned marker plus `DESCRIPTION_BUDGET_EXCEEDED` before write.
 - Installed managed-skill proof: from the global shim, first and repeat `skills install` runs succeeded in unrelated disposable Git repository `C:\Temp\ai-arsenal-trello-delivery-a71e886ac04c\consumer repo Ω`. Repository-owned verification proved all 12 managed files byte-match the exact unpacked post-CI payload, the repeat manifest is identical (SHA-256 `25f634b6bde261d7429b817a9ea2f73d29cb05333e79cfd8dde4dfdd0d16a062`), and unrelated sentinel SHA-256 `4818de1c16b9b00826d42fd3cd59dce4bfd85a82bb43911bcba6d9a0be0f09e6` remained unchanged.
 - Boundary confirmation: no Trello API call, Greek Essence card/repository/PR access, registry publication, or source-tree global link occurred. Remaining delivery work is limited to committing this durable evidence, passing exact-SHA Quality and Portability CI for it, then closing and clearing the active item.
+- Evidence snapshot: commit `1149b5044594dc3a0c53e62d1e4360fa5b88ca34` was pushed with local/remote equality and a clean worktree. Exact-SHA Quality run `30565284534` (`https://github.com/jimzord12/ai-arsenal/actions/runs/30565284534`) and Portability run `30565284322` (`https://github.com/jimzord12/ai-arsenal/actions/runs/30565284322`) completed successfully.
+- Delivery result: all acceptance criteria are satisfied, planning now reflects verified current truth, and active registration is cleared. Delivery-invalidated formatting, living-workflow validation, selected-item validation, and whitespace checks pass on the closure snapshot.
