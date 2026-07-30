@@ -66,13 +66,14 @@ Known:
 - Latest `master` CI also passes on commit `c87a1451742d0fd434bdf104b9e008cfa0c612d5`: Quality run `29206548378` and Portability run `29206548382`.
 - The Linux CI failure on commit `b90a6bb` exposed a Corepack path assumption in the E2E harness; commits `3acdf64` and `8004c7a` made pnpm invocation portable and suppressed only Corepack's first-download prompt.
 - Version `0.1.0` is the verified private release for flexible feature selectors. Its packed tarball has the expected 10-file boundary, installs into a clean unrelated consumer, and is installed in the Windows user's global pnpm environment. The global `features-cli` command passed read-only index (`3`) and full-name (`003-remote-logging-mvp-v2`) selector smoke checks in the primary `ics-vcr` checkout. Its `remote-logging-system` worktree also retains its earlier stable-command and legacy-rollback smoke checks; three registered worktrees without `.scratch` and source-CLI junctions are not CLI consumers.
+- Trello Flow CLI `0.4.2` is the verified private release for self-contained bundled Agent Skill installation. Release commit `ea8c0a8627b740cbb587a4ab519c275d0b5137d5` passed exact-SHA Quality and Windows/Linux Portability CI; its exact SHA-256 `ff6706e7e4b3ded79c0977a2d59ddcfec70595e17c06ff07386092ce3773f391` artifact is globally installed and independently passes generated-shim help/docs, variable-free dry-run/real/repeat installation, package-byte equality, four-skill transformed-byte proof, and unrelated-sentinel preservation without Trello access.
 - Active consumer documentation and the five personal `jz-*` skills use the stable `features-cli` command; `docs/operations/features-cli-cutover.md` records installation, rollback, and the deletion gate.
 - All 14 source hashes remain unchanged, `archives/v1/` was not copied, and the source remains available for rollback.
-- Commit `332cff2` on `master` adds verified flexible `--feature` selectors. The approved private `0.1.0` release has a generated Changesets changelog, validated packed artifact, and verified global installation; only new GitHub Actions run confirmation remains pending.
+- Commit `332cff2` on `master` adds verified flexible `--feature` selectors. The approved private `0.1.0` release has a generated Changesets changelog, validated packed artifact, and verified global installation.
 
 Not yet done:
 
-- Confirm the new `master` CI runs for the flexible feature selector update when GitHub exposes them.
+- Commit and validate the durable Trello Flow CLI `0.4.2` installed-artifact evidence, then close the active Workflow v2 item.
 - The source CLI remains available for rollback and awaits its separate explicit deletion gate.
 
 The immediate next action is defined in `NEXT.md`.
