@@ -1,8 +1,8 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 and Trello Flow CLI `0.4.2` self-contained installer delivery are complete; no work item is active
+> **Status:** The Workflow v2 pipeline, Trello Flow CLI `0.4.2`, and weekly-report CLI foundation are complete; no work item is active
 > **Living-plan schema:** 1.0
-> **Last reconciled:** 2026-07-30
+> **Last reconciled:** 2026-07-31
 > **Current phase:** Await the next explicit bounded monorepo request
 > **Operator view:** `NEXT.md`
 
@@ -68,7 +68,7 @@ Reconciliation must update classifications as evidence improves.
 
 ## 4.1 Repository state
 
-- `[VERIFIED]` A pnpm `10.33.0` workspace and Turborepo `2.10.4` task graph exist with a frozen lockfile.
+- `[VERIFIED]` A pnpm `11.7.0` workspace and Turborepo `2.10.4` task graph exist with a frozen lockfile.
 - `[VERIFIED]` The intended monorepo root is `C:\Users\jimzord12\Documents\GitHub\ai-arsenal`.
 - `[VERIFIED]` Git is initialized at the monorepo root with public remote `https://github.com/jimzord12/ai-arsenal`; the public `master` branch contains the Phase 7 reconciliation.
 - `[VERIFIED]` Root formatting, linting, typechecking, testing, commitlint, Husky/lint-staged, Changesets, and publint tooling are pinned and configured.
@@ -118,6 +118,8 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` `jz-trello-flow skills install` is a self-contained offline, credential-free command that discovers the containing Git repository from nested paths, ignores inherited `GIT_*` repository selectors, and installs only the four skills bundled with the executing package under `.agents/skills/`. Runtime staging validates the complete transformed structure without Python, an external checkout, network, Trello configuration, or Trello access. Official pinned `skills-ref` validation is a root development/release command against the exact transformed source or unpacked artifact payload. Transactional replacement, rollback, restoration-failure recovery retention, redirected-path containment, no-write dry-run, unrelated-skill preservation, exact inventory, and repeat identity remain verified.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[VERIFIED]` The 2026-07-29 standing-autonomy directive applies to routine bounded work: agents proceed through review, commit, and push without a separate permission stop. Workflow v2 records direct approval only for dangerous deletion or irreversible data loss and still requires fresh execution-time confirmation; unavailable hard prerequisites still escalate.
+- `[VERIFIED]` `packages/weekly-report-cli` is the private, non-published Node.js 24 and TypeScript package `@jz/ai-arsenal-weekly-report-cli`. It exposes only the compiled `weekly-report-cli` executable, derives version output from its package manifest, keeps stdout/stderr and success/usage exit codes explicit, and honestly reports that collector commands are not yet available.
+- `[VERIFIED]` The weekly-report CLI packs exactly `README.md`, `package.json`, `dist/bin.js`, and `dist/cli.js`. Nine unit/process/distribution tests, strict publint, a clean temporary consumer whose path contains spaces, root quality/validation gates, and the Windows/Linux portability workflow cover the foundation. Public package and workflow files contain no consumer-specific integration names, private target details, or credentials.
 
 ## 4.2 Product context supplied by the user
 
@@ -143,9 +145,9 @@ Reconciliation must update classifications as evidence improves.
 - `[USER-LOCKED]` Repository purpose: AI Arsenal, a collection of the user’s AI-driven software-development tools.
 - `[USER-LOCKED]` Workspace/package manager: pnpm.
 - `[USER-LOCKED]` Task orchestration and caching: Turborepo.
-- `[USER-LOCKED]` Bun remains the existing CLI runtime unless evidence and approval justify a change.
+- `[USER-LOCKED]` Bun remains the runtime for the existing `features-cli` and `trello-work-cli`; the approved weekly-report CLI uses a deliberate Node.js 24 distribution.
 - `[USER-LOCKED]` Package naming prefix: `@jz/ai-arsenal-`.
-- `[USER-LOCKED]` Intended CLI package: `@jz/ai-arsenal-features-cli`.
+- `[USER-LOCKED]` CLI packages follow the approved `@jz/ai-arsenal-<name>` convention; current CLIs are `features-cli`, `trello-work-cli`, and `weekly-report-cli`.
 - `[VERIFIED]` `@jz` registry ownership is not required for the private, non-published initial package.
 - `[VERIFIED]` Registry publication is not needed in the initial release; the package remains private.
 
@@ -272,12 +274,21 @@ It does not own package installation.
 
 ### Bun
 
-For `features-cli`, owns:
+For `features-cli` and `trello-work-cli`, owns:
 
 - Runtime execution.
 - The `#!/usr/bin/env bun` executable contract.
 
 The CLI currently uses Node-compatible APIs rather than `Bun.*`. Do not add bundling or replace Jest merely because Bun provides those capabilities.
+
+### Node.js
+
+For `weekly-report-cli`, owns:
+
+- The Node.js 24 runtime contract.
+- The compiled `dist/bin.js` executable boundary.
+
+The package is built with TypeScript before packing. It does not change the Bun runtime contract of either existing CLI.
 
 ## 7.2 Repository layout
 
@@ -303,12 +314,17 @@ ai-arsenal/
 ├── packages/
 │   ├── features-cli/
 │   │   └── package.json
-│   └── trello-work-cli/
-│       ├── assets/
-│       │   └── agent-skills/
+│   ├── trello-work-cli/
+│   │   ├── assets/
+│   │   │   └── agent-skills/
+│   │   ├── src/
+│   │   ├── test/
+│   │   └── package.json
+│   └── weekly-report-cli/
 │       ├── src/
 │       ├── test/
-│       └── package.json
+│       ├── package.json
+│       └── README.md
 ├── scripts/
 ├── AGENTS.md
 ├── NEXT.md
@@ -353,7 +369,7 @@ Do not create empty directories or packages solely for visual symmetry.
 - Cross-package imports use package names and declared exports.
 - Do not import another package through its private `src/` path.
 - Do not create generic `common`, `core`, `types`, or `utils` packages until at least two real consumers need a coherent API.
-- A root TypeScript config may be simpler than a config package while only one package exists.
+- A root TypeScript config remains simpler than a config package while no repeated configuration boundary requires one.
 
 ## 7.4 Package naming
 
@@ -369,21 +385,25 @@ Approved AI Arsenal convention:
 @jz/ai-arsenal-<name>
 ```
 
-Current intended CLI name:
+Current CLI package names:
 
 ```text
 @jz/ai-arsenal-features-cli
+@jz/ai-arsenal-trello-work-cli
+@jz/ai-arsenal-weekly-report-cli
 ```
 
 Folder names may remain short:
 
 ```text
 packages/features-cli
+packages/trello-work-cli
+packages/weekly-report-cli
 ```
 
-The verified executable name is `features-cli`. Preserve it.
+The verified executable names are `features-cli`, `jz-trello-flow`, and `weekly-report-cli`. Preserve them.
 
-The package is private in the initial release and exposes no TypeScript import API.
+All three CLI packages are private and expose no TypeScript import API.
 
 ## 7.5 Quality-tooling direction
 
@@ -404,7 +424,7 @@ The root manifest pins Turbo `2.10.4`, TypeScript `6.0.3`, ESLint `10.7.0`, Type
 
 Use publint for the packed package. Do not add Are the Types Wrong while the package exposes no TypeScript import surface.
 
-The package-local Jest transformer uses the already pinned TypeScript compiler and produces `coverage/` as a declared Turbo output. Strict package typechecking uses bundler resolution to preserve Bun-compatible extensionless sibling imports. The migrated package retains one narrow lint exception for the characterized fail-closed throw inside `finally`.
+Package-local Jest transformers use the pinned TypeScript compiler and produce `coverage/` as a declared Turbo output. The two Bun packages preserve Bun-compatible source execution; `weekly-report-cli` uses NodeNext resolution and emits a compiled `dist/` executable before packing. The migrated `features-cli` package retains one narrow lint exception for the characterized fail-closed throw inside `finally`.
 
 Pre-commit hooks should run only fast staged-file checks.
 
@@ -441,6 +461,19 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 - Validation: strict publint packs with pnpm; Are the Types Wrong remains inapplicable because there is no import surface.
 - Verified consumption: install the tarball into a clean unrelated pnpm consumer and run `features-cli` through the generated Bun-aware command shim. The current artifact is also installed globally on the Windows consumer machine; the stable executable and legacy rollback command pass read-only smoke checks in the two worktrees that mount the shared `.scratch` state.
 - Source CLI and junction remain available for rollback until consumer cutover and explicit deletion approval.
+
+### Weekly-report CLI foundation
+
+- Package: `@jz/ai-arsenal-weekly-report-cli`.
+- Folder: `packages/weekly-report-cli`.
+- Executable: `weekly-report-cli`.
+- Runtime: Node.js 24 with compiled JavaScript in `dist/`.
+- Import API: none; the process boundary owns stdout, stderr, and exit codes.
+- Registry: private package with no publication or global installation.
+- Packed boundary: `README.md`, `package.json`, `dist/bin.js`, and `dist/cli.js` only.
+- Current behavior: honest help/version and usage diagnostics; evidence collectors are deliberately absent until later bounded work.
+- Consumer boundary: runtime inputs and machine-readable evidence may cross the process boundary later, but consumer identity, target configuration, credentials, report policy, scheduling, and delivery do not belong in this package.
+- Validation: strict publint, focused unit/process tests, and clean packed-consumer execution on Node.js 24, including temporary paths containing spaces.
 
 ## 7.8 Behavioral and persistence contract
 

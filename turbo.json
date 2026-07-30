@@ -11,6 +11,10 @@
     "format": {
       "outputs": []
     },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
     "lint": {
       "outputs": []
     },
@@ -23,7 +27,7 @@
       "outputs": ["coverage/**"]
     },
     "pack": {
-      "dependsOn": ["test"],
+      "dependsOn": ["build", "test"],
       "outputs": ["*.tgz"]
     },
     "validate": {

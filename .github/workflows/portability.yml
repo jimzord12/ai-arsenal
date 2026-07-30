@@ -37,3 +37,6 @@ jobs:
 
       - name: Exercise the real CLI and packed artifact
         run: pnpm --filter @jz/ai-arsenal-features-cli exec jest test/e2e.test.ts --runInBand
+
+      - name: Exercise the Node.js weekly-report CLI packed artifact
+        run: pnpm --filter @jz/ai-arsenal-weekly-report-cli test:distribution

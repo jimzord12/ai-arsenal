@@ -1,18 +1,18 @@
 # AI Arsenal
 
-AI Arsenal is a pnpm/Turborepo monorepo for private AI-driven software-development tools.
+AI Arsenal is a pnpm/Turborepo monorepo for reusable AI-driven software-development tools whose packages remain private and non-published.
 
-The repository contains the migrated private `features-cli` source package. Its packed artifact and Windows Bun shim are verified; the original source remains available for rollback until explicit deletion approval. Public GitHub Actions verifies quality and Windows/Linux process-distribution smoke coverage.
+The repository contains the Bun-based `features-cli` and `trello-work-cli` packages plus the Node.js weekly-report CLI foundation. Public GitHub Actions verifies quality and Windows/Linux process-distribution smoke coverage.
 
 ## Prerequisites
 
 Install the pinned toolchain:
 
-- Node.js 24.5.0 from .nvmrc.
-- pnpm 10.33.0, declared by packageManager.
+- Node.js 24.x from .nvmrc.
+- pnpm 11.7.0, declared by packageManager.
 - Bun 1.3.14 from .bun-version.
 
-pnpm owns dependency installation and workspace linking. Turborepo orchestrates package tasks. Bun remains the runtime for features-cli.
+pnpm owns dependency installation and workspace linking. Turborepo orchestrates package tasks. Bun remains the runtime for `features-cli` and `trello-work-cli`; `weekly-report-cli` deliberately compiles for Node.js 24.
 
 ## Install
 
@@ -28,6 +28,7 @@ Tracked text files are checked out with LF line endings through `.gitattributes`
 
 - packages/features-cli: private Bun source package for @jz/ai-arsenal-features-cli.
 - packages/jz-skills: single source of truth for the `jz-*` family of agent skills.
+- packages/weekly-report-cli: private Node.js source package for @jz/ai-arsenal-weekly-report-cli.
 - docs/planning: canonical living implementation plan.
 - docs/evidence: phase discovery and verification evidence.
 - .agents/skills: repository-scoped workflow skills.
@@ -37,6 +38,7 @@ Tracked text files are checked out with LF line endings through `.gitattributes`
 - pnpm format: run package formatting checks through Turborepo.
 - pnpm format:check: check repository formatting directly.
 - pnpm format:write: format supported repository files.
+- pnpm build: compile packages that ship build output.
 - pnpm lint: run package lint tasks through Turborepo.
 - pnpm lint:root: lint repository JavaScript and TypeScript configuration.
 - pnpm typecheck: run package type checks.
