@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Trello Flow CLI `0.4.2` self-contained installer release and global installation are verified; durable evidence CI and workflow closure remain
+> **Status:** Workflow v2 and Trello Flow CLI `0.4.2` self-contained installer delivery are complete; no work item is active
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-30
-> **Current phase:** Validate the installed-artifact evidence snapshot and close the active work item
+> **Current phase:** Await the next explicit bounded monorepo request
 > **Operator view:** `NEXT.md`
 
 ---
@@ -1006,4 +1006,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Trello Flow CLI `0.4.2` release commit `ea8c0a8627b740cbb587a4ab519c275d0b5137d5` passed exact-SHA Quality `30570080747` and Portability `30570080760`. The exact SHA-256 `ff6706e7e4b3ded79c0977a2d59ddcfec70595e17c06ff07386092ce3773f391` artifact is globally installed and independently passes package-byte equality, generated-shim help/docs, variable-free dry-run/real/repeat installation, exact four-skill transformed bytes, and unrelated sentinel preservation. Commit this durable installed-artifact evidence, pass exact-SHA CI, then close and clear the active item. Trello, Greek Essence, WU-20/WU-19, consumer projects, and registry state were not accessed or mutated.
+Trello Flow CLI `0.4.2` release commit `ea8c0a8627b740cbb587a4ab519c275d0b5137d5` and installed-evidence snapshot `42720e476aa1ca95482286a3b44c83dc526252cf` passed exact-SHA Quality and Portability CI. The exact SHA-256 `ff6706e7e4b3ded79c0977a2d59ddcfec70595e17c06ff07386092ce3773f391` artifact is globally installed and independently passes package-byte equality, generated-shim help/docs, variable-free dry-run/real/repeat installation, exact four-skill transformed bytes, and unrelated sentinel preservation. No item is active; route the next explicit bounded request through Workflow v2. Trello, Greek Essence, WU-20/WU-19, consumer projects, and registry state were not accessed or mutated.

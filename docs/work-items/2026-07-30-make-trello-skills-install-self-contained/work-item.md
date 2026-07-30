@@ -3,7 +3,7 @@
 Work item: 2026-07-30-make-trello-skills-install-self-contained
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-07-30T21:00:25.038+03:00
 Max time: 10 hours
 Last time check: 2026-07-30T21:16:33.948+03:00
@@ -81,4 +81,6 @@ Result: passed
 - Global replacement confirmation: after being shown exact command `pnpm add --global "C:\Users\jimzord12\AppData\Local\Temp\ai-arsenal-trello-release-ea8c0a8627b7\packed\jz-ai-arsenal-trello-work-cli-0.4.2.tgz"`, its `0.4.1` replacement consequence, and exact `0.4.1` rollback artifact, the user replied `I approve`. Fresh preflight rechecked the unchanged `0.4.1` target and exact `0.4.2` SHA-256; the approved command exited 0 and pnpm reported global `@jz/ai-arsenal-trello-work-cli 0.4.2`.
 - Installed-artifact proof: `pnpm list -g --depth=0 --json` reports `0.4.2`; all 32 packed files byte-match the exact unpacked CI-green artifact and pnpm adds only its expected three generated package shims. Global `jz-trello-flow.ps1` help and `docs --topic skills` pass and expose the self-contained contract.
 - Disposable installed-shim proof at `C:\Temp\ai-arsenal-trello-042-delivery-5002661525144990ad5efe23680444ed`: with Trello credentials absent, former validator paths deliberately invalid, and network proxies pointed to an unavailable local endpoint, dry-run reported four installs without managed mutation; real installation reported four installs; repeat reported four replacements. Repository-owned proof verified the exact 12 transformed managed files, four-directory inventory, repeat manifest SHA-256 `25f634b6bde261d7429b817a9ea2f73d29cb05333e79cfd8dde4dfdd0d16a062`, and unchanged sentinel SHA-256 `b072885a36ba742a882e9a6db2be87feca22e4ea463bc6cb5f3adf9f685d978c`.
-- Boundary confirmation: no Trello API call, Greek Essence/WU-20/WU-19 or consumer-project access, registry publication, mutable source link, or network dependency occurred. The `0.4.1` rollback artifact remains available with verified SHA-256 `7d52253d335e9555d1fede9693955522611c8e58dfdbfae61469ace68d546035`. Remaining delivery work is durable-evidence CI followed by workflow closure and final closure CI.
+- Boundary confirmation: no Trello API call, Greek Essence/WU-20/WU-19 or consumer-project access, registry publication, mutable source link, or network dependency occurred. The `0.4.1` rollback artifact remains available with verified SHA-256 `7d52253d335e9555d1fede9693955522611c8e58dfdbfae61469ace68d546035`.
+- Installed-evidence snapshot: commit `42720e476aa1ca95482286a3b44c83dc526252cf` was pushed with local/remote equality and a clean worktree. Exact-SHA Quality `30570886060` and Portability `30570885879` passed, including both Ubuntu and Windows distribution jobs.
+- Delivery result: all acceptance criteria are satisfied; planning reflects verified current truth; the compact item is delivered; and active registration is cleared. Delivery-invalidated formatting, living-workflow validation, selected-item validation, and whitespace checks pass on the closure snapshot.
