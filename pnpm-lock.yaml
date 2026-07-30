@@ -63,6 +63,8 @@ importers:
 
   packages/trello-work-cli: {}
 
+  packages/weekly-report-cli: {}
+
 packages:
 
   '@babel/code-frame@7.29.7':

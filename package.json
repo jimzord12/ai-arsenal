@@ -13,6 +13,7 @@
     "format": "turbo run format",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
+    "build": "turbo run build",
     "lint": "turbo run lint",
     "lint:root": "eslint .",
     "typecheck": "turbo run typecheck",
