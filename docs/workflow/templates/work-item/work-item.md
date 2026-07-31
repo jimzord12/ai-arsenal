@@ -9,11 +9,21 @@ Max time: <positive minutes or hours>
 Last time check: <ISO-8601 timestamp>
 Turns since time check: 1
 Review cycles: 0
-Required findings remaining: no
+Review status: pending
+Review snapshot: pending
 Dangerous deletion or irreversible data loss: <yes|no>
 Hard prerequisites: <resolved|blocked>
 Approval: <not-required|required|approved>
 Approval source: <none|verbatim direct user approval>
+
+<!--
+Review lifecycle:
+- Definition and entry into review use Review status: pending and Review snapshot: pending.
+- An unsuccessful required review for a concrete candidate uses Review status: failed and Review snapshot: sha256:<64 lowercase hexadecimal characters>.
+- Complete required review evidence for a concrete candidate uses Review status: passed and Review snapshot: sha256:<64 lowercase hexadecimal characters>.
+- Any repair that changes candidate bytes resets both fields to pending before re-review.
+- Review cycles remain bounded at four; an unsuccessful fourth cycle is blocked.
+-->
 
 ## Goal
 

@@ -6,7 +6,8 @@ description: Use when a Workflow v2 work item has passed final verification and 
 # Deliver Monorepo Change
 
 Validate the active compact item and require recorded passing final
-verification with no required review findings. Reconcile the canonical plan to
+verification, `Review status: passed`, and a concrete
+`Review snapshot: sha256:<64 lowercase hexadecimal characters>`. Reconcile the canonical plan to
 verified current truth without changelog prose, but keep the compact item
 active at `Stage: deliver` and keep `NEXT.md` routed to this skill until every
 delivery obligation is evidenced.

@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered and globally installed; no work item is active
+> **Status:** Workflow v2 explicit review lifecycle is verified and in delivery; Trello Flow CLI `0.5.1` and repaired weekly-report CLI `0.1.1` remain delivered and globally installed
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
-> **Current phase:** Await the next bounded request
+> **Current phase:** Deliver the explicit Workflow v2 review lifecycle
 > **Operator view:** `NEXT.md`
 
 ---
@@ -521,6 +521,15 @@ and final verification. The router does not write files or change Git state.
 Historical v1 artifact directories remain readable through the validator's
 compatibility path; new work never creates that artifact chain.
 
+New compact v2 items model review explicitly with `Review status` values
+`pending`, `failed`, or `passed` and a `Review snapshot` that is either
+`pending` or a concrete lowercase SHA-256 value. Definition and entry into
+review start pending; unsuccessful review records failed; complete required
+review evidence records passed; and candidate-changing repair resets review to
+pending before re-review. The four-cycle limit remains unchanged. Delivered
+compact records using the retired `Required findings remaining: no` field stay
+readable without rewriting their historical bytes.
+
 ## 8.2 Reconciliation and current truth
 
 Only `deliver-monorepo-change` closes a normal active work item. It requires an
@@ -873,6 +882,7 @@ The user approved versioning, changelog generation, release verification, commit
 - The Tier 2 policy targets one to six trusted users, requires five-turn proportionality checks, caps repair/re-review at four cycles, and runs full gates once on the stable snapshot.
 - Routine work has no approval artifact. Dangerous deletion or irreversible data loss retains direct approval and fresh execution-time confirmation; unavailable hard prerequisites block honestly.
 - The validator routes compact v2 items and retains a read-only v1 compatibility path so historical work-item evidence remains readable without migration machinery.
+- Compact v2 review is explicit: new items begin pending, unsuccessful review is failed, successful review is passed for a concrete snapshot, candidate-changing repairs reset to pending, and the four-cycle stop remains enforced. Delivered compact records using the retired implicit field remain readable without rewriting.
 - The pipeline remains separate from consumer `.scratch/features/` workflows.
 
 ### Approval gate

@@ -3,26 +3,26 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** WU-30 recovery is delivered: weekly-report CLI `0.1.1` is merged, exact-commit CI-green, byte-proven, globally installed, independently smoked, and Trello read-back-confirmed Done.
-**Current phase:** Await the next bounded request
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** GitHub issue #15 is defined as the active bounded Workflow v2 review-lifecycle change.
+**Current phase:** Deliver explicit review lifecycle schema and transitions
+**Active work item:** `2026-07-31-model-workflow-review-lifecycle`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Use `define-monorepo-change` for the next explicit bounded monorepo request.
+Use `deliver-monorepo-change` for `2026-07-31-model-workflow-review-lifecycle`.
 
 ## Why This Is Next
 
-- Recovery PR `#20` is merged at `0f6dee6abc3e689ffb7e743649451335a00b288b`; local and remote default-branch revisions matched, and weekly-report package bytes match exact CI-green artifact commit `0bd9416ae8b7fd4f99be390c31247844788f3905`.
-- Exact private `0.1.1` tarball SHA-256 `60adadd364debf8dfe77b14a6634d70fbe203f8cfe356a11823fefecaaf505f7` contains eight files, byte-matches the global installation, and passes clean-consumer plus generated-shim smoke.
-- Trello WU-30 moved through guarded In Progress → Review → Done transitions with current-version checks, durable operation identities, dry-runs, and read-backs.
+- The no-active-item validator passed before definition, and the worktree was clean at `c6303bb`.
+- GitHub issue `#15` is the first dependency in parent issue `#14` and owns only explicit review lifecycle fields and transitions.
+- The current compact template initializes implicit success with `Required findings remaining: no`; the bounded change replaces that representation while preserving delivered history.
 
 ## Requirements
 
-- Preserve the delivered `0.1.1` privacy, evidence-integrity, Git-process, and packed-boundary contracts.
-- Keep registry publication, consumer access, and source deletion behind separate explicit scope.
-- WU-31 is no longer blocked by WU-30, but it has not been started by this recovery.
+- Preserve the five-stage Workflow v2 route and four-cycle review limit.
+- Keep deterministic digest computation, complete review-batch semantics, the full advancement barrier, and integrated regression/documentation work in GitHub issues `#16` through `#19`.
+- Keep already-delivered compact records readable without rewriting them solely for schema adoption.
 
 ## Blockers / Escalation
 
@@ -30,12 +30,12 @@ Use `define-monorepo-change` for the next explicit bounded monorepo request.
 
 ## Done When
 
-- A new explicit bounded request is defined as a compact Workflow v2 work item.
+- Reconcile canonical planning truth, commit and push the exact verified workflow snapshot, record delivery evidence, and clear the active registration.
 
 ## Source of Truth
 
 - `AGENTS.md`
-- `docs/work-items/2026-07-31-recover-git-evidence-collector/work-item.md`
-- `docs/work-items/2026-07-31-add-git-evidence-collector/work-item.md`
+- `docs/work-items/2026-07-31-model-workflow-review-lifecycle/work-item.md`
+- `https://github.com/jimzord12/ai-arsenal/issues/15`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`

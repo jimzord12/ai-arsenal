@@ -12,7 +12,57 @@ const validatorPath = path.join(
   scriptsDirectory,
   'validate-monorepo-work-item.mjs',
 );
+const compactTemplatePath = path.join(
+  scriptsDirectory,
+  '..',
+  'docs',
+  'workflow',
+  'templates',
+  'work-item',
+  'work-item.md',
+);
+const defineSkillPath = path.join(
+  scriptsDirectory,
+  '..',
+  '.agents',
+  'skills',
+  'define-monorepo-change',
+  'SKILL.md',
+);
+const implementSkillPath = path.join(
+  scriptsDirectory,
+  '..',
+  '.agents',
+  'skills',
+  'implement-monorepo-change',
+  'SKILL.md',
+);
+const reviewSkillPath = path.join(
+  scriptsDirectory,
+  '..',
+  '.agents',
+  'skills',
+  'review-monorepo-change',
+  'SKILL.md',
+);
+const verifySkillPath = path.join(
+  scriptsDirectory,
+  '..',
+  '.agents',
+  'skills',
+  'verify-monorepo-change',
+  'SKILL.md',
+);
+const deliverSkillPath = path.join(
+  scriptsDirectory,
+  '..',
+  '.agents',
+  'skills',
+  'deliver-monorepo-change',
+  'SKILL.md',
+);
 const workItemId = '2026-07-13-example';
+const reviewDigest = `sha256:${'a'.repeat(64)}`;
 
 function createFixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-arsenal-work-item-'));
@@ -187,7 +237,13 @@ function addV2WorkItem(
     status = 'active',
     turns = 0,
     reviewCycles = 0,
-    requiredFindings = 'no',
+    reviewStatus = stage === 'verify' || stage === 'deliver'
+      ? 'passed'
+      : 'pending',
+    reviewSnapshot = stage === 'verify' || stage === 'deliver'
+      ? reviewDigest
+      : 'pending',
+    legacyRequiredFindings,
     dangerous = 'no',
     prerequisites = 'resolved',
     approval = 'not-required',
@@ -209,7 +265,11 @@ Max time: 4 hours
 Last time check: 2026-07-29T10:00:00+03:00
 Turns since time check: ${turns}
 Review cycles: ${reviewCycles}
-Required findings remaining: ${requiredFindings}
+${
+  legacyRequiredFindings === undefined
+    ? `Review status: ${reviewStatus}\nReview snapshot: ${reviewSnapshot}`
+    : `Required findings remaining: ${legacyRequiredFindings}`
+}
 Dangerous deletion or irreversible data loss: ${dangerous}
 Hard prerequisites: ${prerequisites}
 Approval: ${approval}
@@ -257,8 +317,77 @@ test('a compact v2 work item routes through the five-stage workflow', (t) => {
     stage: 'implement',
     status: 'active',
     reviewCycles: 0,
+    reviewStatus: 'pending',
+    reviewSnapshot: 'pending',
     turnsSinceTimeCheck: 0,
   });
+});
+
+test('the compact template initializes explicit review as pending', () => {
+  const template = fs.readFileSync(compactTemplatePath, 'utf8');
+
+  assert.match(template, /^Review status: pending$/m);
+  assert.match(template, /^Review snapshot: pending$/m);
+  assert.doesNotMatch(template, /^Required findings remaining:/m);
+});
+
+test('stage skills define pending entry, failed review, pass, and repair reset', () => {
+  const defineSkill = fs.readFileSync(defineSkillPath, 'utf8');
+  const implementSkill = fs.readFileSync(implementSkillPath, 'utf8');
+  const reviewSkill = fs.readFileSync(reviewSkillPath, 'utf8');
+  const verifySkill = fs.readFileSync(verifySkillPath, 'utf8');
+  const deliverSkill = fs.readFileSync(deliverSkillPath, 'utf8');
+
+  assert.match(defineSkill, /Review status: pending/);
+  assert.match(defineSkill, /Review snapshot: pending/);
+  assert.match(implementSkill, /reset.*Review status: pending/is);
+  assert.match(implementSkill, /Review snapshot: pending/);
+  assert.match(reviewSkill, /Review status: failed/);
+  assert.match(reviewSkill, /Review status: passed/);
+  assert.match(reviewSkill, /four cycles/i);
+  assert.match(verifySkill, /Review status: passed/);
+  assert.match(verifySkill, /Review snapshot: sha256/);
+  assert.match(deliverSkill, /Review status: passed/);
+  assert.match(deliverSkill, /Review snapshot: sha256/);
+});
+
+test('v2 accepts each valid explicit review state', (t) => {
+  for (const [name, reviewStatus, reviewSnapshot] of [
+    ['pending', 'pending', 'pending'],
+    ['failed', 'failed', reviewDigest],
+    ['passed', 'passed', reviewDigest],
+  ]) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      reviewStatus,
+      reviewSnapshot,
+    });
+    writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 0, `${name}: ${result.json.blocker}`);
+  }
+});
+
+test('v2 rejects malformed or contradictory explicit review states', (t) => {
+  for (const [name, reviewStatus, reviewSnapshot, blocker] of [
+    ['pending with digest', 'pending', reviewDigest, /pending snapshot/i],
+    ['failed without digest', 'failed', 'pending', /concrete snapshot/i],
+    ['passed without digest', 'passed', 'pending', /concrete snapshot/i],
+    ['unknown status', 'complete', reviewDigest, /Review status/i],
+    ['malformed digest', 'passed', 'sha256:abc', /Review snapshot/i],
+  ]) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      reviewStatus,
+      reviewSnapshot,
+    });
+    writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 1, name);
+    assert.match(result.json.blocker, blocker, name);
+  }
 });
 
 test('v2 enforces time checks and the review-cycle ceiling', (t) => {
@@ -276,7 +405,8 @@ test('v2 enforces time checks and the review-cycle ceiling', (t) => {
         stage: 'review',
         status: 'blocked',
         reviewCycles: 4,
-        requiredFindings: 'yes',
+        reviewStatus: 'failed',
+        reviewSnapshot: reviewDigest,
       },
       'review-monorepo-change',
       0,
@@ -370,6 +500,35 @@ test('completed v2 work validates with cleared registration', (t) => {
   assert.match(result.json.blocker, /delivered/i);
 });
 
+test('completed legacy v2 work remains readable without schema rewriting', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    status: 'delivered',
+    legacyRequiredFindings: 'no',
+  });
+  writeActiveState(fixture.root, 'none', 'none');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 0, result.json.blocker);
+  assert.equal(result.json.valid, true);
+  assert.match(result.json.blocker, /delivered/i);
+});
+
+test('active legacy v2 work must adopt the explicit review lifecycle', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    legacyRequiredFindings: 'no',
+  });
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /delivered historical records/i);
+});
+
 test('v2 deliver state requires explicit passed final verification', (t) => {
   for (const status of ['active', 'delivered']) {
     const fixture = createFixture(t);
@@ -426,7 +585,8 @@ test('four unresolved review cycles must stop as blocked', (t) => {
   addV2WorkItem(fixture.workItemDirectory, {
     stage: 'review',
     reviewCycles: 4,
-    requiredFindings: 'yes',
+    reviewStatus: 'failed',
+    reviewSnapshot: reviewDigest,
   });
   writeActiveState(fixture.root, workItemId, 'review-monorepo-change');
 

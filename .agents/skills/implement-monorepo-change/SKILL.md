@@ -19,7 +19,9 @@ value, not unrecorded conversational turns.
 
 Update the compact implementation summary with changed paths, decisions, and
 focused command results. Dangerous actions also require fresh confirmation
-immediately before execution. Then set
+immediately before execution. Before entering review, reset
+`Review status: pending` and `Review snapshot: pending`; this reset is also
+required after any implementation repair that changes candidate bytes. Then set
 `Stage: review` and route `NEXT.md` to `review-monorepo-change`.
 
 The v1 artifact instructions below apply only to historical directories

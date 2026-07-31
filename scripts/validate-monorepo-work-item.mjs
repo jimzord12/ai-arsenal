@@ -557,11 +557,64 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
   const reviewCycles = Number(
     readSingleField(contents, 'Review cycles', /^\d+$/),
   );
-  const requiredFindings = readSingleField(
-    contents,
-    'Required findings remaining',
-    /^(yes|no)$/,
-  );
+  const reviewStatusMatches = [
+    ...contents.matchAll(/^Review status: (.+)\r?$/gm),
+  ];
+  const reviewSnapshotMatches = [
+    ...contents.matchAll(/^Review snapshot: (.+)\r?$/gm),
+  ];
+  const legacyRequiredFindingsMatches = [
+    ...contents.matchAll(/^Required findings remaining: (.+)\r?$/gm),
+  ];
+  const usesExplicitReviewLifecycle =
+    reviewStatusMatches.length > 0 || reviewSnapshotMatches.length > 0;
+  let reviewStatus;
+  let reviewSnapshot;
+  if (usesExplicitReviewLifecycle) {
+    if (legacyRequiredFindingsMatches.length > 0) {
+      throw new Error(
+        'work-item.md cannot mix explicit review lifecycle fields with Required findings remaining',
+      );
+    }
+    reviewStatus = readSingleField(
+      contents,
+      'Review status',
+      /^(pending|failed|passed)$/,
+    );
+    reviewSnapshot = readSingleField(
+      contents,
+      'Review snapshot',
+      /^(pending|sha256:[0-9a-f]{64})$/,
+    );
+    if (reviewStatus === 'pending' && reviewSnapshot !== 'pending') {
+      throw new Error('Pending review requires a pending snapshot');
+    }
+    if (reviewStatus !== 'pending' && reviewSnapshot === 'pending') {
+      throw new Error(
+        `${reviewStatus === 'passed' ? 'Passed' : 'Failed'} review requires a concrete snapshot`,
+      );
+    }
+  } else {
+    if (
+      legacyRequiredFindingsMatches.length !== 1 ||
+      !/^(yes|no)$/.test(legacyRequiredFindingsMatches[0][1])
+    ) {
+      throw new Error(
+        'work-item.md must contain one valid Review status field and one valid Review snapshot field',
+      );
+    }
+    if (
+      stage !== 'deliver' ||
+      status !== 'delivered' ||
+      legacyRequiredFindingsMatches[0][1] !== 'no'
+    ) {
+      throw new Error(
+        'Required findings remaining is supported only for delivered historical records',
+      );
+    }
+    reviewStatus = 'passed';
+    reviewSnapshot = null;
+  }
   const dangerous = readSingleField(
     contents,
     'Dangerous deletion or irreversible data loss',
@@ -595,7 +648,7 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
   const awaitingDangerousApproval =
     dangerous === 'yes' && approval === 'required' && approvalSource === 'none';
   const exhaustedReview =
-    stage === 'review' && reviewCycles === 4 && requiredFindings === 'yes';
+    stage === 'review' && reviewCycles === 4 && reviewStatus === 'failed';
   if (hardPrerequisites === 'blocked' && status !== 'blocked') {
     throw new Error('Blocked hard prerequisites require blocked status');
   }
@@ -611,12 +664,6 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     }
   } else if (approval !== 'not-required') {
     throw new Error('Routine v2 work must use Approval: not-required');
-  }
-  if (
-    requiredFindings === 'yes' &&
-    (stage === 'verify' || stage === 'deliver')
-  ) {
-    throw new Error('Required review findings must be repaired before verify');
   }
   if (status === 'active' && exhaustedReview) {
     throw new Error(
@@ -711,6 +758,8 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     stage,
     status,
     reviewCycles,
+    reviewStatus,
+    reviewSnapshot,
     turnsSinceTimeCheck,
   };
   let blocker = null;

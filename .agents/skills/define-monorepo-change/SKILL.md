@@ -17,6 +17,9 @@ or irreversible data loss and hard prerequisites. Routine work uses
 `Stage: define`, `Status: blocked`, `Approval: required`, and
 `Approval source: none`; unavailable hard prerequisites likewise use blocked
 define state. These are valid stops, not structural corruption.
+Every newly defined compact item starts with `Review status: pending` and
+`Review snapshot: pending`; absence of findings is never initial review
+evidence.
 For either stop, keep `NEXT.md` registered at `define-monorepo-change`; valid
 validator output has no next skill and names the blocker.
 
