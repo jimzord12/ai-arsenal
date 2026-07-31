@@ -70,6 +70,7 @@ Known:
 - Active consumer documentation and the five personal `jz-*` skills use the stable `features-cli` command; `docs/operations/features-cli-cutover.md` records installation, rollback, and the deletion gate.
 - All 14 source hashes remain unchanged, `archives/v1/` was not copied, and the source remains available for rollback.
 - Commit `332cff2` on `master` adds verified flexible `--feature` selectors. The approved private `0.1.0` release has a generated Changesets changelog, validated packed artifact, and verified global installation.
+- Workflow v2 review-barrier integration issue `#19` is delivered and closed. Artifact commit `b7b095d27fb2750bfeaef670a384670e7fe30dda` passed exact-SHA Quality runs `30652534854` and `30652535100` plus Portability runs `30652534982` and `30652535659`; the blocked four-cycle predecessor and user-authorized one-attempt successor preserve the complete audit.
 
 Not yet done:
 

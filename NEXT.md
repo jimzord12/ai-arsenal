@@ -3,36 +3,33 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** The user-authorized successor review and final verification passed on the exact issue #19 candidate.
-**Current phase:** Deliver and reconcile GitHub issue #19
-**Active work item:** `2026-07-31-complete-review-barrier-integration`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Workflow v2 review-barrier integration issue #19 is delivered and closed; its exact artifact is CI-green.
+**Current phase:** Await the next bounded request
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Reconcile current planning truth, deliver the verified snapshot, close issue #19, and confirm exact-SHA CI.
+No work item is active. Await the next bounded request; source-CLI deletion remains behind its separate explicit gate.
 
 ## Why This Is Next
 
-- The ten-case integrated lifecycle matrix passes against the validator behavior delivered by issues #15 through #18.
-- Cycle 1 found and repaired the semantic-assertion gap; cycle 2 found and repaired only stale routing prose.
-- The predecessor preserves all four review cycles and remains blocked; its final substantive implementation and fixture repair are technically green.
-- The user explicitly authorized exactly one successor review attempt rather than evidence replacement or a silent fifth predecessor cycle.
-- The single successor batch passed with exact matching `contract` and `quality` evidence, and all final verification gates passed.
+- Artifact commit `b7b095d27fb2750bfeaef670a384670e7fe30dda` passed two exact-SHA Quality runs and two exact-SHA Portability runs.
+- Issue #19 is closed; its integrated lifecycle matrix and live-authority alignment are delivered.
+- The blocked predecessor and delivered one-attempt successor preserve the full review audit without evidence replacement.
 
 ## Requirements
 
-- Preserve the reviewed and verified snapshot while reconciling current truth and producing the delivery commit.
-- Preserve issue #18's delivered snapshot and the blocked predecessor audit.
-- Use isolated temporary repositories and keep digest and batch unit redesign, shipped CLI behavior, and unrelated workflow polish out of scope.
+- Define any new monorepo change through Workflow v2 before implementation.
+- Do not delete the original source CLI without its separate explicit deletion approval and fresh execution-time confirmation.
 
 ## Blockers / Escalation
 
-- No active blocker; hard prerequisites are resolved and no dangerous operation is authorized or required.
+- No active blocker.
 
 ## Done When
 
-- The successor and predecessor audit are reconciled, issue #19 is closed, the exact artifact commit is pushed and CI-green, and active registration is cleared.
+- The next bounded request is separately defined with a valid compact Workflow v2 contract.
 
 ## Source of Truth
 

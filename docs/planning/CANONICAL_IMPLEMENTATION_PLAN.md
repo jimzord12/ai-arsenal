@@ -1,6 +1,6 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 snapshot-bound review enforcement, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered; no work item is active
+> **Status:** Workflow v2 review-barrier integration, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered; no work item is active
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
 > **Current phase:** Await the next bounded request
@@ -567,8 +567,19 @@ discovery/cleanliness seams force `--ignore-submodules=none`, so local or
 committed ignore configuration cannot hide tracked or untracked submodule
 state. Quality CI fetches two commits to make the parent available. Exact
 immutable hashes preserve the eleven delivered pre-batch records without
-granting broad compatibility to newly fabricated records. Integrated lifecycle
-coverage and normative documentation alignment remain the final child `#19`.
+granting broad compatibility to newly fabricated records.
+
+Integration and documentation issue `#19` is delivered. Its disposable-
+repository matrix proves the complete barrier across unperformed, pending,
+failed, incomplete, mismatched, stale, unchanged, repaired, delivery-bypass,
+immediate/later-arriving batch, and immutable-history cases. Root guidance,
+the compact template, review skill, normative pipeline, and living-workflow
+assertions share the same five field names, snapshot source, pending
+initialization, complete-evidence rule, repair reset, fail-closed advancement,
+and exact-hash historical boundary. The exhausted four-cycle predecessor
+remains blocked as audit evidence; the user's one-attempt successor passed
+contract and quality review, final verification, and exact-SHA CI before
+delivery.
 
 ## 8.2 Reconciliation and current truth
 
@@ -1091,4 +1102,6 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Workflow v2 validator advancement and stale-snapshot enforcement issue `#18` is delivered and closed. No work item is active; define integration-regression and normative-documentation issue `#19` as the final bounded child through Workflow v2.
+No work item is active. Review-barrier integration issue `#19` is delivered and
+closed; await the next bounded request. The original source CLI remains
+available for rollback and still requires its separate explicit deletion gate.
