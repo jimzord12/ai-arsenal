@@ -3,7 +3,7 @@
 Work item: 2026-07-31-fix-gitlink-snapshot-equivalence
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-07-31T19:16:04+03:00
 Max time: 3 hours
 Last time check: 2026-07-31T19:16:04+03:00
@@ -68,4 +68,6 @@ Result: passed
 ## Delivery evidence
 
 - Artifact commit `7d3daa365821082f237c41a0df6312660cb653ef` was pushed. Portability run `30647998169` passed; Quality run `30647997996` failed only at clean-delivery validation because its one-commit checkout lacked `HEAD^`.
-- Pending cycle-4 review, replacement artifact commit, exact-SHA CI, reconciliation, and issue closure.
+- Replacement artifact commit `8b2824e702c84462bc522ab5e9ccf489056d940d` equals `origin/master` and passed exact-SHA Quality run `30648643513` plus Portability run `30648643584` on Ubuntu and Windows.
+- GitHub issue `#18` is closed as completed. The canonical plan records the delivered validator, gitlink, dirty-state, historical-compatibility, and CI checkout invariants; issue `#19` remains the final child.
+- Active registration is cleared in `NEXT.md`. The delivered-record and living-workflow validators must pass on the clean closure commit.

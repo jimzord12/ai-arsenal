@@ -3,25 +3,25 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** The fourth and final review cycle and final verification passed the Quality checkout-depth repair; the exact repaired snapshot is ready for replacement delivery.
-**Current phase:** Deliver the CI-ready artifact
-**Active work item:** `2026-07-31-fix-gitlink-snapshot-equivalence`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Workflow v2 validator advancement and stale-snapshot enforcement issue #18 is delivered and closed; its exact artifact is CI-green.
+**Current phase:** Await definition of the final review-barrier child
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Use `deliver-monorepo-change` for `2026-07-31-fix-gitlink-snapshot-equivalence`.
+Define GitHub issue #19 through Workflow v2 when implementation begins.
 
 ## Why This Is Next
 
-- Both cycle-4 reviewers independently matched snapshot `sha256:41e38f2c5a9d1fe2e54358c3f7fad341a98f57e9ecb413ecf2fbb3e4dda2cc48`.
-- Full final verification passed on that unchanged snapshot.
-- The replacement artifact is eligible for commit, push, and exact-SHA CI.
+- Replacement artifact `8b2824e702c84462bc522ab5e9ccf489056d940d` passed Quality `30648643513` and Portability `30648643584` on Ubuntu and Windows.
+- Issue #18 is closed as completed, and its successor work item preserves the full four-cycle audit.
+- Issue #19 is the final dependent child and remains intentionally out of the delivered scope.
 
 ## Requirements
 
-- Commit and push the exact verified replacement, then require successful Quality and Portability runs for that SHA.
-- Reconcile issue #18 only after both runs succeed; keep issue #19 out of scope until closure.
+- Create a fresh bounded work item for issue #19 before changing its integration matrix or normative documentation.
+- Preserve issue #18's delivered snapshot and the blocked predecessor audit.
 - Keep issue #19's integration matrix and normative documentation work out of scope.
 
 ## Blockers / Escalation
@@ -30,12 +30,12 @@ Use `deliver-monorepo-change` for `2026-07-31-fix-gitlink-snapshot-equivalence`.
 
 ## Done When
 
-- Replacement artifact CI is green, issue #18 is reconciled and closed, active registration is cleared, and issue #19 is next.
+- Issue #19 is separately defined with a valid compact Workflow v2 contract.
 
 ## Source of Truth
 
 - `AGENTS.md`
 - `docs/work-items/2026-07-31-fix-gitlink-snapshot-equivalence/work-item.md`
-- `https://github.com/jimzord12/ai-arsenal/issues/18`
+- `https://github.com/jimzord12/ai-arsenal/issues/19`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`

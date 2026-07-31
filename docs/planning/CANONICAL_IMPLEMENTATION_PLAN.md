@@ -1,6 +1,6 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 deterministic review snapshots, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered; no work item is active
+> **Status:** Workflow v2 snapshot-bound review enforcement, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered; no work item is active
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
 > **Current phase:** Await the next bounded request
@@ -553,9 +553,22 @@ one matching successful result per expected role with no invalid extras.
 Candidate-changing repair resets all review evidence before a fresh snapshot
 and batch. The three review-evidence fields are excluded by the shared snapshot
 calculation as mutable control state, and a concrete pending snapshot is valid
-only while the item remains in review. Validator advancement/freshness
-enforcement and the integrated barrier remain separate children `#18` and
-`#19`.
+only while the item remains in review.
+
+Validator advancement and freshness enforcement issue `#18` is delivered. The
+validator rejects pending, failed, incomplete, malformed, mismatched, or stale
+review evidence at verify and active delivery, and requires newly delivered
+records to retain complete evidence with no later candidate dirt. An exact
+reviewed artifact commit can validate in a clean checkout by reconstructing the
+same candidate from `HEAD^` to `HEAD` only when the ordinary candidate is clean.
+That commit source uses the shared framing/filter/hash path and preserves real
+gitlink addition, pointer-update, and deletion semantics. All three Git
+discovery/cleanliness seams force `--ignore-submodules=none`, so local or
+committed ignore configuration cannot hide tracked or untracked submodule
+state. Quality CI fetches two commits to make the parent available. Exact
+immutable hashes preserve the eleven delivered pre-batch records without
+granting broad compatibility to newly fabricated records. Integrated lifecycle
+coverage and normative documentation alignment remain the final child `#19`.
 
 ## 8.2 Reconciliation and current truth
 
@@ -1078,4 +1091,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Workflow v2 complete matching review-batch evidence issue `#17` is delivered and closed. No work item is active; define validator advancement and stale-snapshot enforcement issue `#18` as the next bounded child through Workflow v2.
+Workflow v2 validator advancement and stale-snapshot enforcement issue `#18` is delivered and closed. No work item is active; define integration-regression and normative-documentation issue `#19` as the final bounded child through Workflow v2.
