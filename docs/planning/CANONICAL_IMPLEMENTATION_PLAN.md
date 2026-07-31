@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 explicit review lifecycle, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered; no work item is active
+> **Status:** Workflow v2 deterministic review snapshots are verified and in delivery; Trello Flow CLI `0.5.1` and repaired weekly-report CLI `0.1.1` are delivered
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
-> **Current phase:** Await the next bounded request
+> **Current phase:** Deliver the deterministic review-snapshot work item
 > **Operator view:** `NEXT.md`
 
 ---
@@ -530,6 +530,20 @@ pending before re-review. The four-cycle limit remains unchanged. Delivered
 compact records using the retired `Required findings remaining: no` field stay
 readable without rewriting their historical bytes.
 
+Workflow v2 now has one reusable deterministic review-candidate calculation at
+`scripts/calculate-review-snapshot.mjs`. It binds tracked changes from `HEAD`
+and non-ignored additions through normalized repository-relative paths,
+ordinal ordering, collision-safe length framing, baseline/current raw bytes,
+file modes/types, explicit deletion entries, and rename-as-delete-plus-add
+semantics. `NEXT.md` is excluded as routing-only state. The active compact work
+item remains included after narrowly removing only stage/status/timing/review
+control fields and review, verification, and delivery evidence; its identity,
+safety classification, goal, non-goals, acceptance criteria, and implementation
+description remain reviewed input. The callable API and command return only a
+`sha256:<64 lowercase hexadecimal characters>` digest. Review-batch evidence,
+snapshot freshness enforcement, and the integrated barrier remain separate
+children `#17`–`#19`.
+
 ## 8.2 Reconciliation and current truth
 
 Only `deliver-monorepo-change` closes a normal active work item. It requires an
@@ -1051,4 +1065,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Workflow v2 explicit review lifecycle issue `#15` is delivered and closed. No work item is active; define the next bounded child, deterministic review-candidate digest issue `#16`, through Workflow v2.
+Workflow v2 deterministic review-candidate digest issue `#16` has passed review and final verification on a matching concrete snapshot. Complete its active delivery by committing and pushing the verified candidate, observing exact-SHA Quality and Windows/Linux Portability CI, closing the GitHub issue, recording immutable evidence, and clearing active registration.
