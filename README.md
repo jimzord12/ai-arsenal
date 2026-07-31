@@ -2,7 +2,7 @@
 
 AI Arsenal is a pnpm/Turborepo monorepo for reusable AI-driven software-development tools whose packages remain private and non-published.
 
-The repository contains the Bun-based `features-cli` and `trello-work-cli` packages plus the Node.js weekly-report CLI foundation. Public GitHub Actions verifies quality and Windows/Linux process-distribution smoke coverage.
+The repository contains the Bun-based `features-cli` and `trello-work-cli` packages plus a Node.js weekly-report CLI with deterministic Git evidence collection. Public GitHub Actions verifies quality and Windows/Linux process-distribution smoke coverage.
 
 ## Prerequisites
 

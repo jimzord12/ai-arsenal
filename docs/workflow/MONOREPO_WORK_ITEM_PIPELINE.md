@@ -330,8 +330,11 @@ stops.
 
 Stages 1–5 write planning artifacts only. Implementation is the only stage that
 may change product, test, or product documentation files. Verification records
-evidence and may create only isolated disposable test output. Reconciliation
-updates planning records and may commit and push the exact verified, attributable
-snapshot when the contract does not forbid Git delivery. Release, packing,
-publication, global installation, destructive history rewriting, and source
-deletion are outside this pipeline.
+evidence and may create only isolated disposable test output. Delivery updates planning records and may commit and push the exact verified,
+attributable snapshot when the contract does not forbid Git delivery. For
+Workflow v2 CLI behavior work, root package policy may additionally require
+post-CI packing and versioned local installation before the item is marked
+delivered; `deliver-monorepo-change` owns that bounded operation and its
+evidence. Registry publication, destructive history rewriting, and source
+deletion remain outside this pipeline unless separately and explicitly
+authorized.

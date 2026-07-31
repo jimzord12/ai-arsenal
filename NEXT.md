@@ -3,39 +3,40 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** The Workflow v2 pipeline, `features-cli`, `trello-work-cli`, and the verified Node.js 24 `weekly-report-cli` foundation are represented in current planning truth. All packages remain private and non-published.
-**Current phase:** Await the next explicit bounded monorepo request
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** The verified Node.js 24 `weekly-report-cli` foundation is being extended with bounded deterministic Git evidence collection.
+**Current phase:** Deliver the Git evidence collector
+**Active work item:** `2026-07-31-add-git-evidence-collector`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Await the next explicit bounded monorepo request.
+Use `deliver-monorepo-change` for `2026-07-31-add-git-evidence-collector`.
 
 ## Why This Is Next
 
-- The weekly-report CLI foundation passed independent review, full repository gates, strict package validation, and clean packed-consumer execution.
-- The canonical plan now records the three CLI package boundaries and the current pnpm/Turborepo toolchain.
-- Collector behavior and consumer integration remain separate future work.
+- The bounded implementation, independent review, and final stable-snapshot verification passed.
+- Delivery must commit and push the artifact-bearing snapshot, observe CI, then pack and install that exact CI-green commit before workflow closure.
+- Deployment collection and private integration remain separate work.
 
 ## Requirements
 
-- Keep public package source, fixtures, documentation, and workflow records generic and free of consumer-specific integration details or credentials.
-- Preserve the verified Bun boundaries for `features-cli` and `trello-work-cli` and the Node.js 24 compiled boundary for `weekly-report-cli`.
-- Keep current packages private and non-published unless later bounded work explicitly changes release policy.
-- Add collector behavior or consumer integration only through separate bounded work.
+- Keep the public collector generic and free of consumer identities, credentials, private history, and delivery behavior.
+- Preserve the Node.js 24 compiled executable, validated JSON, stdout/stderr, exit-code, and exact packed-artifact boundaries.
+- Use synthetic temporary repositories for development and verification.
+- Complete the repository-mandated Changesets, exact-CI-green packing, checksum, global installation, smoke verification, and rollback-evidence chain for CLI behavior changes.
 
 ## Blockers / Escalation
 
 - No active blocker.
-- Later bounded work must define its own exact behavior and verification contract.
+- Dangerous deletion or irreversible data loss is not authorized or required.
 
 ## Done When
 
-- A new explicit request is classified and routed through the monorepo workflow.
+- The work item's review, verification, delivery, versioned local distribution, and workflow closure requirements pass.
 
 ## Source of Truth
 
 - `AGENTS.md`
+- `docs/work-items/2026-07-31-add-git-evidence-collector/work-item.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`
