@@ -3,8 +3,8 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** WU-30 recovery review and final verification passed; commit, PR, exact-commit CI, artifact installation, and closure evidence remain.
-**Current phase:** Deliver repaired Git evidence collector
+**State:** Final cycle-4 review and invalidated verification passed; commit and push the portable fixture repair, then require replacement exact-commit CI.
+**Current phase:** Deliver portable namespace fixture repair
 **Active work item:** `2026-07-31-recover-git-evidence-collector`
 **Pipeline step:** `deliver-monorepo-change`
 
@@ -16,7 +16,7 @@ Use `deliver-monorepo-change` for `2026-07-31-recover-git-evidence-collector`.
 
 - Focused RED→GREEN coverage now repairs credential-redaction, evidence-validation, strict-instant, nested-remote, and submodule-fetch defects while preserving prior collector safeguards.
 - Original WU-30 delivery evidence remains historical; this corrective Workflow v2 item repairs forward without implying the late review had passed.
-- Three fresh independent reviewers approved exact stable candidate `ac74223b491c438d4c1c29b3e6aabd13b60f2f7f2ab5cfb287b8a1dcb16138b6`, and the complete final verification matrix passed.
+- Three final independent reviewers approved the direct synthetic remote configuration, and invalidated full verification passed; replacement exact-commit Quality plus Windows/Linux Portability CI is next.
 
 ## Requirements
 

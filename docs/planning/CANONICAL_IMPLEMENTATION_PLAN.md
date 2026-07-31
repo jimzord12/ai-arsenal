@@ -1,6 +1,6 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** WU-30 corrective recovery is active because globally installed weekly-report CLI `0.1.0` is defective; reviewed and locally verified `0.1.1` awaits exact-commit CI, artifact installation, and closure
+> **Status:** WU-30 corrective recovery is active because globally installed weekly-report CLI `0.1.0` is defective; `0.1.1` behavior and Linux fixture repair are reviewed and locally verified, while replacement exact-commit CI remains
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
 > **Current phase:** Deliver the WU-30 weekly-report Git collector recovery before starting WU-31
@@ -119,7 +119,7 @@ Reconciliation must update classifications as evidence improves.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[VERIFIED]` The 2026-07-29 standing-autonomy directive applies to routine bounded work: agents proceed through review, commit, and push without a separate permission stop. Workflow v2 records direct approval only for dangerous deletion or irreversible data loss and still requires fresh execution-time confirmation; unavailable hard prerequisites still escalate.
 - `[HISTORICAL EVIDENCE]` `packages/weekly-report-cli` version `0.1.0` established the private, non-published Node.js 24 process-only package and its eight-file packed boundary. Its recorded 30-test, strict-publint, clean-consumer, exact-SHA CI, tarball-checksum, and global-install evidence remains immutable, but later independent review found credential-disclosure and evidence-integrity defects, so `0.1.0` is not accepted for credential-bearing input.
-- `[ACTIVE]` Corrective work item `2026-07-31-recover-git-evidence-collector` generated patch candidate `0.1.1`. Three independent reviewers found no required issue, and final repository verification passed with 79 package tests covering non-echoing rejected input, strict ref names and instants, full object-ID validation, case-folded overlapping remote namespaces, and disabled submodule recursion. Exact-commit CI, artifact proof, global replacement, and guarded Trello closure remain required.
+- `[ACTIVE]` Corrective work item `2026-07-31-recover-git-evidence-collector` generated patch candidate `0.1.1`. Independent behavior review passed; exact-commit Linux Quality CI then exposed a fixture setup incompatibility in newer Git before collector execution. Three final reviewers approved the portable test-only repair with no required finding, and replacement full verification passed. Replacement exact-commit CI, artifact proof, global replacement, and guarded Trello closure remain.
 
 ## 4.2 Product context supplied by the user
 
@@ -473,7 +473,7 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 - Packed boundary: `README.md`, `package.json`, `dist/arguments.js`, `dist/bin.js`, `dist/cli.js`, `dist/evidence-schema.js`, `dist/git-collector.js`, and `dist/redaction.js` only.
 - Current behavior: honest help/version and usage diagnostics plus deterministic `collect git` evidence for an explicit working tree, remote, default branch, and inclusive interval.
 - Consumer boundary: runtime target configuration and machine-readable evidence cross the process boundary; consumer identity, credentials, report interpretation, scheduling, and delivery remain outside this package.
-- Validation: historical `0.1.0` evidence records 30 passing tests, strict publint, synthetic repositories, clean packed-consumer execution, exact-SHA Quality and Windows/Linux Portability CI, and byte-exact global installation. That release is now known defective. Reviewed `0.1.1` passes 79 package tests, strict publint, clean packed-consumer execution, full repository gates, workflow validators, privacy inspection, and three-agent review; exact-commit CI and exact-artifact installation evidence remain.
+- Validation: historical `0.1.0` evidence records 30 passing tests, strict publint, synthetic repositories, clean packed-consumer execution, exact-SHA Quality and Windows/Linux Portability CI, and byte-exact global installation. That release is now known defective. `0.1.1` behavior and its portable test-only fixture repair pass 79 package tests, strict publint, clean packed-consumer execution, full repository gates, workflow validators, privacy inspection, and independent review; replacement exact-commit CI and exact-artifact installation evidence remain.
 
 ## 7.8 Behavioral and persistence contract
 
@@ -1039,4 +1039,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Deliver WU-30 through corrective work item `2026-07-31-recover-git-evidence-collector`. Commit and push reviewed/verified `0.1.1`, require exact-commit Quality and Windows/Linux Portability CI, then pack and install that exact artifact, record immutable evidence, and complete guarded Trello Review/Done read-backs before starting WU-31 or any unrelated Trello filtering work.
+Commit and push the reviewed and verified portable namespace fixture repair in corrective work item `2026-07-31-recover-git-evidence-collector`, require replacement exact-commit Quality plus Windows/Linux Portability CI, then pack/install the exact artifact, record immutable evidence, and complete guarded Trello Review/Done read-backs before starting WU-31 or unrelated Trello filtering work.

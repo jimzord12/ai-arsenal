@@ -324,7 +324,11 @@ it('rejects overlapping remote namespaces before fetch mutates tracking refs', a
     git(remote, ['symbolic-ref', 'HEAD', 'refs/heads/main']);
     git(workspace, ['clone', remote, target]);
     git(target, ['remote', 'rename', 'origin', 'foo']);
-    git(target, ['remote', 'add', 'foo/bar', join(workspace, 'unused.git')]);
+    git(target, [
+      'config',
+      'remote.foo/bar.url',
+      join(workspace, 'unused.git'),
+    ]);
 
     await commit(seed, 'new remote main', '2026-07-21T10:00:00Z');
     git(seed, ['push', 'origin', 'main']);
@@ -385,7 +389,11 @@ it('rejects case-folded remote namespace overlap before tracking-ref mutation', 
     git(remote, ['symbolic-ref', 'HEAD', 'refs/heads/main']);
     git(workspace, ['clone', remote, target]);
     git(target, ['remote', 'rename', 'origin', 'foo']);
-    git(target, ['remote', 'add', 'Foo/bar', join(workspace, 'unused.git')]);
+    git(target, [
+      'config',
+      'remote.Foo/bar.url',
+      join(workspace, 'unused.git'),
+    ]);
 
     await commit(seed, 'new nested branch', '2026-07-21T10:00:00Z');
     git(seed, ['push', 'origin', 'bar/main']);

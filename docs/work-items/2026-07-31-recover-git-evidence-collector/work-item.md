@@ -6,9 +6,9 @@ Stage: deliver
 Status: active
 Started at: 2026-07-31T10:56:22+03:00
 Max time: 8 hours
-Last time check: 2026-07-31T10:56:22+03:00
-Turns since time check: 4
-Review cycles: 3
+Last time check: 2026-07-31T12:04:15+03:00
+Turns since time check: 0
+Review cycles: 4
 Required findings remaining: no
 Dangerous deletion or irreversible data loss: no
 Hard prerequisites: resolved
@@ -59,6 +59,8 @@ Recover WU-30 truthfully after premature repository closure, repair the independ
 - Cycle 2 re-reviewed staged diff `81560a72d4285bf0f1711594f8884a12947a7cc2fe93af014319835fba7f4718` with three independent agents. Two approved it; the Git-process reviewer found one High: mixed-case remotes such as `foo` and `Foo/bar` overlap on case-insensitive filesystems but the namespace guard compared case-sensitively, allowing fetch to mutate the aliased tracking ref.
 - Added a synthetic mixed-case fixture that failed by fetching and mutating instead of rejecting, then case-folded namespace comparison before fetch. Focused GREEN and the complete 79-test package suite passed. Fresh independent re-review of the new stable bytes remains required.
 - Cycle 3 re-reviewed staged diff `ac74223b491c438d4c1c29b3e6aabd13b60f2f7f2ab5cfb287b8a1dcb16138b6` with three independent agents. All three approved the exact stable bytes with no Critical, High, Medium, or acceptance-related Minor finding; the candidate hash matched before and after every review.
+- Cycle 4 re-reviewed staged portability repair `6b297d95adbdf1fef7e799d28e00c7b17a497a56a7044c266a95dab053c30173` with three independent agents. All approved with no required finding and stable before/after hashes. They independently confirmed direct remote configuration is enumerated by Git and still exercises same-case and case-folded conflict rejection before fetch, tracking-ref mutation, or `FETCH_HEAD` change; product code remained unchanged.
+- Time/scope check at `2026-07-31T12:04:15+03:00`: recovery remains proportional to the accepted WU-30 defects and CI portability failure. Scope is still one private patch package, one recovery PR, exact artifact replacement, and truthful closure; WU-31 remains blocked.
 
 ## Final verification
 
@@ -70,3 +72,5 @@ Result: passed
 - Workflow and diff gates: living-workflow validator, selected-item validator, and `git diff --check` — exit `0`; the item routed correctly through verification and all changed paths matched the implementation summary.
 - Privacy inspection — exit `0`; added-line scans found zero credential assignments, consumer identifiers, or shell-execution constructs. Independent reviewers also proved credential-bearing rejected values and repository paths were absent from both output streams.
 - Reviewed product snapshot remained unchanged from approved staged digest `ac74223b491c438d4c1c29b3e6aabd13b60f2f7f2ab5cfb287b8a1dcb16138b6`; the verification snapshot including review/stage evidence had deterministic diff digest `7f3cebc25d053f5c02909be120d65232bf6c516ec357fad6a9fcd5b5b5014851`.
+- Exact-commit Quality CI for `7c53b30e4e7c1c6584b813f591916f5ee24ea6ff` failed on Linux because current Git rejects `git remote add foo/bar` when `foo` already exists before the collector runs. Portability CI itself passed on Windows and Linux. Verification returned to review; the fixture now writes the equivalent remote configuration directly so every Git version can exercise the collector guard, and focused namespace tests pass locally. Fresh cycle-4 review and invalidated Quality CI remain required.
+- After cycle-4 approval, replacement `pnpm check` — exit `0`; formatting, lint, typecheck, all package tests, 55 workflow tests with one documented Windows privilege-dependent skip, and both workflow validators passed. Weekly-report CLI remained seven suites and 79 tests. Living-workflow validation, selected-item validation, and `git diff --check` also exited `0`. Exact-commit replacement CI remains a delivery gate rather than local final verification.
