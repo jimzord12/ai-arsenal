@@ -3,11 +3,11 @@
 Work item: 2026-07-31-filter-trello-card-members
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-07-31T10:26:15+03:00
 Max time: 6 hours
 Last time check: 2026-07-31T10:26:15+03:00
-Turns since time check: 1
+Turns since time check: 2
 Review cycles: 2
 Required findings remaining: no
 Dangerous deletion or irreversible data loss: no
@@ -79,3 +79,13 @@ Attempt 2 result: passed
 - Clean packed-consumer smoke — exit `0`; the 32-file `0.5.0` tarball installed into unrelated temporary consumer `C:\Users\JIMZOR~1\AppData\Local\Temp\ai-arsenal-trello-verify-65154e39579f4692a91c1655332faacb`, and its generated shim exposed list plus version-matched member/owner matching docs. Candidate SHA-256: `42e57a200b47d4bc020da186eacb7023d12148d1472cc12f422b9c94e4d88be0`. Temporary evidence remains intact.
 - Changed-path/privacy/manual audit — all 25 changed product/test/doc paths are within the compact contract; native member reads remain non-mutating; `jim`, consumer identifiers, board identities, credential names/values, and Greek Essence produced zero changed-diff matches. The package-owned source/bundled protocols remain byte-identical at SHA-256 `84f7c0f6d4022555135d59829b10837065156d6714c4e750aab179497b28fec4`.
 - `git diff --check`, `node scripts/validate-living-workflow.mjs`, and `node scripts/validate-monorepo-work-item.mjs --current --json` — all exited `0` on the final verified snapshot.
+
+## Delivery evidence
+
+- Artifact-bearing commit `e9c005a2391b21c3add345203276bf720e1f48c6` matched local `HEAD`, `origin/master`, and both required CI `headSha` values before packing. Quality run `30614651328` (`https://github.com/jimzord12/ai-arsenal/actions/runs/30614651328`) and Portability run `30614651510` (`https://github.com/jimzord12/ai-arsenal/actions/runs/30614651510`) passed on that exact commit, including Ubuntu and Windows process/distribution jobs.
+- Exact release tarball `jz-ai-arsenal-trello-work-cli-0.5.0.tgz` contains the verified 32-file boundary and has SHA-256 `42e57a200b47d4bc020da186eacb7023d12148d1472cc12f422b9c94e4d88be0`.
+- Preflight proved the prior global version was `0.4.2`. Exact rollback command is `pnpm add --global "C:\Users\jimzord12\AppData\Local\Temp\ai-arsenal-trello-release-ea8c0a8627b7\packed\jz-ai-arsenal-trello-work-cli-0.4.2.tgz"`; that retained artifact has the recorded SHA-256 `ff6706e7e4b3ded79c0977a2d59ddcfec70595e17c06ff07386092ce3773f391`.
+- After the exact command, paths, replacement consequence, and rollback were presented, the user explicitly approved. `pnpm add --global "C:\Users\jimzord12\AppData\Local\Temp\ai-arsenal-trello-release-e9c005a2391b\packed\jz-ai-arsenal-trello-work-cli-0.5.0.tgz"` exited `0`; pnpm reported global `@jz/ai-arsenal-trello-work-cli 0.5.0`.
+- Independent global verification resolved the installed package under `C:\Users\jimzord12\AppData\Local\pnpm\global\v11\6918-19fb73689ec\node_modules\@jz\ai-arsenal-trello-work-cli` and the generated PowerShell shim under the pnpm global bin directory. All 32 package files byte-matched the tarball; the only three installed extras were generated `.bin` shims.
+- Generated-shim help and version-matched concepts docs exposed `list`, `--member`, `--owner`, and the display-name/substring exclusions. An installed-source fake-client smoke returned counts `{ member: 1, owner: 1, combined: 1, mismatch: 0, displayName: 0 }` and the expected member object, proving exact member/owner composition without credentials, network, or Trello access.
+- Registry publication, consumer-project mutation, live/production Trello access, and destructive cleanup did not occur. Candidate, release, byte-proof, and smoke evidence directories remain under the user temp directory.

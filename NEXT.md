@@ -3,27 +3,25 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** Native Trello member output/filtering and distinct owner filtering passed final stable-snapshot verification and await delivery.
-**Current phase:** Deliver Trello member and owner filtering
-**Active work item:** `2026-07-31-filter-trello-card-members`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Trello Flow CLI `0.5.0` native member output/filtering and distinct metadata-owner filtering are delivered, exact-SHA CI-green, and globally installed from the byte-proven private artifact.
+**Current phase:** Await the next bounded request
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Use `deliver-monorepo-change` for `2026-07-31-filter-trello-card-members`.
+Use `define-monorepo-change` for the next explicit bounded monorepo request.
 
 ## Why This Is Next
 
-- Review cycle 2 repaired the consumer-identity fixture finding with neutral synthetic values.
-- Final verification passed root/package gates, the packed consumer, official skill validation, privacy/diff checks, and workflow validators on the repaired bytes.
-- Delivery must reconcile planning, commit and push the artifact snapshot, require exact-SHA CI, then pack and install that exact CI-green commit with rollback and independent global smoke evidence.
+- Native member output and exact member-ID/case-insensitive-username filtering are delivered without changing member assignments.
+- Exact metadata-owner filtering remains separate and conjunctive.
+- Artifact commit `e9c005a2391b21c3add345203276bf720e1f48c6` passed required CI and its byte-proven `0.5.0` tarball is globally installed with retained `0.4.2` rollback.
 
 ## Requirements
 
-- Match native members only by exact ID or case-insensitive exact username; do not match display names or substrings.
-- Preserve exact metadata-owner filtering as a separate conjunctive filter.
-- Keep the change read-only and use offline Trello fixtures; do not mutate live or production boards.
-- Complete the mandatory Changesets, exact-CI-green artifact, global installation, and installed-shim verification chain.
+- Preserve the delivered member/owner responsibility boundary and exact matching semantics.
+- Keep registry publication, production Trello mutation, and source deletion behind separate bounded work.
 
 ## Blockers / Escalation
 
@@ -32,7 +30,7 @@ Use `deliver-monorepo-change` for `2026-07-31-filter-trello-card-members`.
 
 ## Done When
 
-- Member and owner output/filter acceptance passes review, final verification, exact-SHA CI, artifact installation, independent global smoke, and workflow closure.
+- A new explicit request is defined as a compact Workflow v2 work item.
 
 ## Source of Truth
 
