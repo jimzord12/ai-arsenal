@@ -35,6 +35,14 @@ const card = {
   idList: 'list-1',
   dateLastActivity: '2026-07-26T12:00:00.000Z',
   shortUrl: 'https://trello.com/c/AbCd1234/outcome',
+  members: [
+    { id: 'member-2', username: 'alex', fullName: 'Alex Example' },
+    { id: 'member-1', username: 'dev-one', fullName: 'Developer One' },
+  ],
+};
+const normalizedCard = {
+  ...card,
+  members: [card.members[1], card.members[0]],
 };
 
 function client(transport: TrelloTransport): TrelloClient {
@@ -51,7 +59,7 @@ describe('Trello REST API v1 client', () => {
     const transport = new FakeTransport(json(card));
     const result = await client(transport).getCard(card.id);
 
-    expect(result).toEqual(card);
+    expect(result).toEqual(normalizedCard);
     expect(transport.requests).toHaveLength(1);
     const request = transport.requests[0];
     expect(request.method).toBe('GET');
@@ -63,6 +71,26 @@ describe('Trello REST API v1 client', () => {
     expect(url.searchParams.get('token')).toBe('api-token-value');
     expect(request.url).not.toContain('must-not-send');
     expect(url.searchParams.get('fields')).toContain('idShort');
+    expect(url.searchParams.get('members')).toBe('true');
+    expect(url.searchParams.get('member_fields')).toBe('id,username,fullName');
+  });
+
+  it('fails closed for malformed nested card members', async () => {
+    const transport = new FakeTransport(
+      json({ ...card, members: 'member-1' }),
+      json({
+        ...card,
+        members: [{ id: 'member-1', username: 'dev-one' }],
+      }),
+    );
+    const api = client(transport);
+
+    await expect(api.getCard(card.id)).rejects.toMatchObject({
+      code: 'TRELLO_RESPONSE_INVALID',
+    });
+    await expect(api.getCard(card.id)).rejects.toMatchObject({
+      code: 'TRELLO_RESPONSE_INVALID',
+    });
   });
 
   it('lists complete attachment metadata in Trello order and rejects malformed entries', async () => {
@@ -171,7 +199,15 @@ describe('Trello REST API v1 client', () => {
           closed: false,
         },
       ]),
-      json([card]),
+      json([
+        { ...card, closed: false },
+        {
+          ...card,
+          id: 'aaaaaaaaaaaaaaaaaaaaaaaa',
+          idShort: 43,
+          closed: true,
+        },
+      ]),
     );
     const api = client(transport);
 
@@ -187,7 +223,9 @@ describe('Trello REST API v1 client', () => {
       name: 'Work',
     });
     await expect(api.listBoardLists('board-1')).resolves.toHaveLength(1);
-    await expect(api.listBoardCards('board-1')).resolves.toEqual([card]);
+    await expect(api.listBoardCards('board-1')).resolves.toEqual([
+      normalizedCard,
+    ]);
     expect(
       transport.requests.map((request) => new URL(request.url).pathname),
     ).toEqual([
@@ -197,6 +235,12 @@ describe('Trello REST API v1 client', () => {
       '/1/boards/board-1/lists',
       '/1/boards/board-1/cards',
     ]);
+    expect(
+      new URL(transport.requests.at(-1)?.url ?? '').searchParams.get('filter'),
+    ).toBe('visible');
+    expect(
+      new URL(transport.requests.at(-1)?.url ?? '').searchParams.get('fields'),
+    ).toContain('closed');
   });
 
   it('constructs list create, read, update, action, and occupancy requests', async () => {
@@ -252,17 +296,20 @@ describe('Trello REST API v1 client', () => {
   });
 
   it('performs the minimum card create/update operations', async () => {
+    const mutationCard = { ...card, members: undefined };
     const transport = new FakeTransport(
-      json(card),
-      json({ ...card, idList: 'list-2' }),
+      json(mutationCard),
+      json({ ...mutationCard, idList: 'list-2' }),
     );
     const api = client(transport);
 
-    await api.createCard({
-      idList: 'list-1',
-      name: 'Outcome',
-      desc: '# Work Unit',
-    });
+    await expect(
+      api.createCard({
+        idList: 'list-1',
+        name: 'Outcome',
+        desc: '# Work Unit',
+      }),
+    ).resolves.toMatchObject({ members: [] });
     await api.updateCard(card.id, { idList: 'list-2', desc: '# Updated' });
 
     expect(transport.requests).toHaveLength(2);

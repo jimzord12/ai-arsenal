@@ -6,6 +6,13 @@ export type TrelloCard = {
   idList: string;
   dateLastActivity: string;
   shortUrl: string;
+  members: TrelloMember[];
+};
+
+export type TrelloMember = {
+  id: string;
+  username: string;
+  fullName: string;
 };
 
 export type TrelloList = {

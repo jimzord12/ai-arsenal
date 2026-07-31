@@ -128,6 +128,27 @@ describe('offline Work CLI documentation', () => {
     );
   });
 
+  it('documents native card members separately from Work Unit owner filtering', () => {
+    const list = COMMAND_CATALOG.find((command) => command.id === 'list');
+    expect(list?.options).toEqual(
+      expect.arrayContaining(['--member', '--owner']),
+    );
+
+    const guide = renderDocs({ mode: 'default', output: 'text' });
+    for (const phrase of [
+      'Trello card members',
+      'metadata owner',
+      'exact member ID',
+      'case-insensitive exact username',
+      'does not match display names',
+      'all visible board cards',
+      'ordinary cards and Work Units',
+      'archived cards are excluded',
+    ]) {
+      expect(guide).toContain(phrase);
+    }
+  });
+
   it('documents the complete attachment metadata and explicit download safety contract', () => {
     const get = COMMAND_CATALOG.find((command) => command.id === 'get');
     expect(get?.options).toContain('--attachments-dir');

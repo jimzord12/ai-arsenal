@@ -713,6 +713,90 @@ function routingFixture() {
   return { config, client, draft, card };
 }
 
+describe('list filters', () => {
+  it('routes member and owner as distinct conjunctive filters', async () => {
+    const fixture = routingFixture();
+    const draft = parseWorkUnit(fixture.draft);
+    const card = {
+      ...fixture.card,
+      desc: renderWorkUnit({
+        ...draft,
+        metadata: {
+          ...draft.metadata,
+          id: 'WU-42',
+          trello_card_id: fixture.card.id,
+          owner: 'codex:worker-1',
+          created_at: '2026-07-28T12:00:00.000Z',
+          updated_at: '2026-07-28T12:00:00.000Z',
+        },
+      }),
+      members: [
+        { id: 'member-1', username: 'dev-one', fullName: 'Developer One' },
+      ],
+    };
+    const ordinary = {
+      ...fixture.card,
+      id: 'aaaaaaaaaaaaaaaaaaaaaaaa',
+      idShort: 43,
+      name: 'Ordinary assigned card',
+      desc: 'Plain Trello intake.',
+      members: [
+        { id: 'member-1', username: 'dev-one', fullName: 'Developer One' },
+      ],
+    };
+    const client = {
+      ...fixture.client,
+      listBoardCards: async () => [ordinary, card],
+    };
+
+    const memberResult = await runWorkCli(
+      ['list', '--board', 'Testing', '--member', 'DEV-ONE', '--output', 'json'],
+      { config: fixture.config, client: client as never },
+    );
+
+    expect(memberResult).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(JSON.parse(memberResult.stdout)).toMatchObject({
+      filters: { member: 'DEV-ONE' },
+      items: [
+        { id: ordinary.id, kind: 'ordinary' },
+        {
+          id: card.id,
+          kind: 'work-unit',
+          workUnit: { metadata: { owner: 'codex:worker-1' } },
+        },
+      ],
+    });
+
+    const result = await runWorkCli(
+      [
+        'list',
+        '--board',
+        'Testing',
+        '--member',
+        'DEV-ONE',
+        '--owner',
+        'codex:worker-1',
+        '--output',
+        'json',
+      ],
+      { config: fixture.config, client: client as never },
+    );
+
+    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      filters: { member: 'DEV-ONE', owner: 'codex:worker-1' },
+      items: [
+        {
+          id: card.id,
+          kind: 'work-unit',
+          members: [{ id: 'member-1' }],
+          workUnit: { metadata: { owner: 'codex:worker-1' } },
+        },
+      ],
+    });
+  });
+});
+
 describe('mutation family CLI outcomes', () => {
   it.each(['json', 'text'] as const)(
     'reports transition dry-run through the executable in %s mode',

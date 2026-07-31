@@ -10,6 +10,7 @@ import type {
   TrelloChecklistItem,
   TrelloList,
   TrelloListAction,
+  TrelloMember,
   TrelloTransport,
 } from './trello-types';
 
@@ -19,6 +20,7 @@ const CARD_FIELDS = [
   'name',
   'desc',
   'idList',
+  'closed',
   'dateLastActivity',
   'shortUrl',
 ].join(',');
@@ -86,12 +88,24 @@ function requireString(
   return value[field] as string;
 }
 
-function normalizeCard(value: unknown): TrelloCard {
+function normalizeCard(value: unknown, requireMembers = true): TrelloCard {
   const card = requireObject(value, 'card response');
   if (!Number.isInteger(card.idShort)) {
     throw new WorkCliError(
       'TRELLO_RESPONSE_INVALID',
       'Trello card response is missing idShort.',
+    );
+  }
+  if (requireMembers && !Array.isArray(card.members)) {
+    throw new WorkCliError(
+      'TRELLO_RESPONSE_INVALID',
+      'Trello card response is missing members.',
+    );
+  }
+  if (card.members !== undefined && !Array.isArray(card.members)) {
+    throw new WorkCliError(
+      'TRELLO_RESPONSE_INVALID',
+      'Trello card response has invalid members.',
     );
   }
   return {
@@ -102,6 +116,18 @@ function normalizeCard(value: unknown): TrelloCard {
     idList: requireString(card, 'idList', 'card response'),
     dateLastActivity: requireString(card, 'dateLastActivity', 'card response'),
     shortUrl: requireString(card, 'shortUrl', 'card response'),
+    members: (card.members ?? [])
+      .map(normalizeMember)
+      .sort((left, right) => left.id.localeCompare(right.id, 'en')),
+  };
+}
+
+function normalizeMember(value: unknown): TrelloMember {
+  const member = requireObject(value, 'card member');
+  return {
+    id: requireString(member, 'id', 'card member'),
+    username: requireString(member, 'username', 'card member'),
+    fullName: requireString(member, 'fullName', 'card member'),
   };
 }
 
@@ -505,7 +531,12 @@ export class TrelloClient {
     return this.request(
       'GET',
       `/boards/${encodeURIComponent(boardId)}/cards`,
-      { fields: CARD_FIELDS },
+      {
+        fields: CARD_FIELDS,
+        filter: 'visible',
+        members: true,
+        member_fields: 'id,username,fullName',
+      },
       (value) => {
         if (!Array.isArray(value)) {
           throw new WorkCliError(
@@ -513,7 +544,16 @@ export class TrelloClient {
             'Trello returned an invalid card collection.',
           );
         }
-        return value.map(normalizeCard);
+        return value.flatMap((entry) => {
+          const card = requireObject(entry, 'card response');
+          if (typeof card.closed !== 'boolean') {
+            throw new WorkCliError(
+              'TRELLO_RESPONSE_INVALID',
+              'Trello card response is missing closed.',
+            );
+          }
+          return card.closed ? [] : [normalizeCard(card)];
+        });
       },
     );
   }
@@ -522,7 +562,11 @@ export class TrelloClient {
     return this.request(
       'GET',
       `/cards/${encodeURIComponent(reference)}`,
-      { fields: CARD_FIELDS },
+      {
+        fields: CARD_FIELDS,
+        members: true,
+        member_fields: 'id,username,fullName',
+      },
       normalizeCard,
     );
   }
@@ -612,7 +656,7 @@ export class TrelloClient {
       'POST',
       '/cards',
       { idList: input.idList, name: input.name, desc: input.desc },
-      normalizeCard,
+      (value) => normalizeCard(value, false),
     );
   }
 
@@ -621,7 +665,7 @@ export class TrelloClient {
       'PUT',
       `/cards/${encodeURIComponent(cardId)}`,
       input,
-      normalizeCard,
+      (value) => normalizeCard(value, false),
     );
   }
 

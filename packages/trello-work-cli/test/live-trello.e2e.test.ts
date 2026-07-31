@@ -183,6 +183,7 @@ describe('live Trello E2E preflight', () => {
       idList: 'disposable-inbox',
       dateLastActivity: 'v1',
       shortUrl: 'https://trello.com/c/test/card',
+      members: [],
     };
     const client = {
       getCard: async () => card,

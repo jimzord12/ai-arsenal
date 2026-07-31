@@ -31,7 +31,10 @@ export interface ReadCommandClient {
 }
 
 export type NormalizedWorkUnit = WorkUnitDocument & {
-  card: Pick<TrelloCard, 'id' | 'idShort' | 'idList' | 'name' | 'shortUrl'>;
+  card: Pick<
+    TrelloCard,
+    'id' | 'idShort' | 'idList' | 'name' | 'shortUrl' | 'members'
+  >;
   version: string;
 };
 
@@ -40,6 +43,15 @@ export type GetWorkUnitResult = NormalizedWorkUnit & {
   attachments: AttachmentResult[];
 };
 
+type BasicCard = Pick<
+  TrelloCard,
+  'id' | 'idShort' | 'idList' | 'name' | 'shortUrl' | 'members'
+>;
+
+export type ClassifiedCard =
+  | (BasicCard & { kind: 'ordinary' })
+  | (BasicCard & { kind: 'work-unit'; workUnit: NormalizedWorkUnit });
+
 export type ListFilters = {
   status?: WorkUnitStatus;
   type?: WorkUnitType;
@@ -47,6 +59,7 @@ export type ListFilters = {
   owner?: string | null;
   parent?: string | null;
   label?: string;
+  member?: string;
 };
 
 function configurationMissing(names: string[]): never {
@@ -78,6 +91,7 @@ export function normalizeRemoteCard(card: TrelloCard): NormalizedWorkUnit {
         idList: card.idList,
         name: card.name,
         shortUrl: card.shortUrl,
+        members: card.members,
       },
       version: card.dateLastActivity,
     };
@@ -88,6 +102,55 @@ export function normalizeRemoteCard(card: TrelloCard): NormalizedWorkUnit {
       { cause: error },
     );
   }
+}
+
+function classifyCard(card: TrelloCard): ClassifiedCard {
+  const basic: BasicCard = {
+    id: card.id,
+    idShort: card.idShort,
+    idList: card.idList,
+    name: card.name,
+    shortUrl: card.shortUrl,
+    members: card.members,
+  };
+  try {
+    return {
+      ...basic,
+      kind: 'work-unit',
+      workUnit: normalizeRemoteCard(card),
+    };
+  } catch (error) {
+    const claimsWorkUnit =
+      card.desc.trimStart().startsWith('# Work Unit') ||
+      card.desc.includes('<!-- work-operation:');
+    if (claimsWorkUnit) throw error;
+    return { ...basic, kind: 'ordinary' };
+  }
+}
+
+function matchesMetadataFilters(
+  item: NormalizedWorkUnit,
+  filters: ListFilters,
+): boolean {
+  const metadata = item.metadata;
+  return (
+    (filters.status === undefined || metadata.status === filters.status) &&
+    (filters.type === undefined || metadata.type === filters.type) &&
+    (filters.priority === undefined ||
+      metadata.priority === filters.priority) &&
+    (filters.owner === undefined || metadata.owner === filters.owner) &&
+    (filters.parent === undefined || metadata.parent === filters.parent) &&
+    (filters.label === undefined || metadata.labels.includes(filters.label))
+  );
+}
+
+function matchesMember(card: TrelloCard, selector: string): boolean {
+  const normalized = selector.toLowerCase();
+  return card.members.some(
+    (member) =>
+      member.id.toLowerCase() === normalized ||
+      member.username.toLowerCase() === normalized,
+  );
 }
 
 export async function resolveCard(
@@ -234,13 +297,57 @@ export async function validateRemoteWorkUnit(
   };
 }
 
+export function listWorkUnits(
+  filters: ListFilters & { member: string },
+  config: WorkConfig,
+  client: ReadCommandClient,
+): Promise<{ filters: ListFilters; items: ClassifiedCard[] }>;
+export function listWorkUnits(
+  filters: ListFilters & { member?: undefined },
+  config: WorkConfig,
+  client: ReadCommandClient,
+): Promise<{ filters: ListFilters; items: NormalizedWorkUnit[] }>;
+export function listWorkUnits(
+  filters: ListFilters,
+  config: WorkConfig,
+  client: ReadCommandClient,
+): Promise<{
+  filters: ListFilters;
+  items: Array<NormalizedWorkUnit | ClassifiedCard>;
+}>;
 export async function listWorkUnits(
   filters: ListFilters,
   config: WorkConfig,
   client: ReadCommandClient,
-): Promise<{ filters: ListFilters; items: NormalizedWorkUnit[] }> {
+): Promise<{
+  filters: ListFilters;
+  items: Array<NormalizedWorkUnit | ClassifiedCard>;
+}> {
   const boardId = requireBoard(config);
-  const items = (await client.listBoardCards(boardId))
+  const cards = await client.listBoardCards(boardId);
+  if (filters.member !== undefined) {
+    const metadataFilterActive = [
+      filters.status,
+      filters.type,
+      filters.priority,
+      filters.owner,
+      filters.parent,
+      filters.label,
+    ].some((value) => value !== undefined);
+    const items = cards
+      .filter((card) => matchesMember(card, filters.member as string))
+      .flatMap<ClassifiedCard>((card): ClassifiedCard[] => {
+        const classified = classifyCard(card);
+        if (classified.kind === 'ordinary') {
+          return metadataFilterActive ? [] : [classified];
+        }
+        return matchesMetadataFilters(classified.workUnit, filters)
+          ? [classified]
+          : [];
+      });
+    return { filters, items };
+  }
+  const items = cards
     .flatMap((card) => {
       try {
         return [normalizeRemoteCard(card)];
@@ -252,18 +359,7 @@ export async function listWorkUnits(
         return [];
       }
     })
-    .filter((item) => {
-      const metadata = item.metadata;
-      return (
-        (filters.status === undefined || metadata.status === filters.status) &&
-        (filters.type === undefined || metadata.type === filters.type) &&
-        (filters.priority === undefined ||
-          metadata.priority === filters.priority) &&
-        (filters.owner === undefined || metadata.owner === filters.owner) &&
-        (filters.parent === undefined || metadata.parent === filters.parent) &&
-        (filters.label === undefined || metadata.labels.includes(filters.label))
-      );
-    });
+    .filter((item) => matchesMetadataFilters(item, filters));
   return { filters, items };
 }
 
@@ -271,15 +367,7 @@ export async function listInboxCards(
   config: WorkConfig,
   client: ReadCommandClient,
 ): Promise<{
-  items: Array<
-    | (Pick<TrelloCard, 'id' | 'idShort' | 'idList' | 'name' | 'shortUrl'> & {
-        kind: 'ordinary';
-      })
-    | (Pick<TrelloCard, 'id' | 'idShort' | 'idList' | 'name' | 'shortUrl'> & {
-        kind: 'work-unit';
-        workUnit: NormalizedWorkUnit;
-      })
-  >;
+  items: ClassifiedCard[];
 }> {
   const boardId = requireBoard(config);
   const inboxId = config.listIds.inbox;
@@ -288,28 +376,7 @@ export async function listInboxCards(
     (card) => card.idList === inboxId,
   );
   return {
-    items: cards.map((card) => {
-      const basic = {
-        id: card.id,
-        idShort: card.idShort,
-        idList: card.idList,
-        name: card.name,
-        shortUrl: card.shortUrl,
-      };
-      try {
-        return {
-          ...basic,
-          kind: 'work-unit' as const,
-          workUnit: normalizeRemoteCard(card),
-        };
-      } catch (error) {
-        const claimsWorkUnit =
-          card.desc.trimStart().startsWith('# Work Unit') ||
-          card.desc.includes('<!-- work-operation:');
-        if (claimsWorkUnit) throw error;
-        return { ...basic, kind: 'ordinary' as const };
-      }
-    }),
+    items: cards.map(classifyCard),
   };
 }
 

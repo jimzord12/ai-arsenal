@@ -713,6 +713,7 @@ describe('board-scoped list management', () => {
         idList: api.lists[0].id,
         dateLastActivity: '2026-07-27T00:00:00.000Z',
         shortUrl: 'https://trello.com/c/example',
+        members: [],
       },
     ];
     await expect(

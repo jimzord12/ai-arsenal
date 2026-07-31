@@ -24,7 +24,7 @@ export const DOCS_TOPICS: DocsTopic[] = [
     id: 'concepts',
     title: 'Concepts and canonical Work Units',
     content:
-      'A Work Unit is one Trello card whose description is a canonical # Work Unit Markdown document. WU-N comes from Trello idShort after creation. Draft IDs and timestamps are null; persisted identifiers and timestamps are paired. parent and blocked_by always use WU-N identifiers. jz-trello-flow list accepts at most one --label filter and requires that label to be present.',
+      'A Work Unit is one Trello card whose description is a canonical # Work Unit Markdown document. WU-N comes from Trello idShort after creation. Draft IDs and timestamps are null; persisted identifiers and timestamps are paired. parent and blocked_by always use WU-N identifiers. Trello card members are plural native assignments used for attention and notifications; the metadata owner is the single stable agent or worker execution claim. get, list, and inbox list expose deterministic member objects with id, username, and fullName. Without --member, jz-trello-flow list retains its normalized Work Unit output. With --member, it searches all visible board cards and returns ordinary cards and Work Units using the Inbox discriminated shapes; archived cards are excluded. --member matches an exact member ID or case-insensitive exact username and does not match display names or substrings. Work Unit metadata filters such as exact --owner exclude ordinary cards and compose conjunctively. List accepts at most one --label filter.',
   },
   {
     id: 'configuration',
@@ -84,7 +84,7 @@ export const DOCS_TOPICS: DocsTopic[] = [
     id: 'examples',
     title: 'Examples',
     content:
-      'Examples: jz-trello-flow boards list --output json; jz-trello-flow lists create --board Testing --name Disposable --dry-run --operation-id list-42; jz-trello-flow validate --file draft.md --output json; jz-trello-flow create --board Testing --file draft.md --dry-run --operation-id planning-42; jz-trello-flow get WU-42 --board Testing --output json; jz-trello-flow transition WU-42 ready --board Testing --if-version <version> --operation-id transition-42; jz-trello-flow reconcile WU-42 --board Testing --dry-run.',
+      'Examples: jz-trello-flow boards list --output json; jz-trello-flow lists create --board Testing --name Disposable --dry-run --operation-id list-42; jz-trello-flow validate --file draft.md --output json; jz-trello-flow create --board Testing --file draft.md --dry-run --operation-id planning-42; jz-trello-flow get WU-42 --board Testing --output json; jz-trello-flow list --board Testing --member dev-one --owner codex:worker-1 --output json; jz-trello-flow transition WU-42 ready --board Testing --if-version <version> --operation-id transition-42; jz-trello-flow reconcile WU-42 --board Testing --dry-run.',
   },
 ];
 

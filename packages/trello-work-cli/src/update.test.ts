@@ -56,6 +56,7 @@ async function persistedCard(): Promise<TrelloCard> {
     idList: 'list-inbox',
     dateLastActivity: 'v1',
     shortUrl: 'https://trello.com/c/AbCd1234/work-unit',
+    members: [],
   };
 }
 
