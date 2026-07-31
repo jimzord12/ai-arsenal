@@ -36,6 +36,10 @@ export type UnverifiableGitEvidence = GitEvidenceBase & {
 
 export type GitEvidence = VerifiedGitEvidence | UnverifiableGitEvidence;
 
+const FULL_OBJECT_ID = /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/i;
+const ISO_INSTANT =
+  /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|([+-])(\d{2}):(\d{2}))$/;
+
 function fail(message: string): never {
   throw new Error(`Invalid Git evidence: ${message}`);
 }
@@ -56,17 +60,81 @@ function requireString(
   return value;
 }
 
+function isLeapYear(year: number): boolean {
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+function isStrictIsoInstant(value: string): boolean {
+  const match = ISO_INSTANT.exec(value);
+  if (match === null) return false;
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6]);
+  const offsetHour = match[8] === undefined ? 0 : Number(match[8]);
+  const offsetMinute = match[9] === undefined ? 0 : Number(match[9]);
+  const monthLengths = [
+    31,
+    isLeapYear(year) ? 29 : 28,
+    31,
+    30,
+    31,
+    30,
+    31,
+    31,
+    30,
+    31,
+    30,
+    31,
+  ];
+  return (
+    month >= 1 &&
+    month <= 12 &&
+    day >= 1 &&
+    day <= monthLengths[month - 1] &&
+    hour <= 23 &&
+    minute <= 59 &&
+    second <= 59 &&
+    offsetHour <= 14 &&
+    offsetMinute <= 59 &&
+    (offsetHour < 14 || offsetMinute === 0) &&
+    Number.isFinite(Date.parse(value))
+  );
+}
+
+function requireObjectId(
+  record: Record<string, unknown>,
+  key: string,
+  context: string,
+): string {
+  const value = requireString(record, key, context);
+  if (!FULL_OBJECT_ID.test(value)) fail(`${context} must be a full object ID.`);
+  return value;
+}
+
+function requireInstant(
+  record: Record<string, unknown>,
+  key: string,
+  context: string,
+): string {
+  const value = requireString(record, key, context);
+  if (!isStrictIsoInstant(value)) fail(`${context} must be an ISO instant.`);
+  return value;
+}
+
 function validateCommit(value: unknown, context: string): void {
   if (!isRecord(value)) fail(`${context} must be an object.`);
-  requireString(value, 'sha', `${context}.sha`);
+  requireObjectId(value, 'sha', `${context}.sha`);
   requireString(value, 'subject', `${context}.subject`);
-  requireString(value, 'committedAt', `${context}.committedAt`);
+  requireInstant(value, 'committedAt', `${context}.committedAt`);
   if (!Array.isArray(value.parentShas)) {
     fail(`${context}.parentShas must be an array.`);
   }
   for (const parent of value.parentShas) {
-    if (typeof parent !== 'string') {
-      fail(`${context}.parentShas must contain strings.`);
+    if (typeof parent !== 'string' || !FULL_OBJECT_ID.test(parent)) {
+      fail(`${context}.parentShas must contain full object IDs.`);
     }
   }
 }
@@ -75,8 +143,8 @@ function validateBase(record: Record<string, unknown>): void {
   if (record.schemaVersion !== '1') fail('schemaVersion must be "1".');
   if (record.collector !== 'git') fail('collector must be "git".');
   if (!isRecord(record.interval)) fail('interval must be an object.');
-  requireString(record.interval, 'since', 'interval.since');
-  requireString(record.interval, 'until', 'interval.until');
+  requireInstant(record.interval, 'since', 'interval.since');
+  requireInstant(record.interval, 'until', 'interval.until');
   if (!isRecord(record.source)) fail('source must be an object.');
   requireString(record.source, 'remote', 'source.remote');
   requireString(record.source, 'defaultBranch', 'source.defaultBranch');
@@ -94,7 +162,7 @@ function validateVerified(record: Record<string, unknown>): void {
     const context = `branches[${index}]`;
     if (!isRecord(branch)) fail(`${context} must be an object.`);
     requireString(branch, 'name', `${context}.name`);
-    requireString(branch, 'headSha', `${context}.headSha`);
+    requireObjectId(branch, 'headSha', `${context}.headSha`);
     if (
       !Array.isArray(branch.mergeBaseShas) ||
       branch.mergeBaseShas.length === 0
@@ -102,8 +170,8 @@ function validateVerified(record: Record<string, unknown>): void {
       fail(`${context}.mergeBaseShas must be a non-empty array.`);
     }
     for (const mergeBase of branch.mergeBaseShas) {
-      if (typeof mergeBase !== 'string') {
-        fail(`${context}.mergeBaseShas must contain strings.`);
+      if (typeof mergeBase !== 'string' || !FULL_OBJECT_ID.test(mergeBase)) {
+        fail(`${context}.mergeBaseShas must contain full object IDs.`);
       }
     }
     if (!Number.isSafeInteger(branch.aheadBy) || Number(branch.aheadBy) < 0) {

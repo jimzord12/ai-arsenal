@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** The Workflow v2 pipeline, Trello Flow CLI `0.4.2`, and globally installed weekly-report CLI `0.1.0` Git evidence collector are complete; no work item is active
+> **Status:** WU-30 corrective recovery is active because globally installed weekly-report CLI `0.1.0` is defective; reviewed and locally verified `0.1.1` awaits exact-commit CI, artifact installation, and closure
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
-> **Current phase:** Define Trello card-member and Work Unit owner filtering
+> **Current phase:** Deliver the WU-30 weekly-report Git collector recovery before starting WU-31
 > **Operator view:** `NEXT.md`
 
 ---
@@ -118,8 +118,8 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` `jz-trello-flow skills install` is a self-contained offline, credential-free command that discovers the containing Git repository from nested paths, ignores inherited `GIT_*` repository selectors, and installs only the four skills bundled with the executing package under `.agents/skills/`. Runtime staging validates the complete transformed structure without Python, an external checkout, network, Trello configuration, or Trello access. Official pinned `skills-ref` validation is a root development/release command against the exact transformed source or unpacked artifact payload. Transactional replacement, rollback, restoration-failure recovery retention, redirected-path containment, no-write dry-run, unrelated-skill preservation, exact inventory, and repeat identity remain verified.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[VERIFIED]` The 2026-07-29 standing-autonomy directive applies to routine bounded work: agents proceed through review, commit, and push without a separate permission stop. Workflow v2 records direct approval only for dangerous deletion or irreversible data loss and still requires fresh execution-time confirmation; unavailable hard prerequisites still escalate.
-- `[VERIFIED]` `packages/weekly-report-cli` is the private, non-published Node.js 24 and TypeScript package `@jz/ai-arsenal-weekly-report-cli`. Version `0.1.0` exposes only the compiled `weekly-report-cli` executable and adds `collect git` for one explicitly configured working tree, remote, default branch, and inclusive interval. It emits runtime-validated versioned JSON separating default-branch interval commits from active and inactive unmerged remote branches, with explicit unverifiable evidence for invalid or unrelated Git state.
-- `[VERIFIED]` Weekly-report CLI `0.1.0` packs exactly `README.md`, `package.json`, and six compiled production modules under `dist/`. Thirty unit/process/distribution tests, strict publint, a clean temporary consumer whose path contains spaces, root quality/validation gates, shell-free synthetic Git workflows, credential redaction, and deterministic ordering cover the implementation. Artifact commit `d7971f27f37d27e226c102f1a30e2af86dee3bdc` passed exact-SHA Quality and Windows/Linux Portability CI; tarball SHA-256 `e61086ea4da72a40125cc8860970bce64fa9f9c3ea2055fd506faf032e6b5da8` is globally installed with byte-exact package proof and generated-shim synthetic collection.
+- `[HISTORICAL EVIDENCE]` `packages/weekly-report-cli` version `0.1.0` established the private, non-published Node.js 24 process-only package and its eight-file packed boundary. Its recorded 30-test, strict-publint, clean-consumer, exact-SHA CI, tarball-checksum, and global-install evidence remains immutable, but later independent review found credential-disclosure and evidence-integrity defects, so `0.1.0` is not accepted for credential-bearing input.
+- `[ACTIVE]` Corrective work item `2026-07-31-recover-git-evidence-collector` generated patch candidate `0.1.1`. Three independent reviewers found no required issue, and final repository verification passed with 79 package tests covering non-echoing rejected input, strict ref names and instants, full object-ID validation, case-folded overlapping remote namespaces, and disabled submodule recursion. Exact-commit CI, artifact proof, global replacement, and guarded Trello closure remain required.
 
 ## 4.2 Product context supplied by the user
 
@@ -473,7 +473,7 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 - Packed boundary: `README.md`, `package.json`, `dist/arguments.js`, `dist/bin.js`, `dist/cli.js`, `dist/evidence-schema.js`, `dist/git-collector.js`, and `dist/redaction.js` only.
 - Current behavior: honest help/version and usage diagnostics plus deterministic `collect git` evidence for an explicit working tree, remote, default branch, and inclusive interval.
 - Consumer boundary: runtime target configuration and machine-readable evidence cross the process boundary; consumer identity, credentials, report interpretation, scheduling, and delivery remain outside this package.
-- Validation: 30 passing unit/process/distribution tests, strict publint, synthetic temporary repositories, shell-free Git invocation, clean packed-consumer execution on Node.js 24, paths containing spaces, exact-SHA Quality and Windows/Linux Portability CI, and a byte-exact globally installed generated-shim smoke for version `0.1.0`.
+- Validation: historical `0.1.0` evidence records 30 passing tests, strict publint, synthetic repositories, clean packed-consumer execution, exact-SHA Quality and Windows/Linux Portability CI, and byte-exact global installation. That release is now known defective. Reviewed `0.1.1` passes 79 package tests, strict publint, clean packed-consumer execution, full repository gates, workflow validators, privacy inspection, and three-agent review; exact-commit CI and exact-artifact installation evidence remain.
 
 ## 7.8 Behavioral and persistence contract
 
@@ -1039,4 +1039,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Weekly-report CLI `0.1.0` Git evidence collection is delivered from exact CI-green commit `d7971f27f37d27e226c102f1a30e2af86dee3bdc` and globally installed from the byte-proven artifact. The next explicit request is to expose native Trello card members and support filtering cards by involved member while preserving and verifying the existing Work Unit metadata-owner filter. Define that bounded Trello CLI behavior and versioned local-delivery contract through Workflow v2 before implementation.
+Deliver WU-30 through corrective work item `2026-07-31-recover-git-evidence-collector`. Commit and push reviewed/verified `0.1.1`, require exact-commit Quality and Windows/Linux Portability CI, then pack and install that exact artifact, record immutable evidence, and complete guarded Trello Review/Done read-backs before starting WU-31 or any unrelated Trello filtering work.

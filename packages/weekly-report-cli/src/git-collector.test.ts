@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { collectGitEvidence, GitCollectionFailure } from './git-collector.js';
@@ -297,6 +297,213 @@ it('reports an unrelated remote branch as explicit unverifiable evidence', async
           'Remote branch unrelated-history has no shared history with the configured default branch.',
       }),
     );
+  } finally {
+    await rm(workspace, { force: true, recursive: true });
+  }
+});
+
+it('rejects overlapping remote namespaces before fetch mutates tracking refs', async () => {
+  const workspace = await mkdtemp(join(tmpdir(), 'git remote namespace '));
+  const remote = join(workspace, 'remote.git');
+  const seed = join(workspace, 'seed');
+  const target = join(workspace, 'target');
+
+  try {
+    git(workspace, ['init', '--bare', remote]);
+    git(workspace, ['init', seed]);
+    git(seed, ['config', 'user.name', 'Synthetic User']);
+    git(seed, ['config', 'user.email', 'synthetic@example.invalid']);
+    git(seed, ['checkout', '-b', 'main']);
+    const originalSha = await commit(
+      seed,
+      'original main',
+      '2026-07-20T10:00:00Z',
+    );
+    git(seed, ['remote', 'add', 'origin', remote]);
+    git(seed, ['push', '-u', 'origin', 'main']);
+    git(remote, ['symbolic-ref', 'HEAD', 'refs/heads/main']);
+    git(workspace, ['clone', remote, target]);
+    git(target, ['remote', 'rename', 'origin', 'foo']);
+    git(target, ['remote', 'add', 'foo/bar', join(workspace, 'unused.git')]);
+
+    await commit(seed, 'new remote main', '2026-07-21T10:00:00Z');
+    git(seed, ['push', 'origin', 'main']);
+    expect(git(target, ['rev-parse', 'refs/remotes/foo/main'])).toBe(
+      originalSha,
+    );
+    const fetchHeadPath = join(target, '.git', 'FETCH_HEAD');
+    const fetchHeadBefore = await readFile(fetchHeadPath, 'utf8').catch(
+      () => null,
+    );
+
+    expect(() =>
+      collectGitEvidence({
+        defaultBranch: 'main',
+        remote: 'foo',
+        repository: target,
+        since: '2026-07-20T00:00:00Z',
+        until: '2026-07-26T23:59:59Z',
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'GIT_REMOTE_NAMESPACE_CONFLICT',
+        message: 'Configured remote namespace overlaps another remote.',
+      }),
+    );
+    expect(git(target, ['rev-parse', 'refs/remotes/foo/main'])).toBe(
+      originalSha,
+    );
+    const fetchHeadAfter = await readFile(fetchHeadPath, 'utf8').catch(
+      () => null,
+    );
+    expect(fetchHeadAfter).toBe(fetchHeadBefore);
+  } finally {
+    await rm(workspace, { force: true, recursive: true });
+  }
+});
+
+it('rejects case-folded remote namespace overlap before tracking-ref mutation', async () => {
+  const workspace = await mkdtemp(join(tmpdir(), 'git case-folded namespace '));
+  const remote = join(workspace, 'remote.git');
+  const seed = join(workspace, 'seed');
+  const target = join(workspace, 'target');
+
+  try {
+    git(workspace, ['init', '--bare', remote]);
+    git(workspace, ['init', seed]);
+    git(seed, ['config', 'user.name', 'Synthetic User']);
+    git(seed, ['config', 'user.email', 'synthetic@example.invalid']);
+    git(seed, ['checkout', '-b', 'main']);
+    const originalSha = await commit(
+      seed,
+      'original main',
+      '2026-07-20T10:00:00Z',
+    );
+    git(seed, ['checkout', '-b', 'bar/main']);
+    git(seed, ['remote', 'add', 'origin', remote]);
+    git(seed, ['push', '-u', 'origin', 'main', 'bar/main']);
+    git(remote, ['symbolic-ref', 'HEAD', 'refs/heads/main']);
+    git(workspace, ['clone', remote, target]);
+    git(target, ['remote', 'rename', 'origin', 'foo']);
+    git(target, ['remote', 'add', 'Foo/bar', join(workspace, 'unused.git')]);
+
+    await commit(seed, 'new nested branch', '2026-07-21T10:00:00Z');
+    git(seed, ['push', 'origin', 'bar/main']);
+    const trackingRef = 'refs/remotes/foo/bar/main';
+    expect(git(target, ['rev-parse', trackingRef])).toBe(originalSha);
+
+    let failure: unknown;
+    try {
+      collectGitEvidence({
+        defaultBranch: 'main',
+        remote: 'foo',
+        repository: target,
+        since: '2026-07-20T00:00:00Z',
+        until: '2026-07-26T23:59:59Z',
+      });
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(failure).toMatchObject({
+      code: 'GIT_REMOTE_NAMESPACE_CONFLICT',
+      message: 'Configured remote namespace overlaps another remote.',
+    });
+    expect(git(target, ['rev-parse', trackingRef])).toBe(originalSha);
+  } finally {
+    await rm(workspace, { force: true, recursive: true });
+  }
+});
+
+it('does not recurse into submodule remotes when repository config enables it', async () => {
+  const workspace = await mkdtemp(join(tmpdir(), 'git submodule fetch scope '));
+  const submoduleRemote = join(workspace, 'submodule.git');
+  const submoduleSeed = join(workspace, 'submodule-seed');
+  const superRemote = join(workspace, 'super.git');
+  const superSeed = join(workspace, 'super-seed');
+  const target = join(workspace, 'target');
+
+  try {
+    git(workspace, ['init', '--bare', submoduleRemote]);
+    git(workspace, ['init', submoduleSeed]);
+    git(submoduleSeed, ['config', 'user.name', 'Synthetic User']);
+    git(submoduleSeed, ['config', 'user.email', 'synthetic@example.invalid']);
+    git(submoduleSeed, ['checkout', '-b', 'main']);
+    const originalSubmoduleSha = await commit(
+      submoduleSeed,
+      'original dependency',
+      '2026-07-19T10:00:00Z',
+    );
+    git(submoduleSeed, ['remote', 'add', 'origin', submoduleRemote]);
+    git(submoduleSeed, ['push', '-u', 'origin', 'main']);
+    git(submoduleRemote, ['symbolic-ref', 'HEAD', 'refs/heads/main']);
+
+    git(workspace, ['init', '--bare', superRemote]);
+    git(workspace, ['init', superSeed]);
+    git(superSeed, ['config', 'user.name', 'Synthetic User']);
+    git(superSeed, ['config', 'user.email', 'synthetic@example.invalid']);
+    git(superSeed, ['checkout', '-b', 'main']);
+    git(superSeed, [
+      '-c',
+      'protocol.file.allow=always',
+      'submodule',
+      'add',
+      submoduleRemote,
+      'modules/dependency',
+    ]);
+    git(superSeed, ['commit', '-am', 'add dependency'], '2026-07-20T10:00:00Z');
+    git(superSeed, ['remote', 'add', 'origin', superRemote]);
+    git(superSeed, ['push', '-u', 'origin', 'main']);
+    git(superRemote, ['symbolic-ref', 'HEAD', 'refs/heads/main']);
+    git(workspace, [
+      '-c',
+      'protocol.file.allow=always',
+      'clone',
+      '--recurse-submodules',
+      superRemote,
+      target,
+    ]);
+    git(target, ['config', 'fetch.recurseSubmodules', 'true']);
+
+    const newSubmoduleSha = await commit(
+      submoduleSeed,
+      'new dependency',
+      '2026-07-21T10:00:00Z',
+    );
+    git(submoduleSeed, ['push', 'origin', 'main']);
+    const superSubmodule = join(superSeed, 'modules', 'dependency');
+    git(superSubmodule, ['fetch', 'origin']);
+    git(superSubmodule, ['checkout', newSubmoduleSha]);
+    git(
+      superSeed,
+      ['commit', '-am', 'update dependency'],
+      '2026-07-22T10:00:00Z',
+    );
+    git(superSeed, ['push', 'origin', 'main']);
+
+    const targetSubmodule = join(target, 'modules', 'dependency');
+    git(targetSubmodule, [
+      'remote',
+      'set-url',
+      'origin',
+      join(workspace, 'must-not-be-contacted.git'),
+    ]);
+    expect(
+      git(targetSubmodule, ['rev-parse', 'refs/remotes/origin/main']),
+    ).toBe(originalSubmoduleSha);
+
+    const evidence = collectGitEvidence({
+      defaultBranch: 'main',
+      remote: 'origin',
+      repository: target,
+      since: '2026-07-20T00:00:00Z',
+      until: '2026-07-26T23:59:59Z',
+    });
+
+    expect(evidence.status).toBe('verified');
+    expect(
+      git(targetSubmodule, ['rev-parse', 'refs/remotes/origin/main']),
+    ).toBe(originalSubmoduleSha);
   } finally {
     await rm(workspace, { force: true, recursive: true });
   }

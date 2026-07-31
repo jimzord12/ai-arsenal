@@ -109,7 +109,7 @@ export function runCli(
 
   return {
     exitCode: 2,
-    stderr: `USAGE_ERROR: Unknown command: ${args[0]}.\n`,
+    stderr: 'USAGE_ERROR: Unknown command.\n',
     stdout: '',
   };
 }

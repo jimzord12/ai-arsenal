@@ -77,3 +77,9 @@ Result: passed
 - Global install command: `pnpm add -g <exact-0.1.0-tarball>`; `pnpm list -g --depth 0 --json` reported `@jz/ai-arsenal-weekly-report-cli 0.1.0`, and `Get-Command` resolved the generated global PowerShell shim under the pnpm global bin directory.
 - Independent installed verification passed: global `--version` returned `0.1.0`, help exposed `collect git`, all eight installed package files byte-matched the tarball, and the generated global shim returned schema `1` verified evidence with one expected commit and no branches from a disposable synthetic repository whose path contained spaces.
 - Registry publication, consumer repository access, private-history collection, and destructive cleanup did not occur. Disposable artifact, comparison, and smoke directories remain under the user temp directory rather than being deleted without direct approval.
+
+## Corrective recovery notice
+
+- This delivered record preserves the evidence observed at premature closure: 28 focused implementation tests before the unrelated-history review repair and 30 tests at the recorded final verification snapshot.
+- Later independent review found credential-disclosure and evidence-integrity defects in installed version `0.1.0`; its Delivered status is historical workflow evidence, not current acceptance for credential-bearing input.
+- Corrective work item `2026-07-31-recover-git-evidence-collector` owns the recovery. Its unverified `0.1.1` candidate currently passes 79 package tests; final review, CI, artifact, installation, and Trello evidence remain pending.

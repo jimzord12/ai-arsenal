@@ -3,39 +3,42 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** Weekly-report CLI `0.1.0` deterministic Git evidence collection is delivered, exact-SHA CI-green, and globally installed from its byte-proven private artifact.
-**Current phase:** Define Trello member and owner filtering
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** WU-30 recovery review and final verification passed; commit, PR, exact-commit CI, artifact installation, and closure evidence remain.
+**Current phase:** Deliver repaired Git evidence collector
+**Active work item:** `2026-07-31-recover-git-evidence-collector`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Use `define-monorepo-change` for native Trello card-member output/filtering and verified Work Unit owner filtering.
+Use `deliver-monorepo-change` for `2026-07-31-recover-git-evidence-collector`.
 
 ## Why This Is Next
 
-- The user explicitly requested filtering cards by involved Trello member and by Work Unit metadata owner.
-- Native card membership and Work Unit owner are distinct responsibilities and must remain separately observable and filterable.
-- The prior weekly-report item is fully delivered and no active workflow item blocks definition.
+- Focused RED→GREEN coverage now repairs credential-redaction, evidence-validation, strict-instant, nested-remote, and submodule-fetch defects while preserving prior collector safeguards.
+- Original WU-30 delivery evidence remains historical; this corrective Workflow v2 item repairs forward without implying the late review had passed.
+- Three fresh independent reviewers approved exact stable candidate `ac74223b491c438d4c1c29b3e6aabd13b60f2f7f2ab5cfb287b8a1dcb16138b6`, and the complete final verification matrix passed.
 
 ## Requirements
 
-- Define stable native-member identity fields and matching semantics without conflating them with metadata `owner`.
-- Preserve existing list filters and fail-closed Work Unit parsing.
-- Use offline Trello fixtures by default and keep live production-board mutation out of scope.
-- Include the mandatory Changesets, exact-CI-green artifact, global installation, and installed-shim verification chain for CLI behavior changes.
+- Use focused RED→GREEN regressions and the smallest complete repairs.
+- Deliver one coherent recovery PR and a Changesets-generated patch release.
+- Require fresh independent review and exact-commit Quality plus Windows/Linux Portability CI before packing or global replacement.
+- Preserve the public/private boundary and never expose rejected credential-bearing input.
 
 ## Blockers / Escalation
 
 - No active blocker.
-- Dangerous deletion, production Trello mutation, and registry publication are not authorized or required.
+- Registry publication, consumer-repository access, destructive cleanup, and WU-31 implementation are not authorized or required.
+- The primary worktree contains unrelated active Trello member-filtering changes; recovery is isolated in its own worktree and branch.
 
 ## Done When
 
-- A compact Workflow v2 Trello filtering work item is defined and routed to focused implementation.
+- The corrective work item and planning truth are delivered, the exact repaired artifact has replaced global `0.1.0` with independent proof, and Trello WU-30 is read-back-confirmed Done.
 
 ## Source of Truth
 
 - `AGENTS.md`
+- `docs/work-items/2026-07-31-recover-git-evidence-collector/work-item.md`
+- `docs/work-items/2026-07-31-add-git-evidence-collector/work-item.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`
