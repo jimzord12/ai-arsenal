@@ -3,40 +3,39 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** GitHub issue #17 is defined as one bounded Workflow v2 item for runtime-neutral complete matching review-batch evidence.
-**Current phase:** Deliver complete review-batch evidence
-**Active work item:** `2026-07-31-complete-review-batch-evidence`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** GitHub issue #17 is delivered and closed: Workflow v2 has runtime-neutral complete matching review-batch evidence bound to one deterministic candidate snapshot.
+**Current phase:** Await the next bounded request
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Use `deliver-monorepo-change` for `2026-07-31-complete-review-batch-evidence`.
+Use `define-monorepo-change` for GitHub issue #18, the next bounded child in the snapshot-bound review barrier.
 
 ## Why This Is Next
 
-- The no-active-item validator passed before definition, and GitHub issue `#17` is the next ordered child of parent issue `#14`.
-- Issues `#15` and `#16` supply the explicit lifecycle and deterministic candidate snapshot required by this item.
-- The compact definition records one machine-checkable evidence boundary and preserves issues `#18` and `#19` as explicit exclusions.
+- Commit `a2e68b6c0f6db06966ff9bf964d3716c5ec3972e` contains the verified issue-#17 implementation and matched `origin/master` after push.
+- Exact-SHA Quality run `30627935387` and Portability run `30627935388` passed.
+- GitHub issue `#17` is closed as completed. Parent issue `#14` remains open, and issue `#18` is its next ordered child.
 
 ## Requirements
 
-- Reconcile planning truth, commit and push the verified snapshot, confirm exact-SHA CI, close GitHub issue `#17`, and clear active registration.
-- Preserve issue #16's reusable deterministic candidate calculation and issue #15's explicit lifecycle, delivered-record compatibility, five-stage route, and four-cycle limit.
-- Keep validator advancement/freshness enforcement and integrated regression/normative documentation alignment owned by issues `#18` and `#19`.
-- Do not treat dispatch, local tests, partial results, duplicates, wrong-batch results, wrong-snapshot results, cancellation, unknown completion, or unsuccessful review as passed evidence.
+- Preserve issues #15–#17's explicit lifecycle, reusable deterministic snapshot, complete matching batch evidence, delivered-record compatibility, five-stage route, and four-cycle limit.
+- Keep issue #18 bounded to validator parsing, advancement/freshness enforcement, blocker messages, and read-only routing.
+- Keep the integrated regression matrix and normative documentation alignment owned by issue `#19`.
 
 ## Blockers / Escalation
 
-- No active blocker; dangerous deletion is not required and hard prerequisites are resolved.
+- No active blocker.
 
 ## Done When
 
-- The verified implementation is pushed, exact-SHA Quality and Portability CI pass, issue `#17` is closed, delivery evidence is recorded, and active registration is cleared.
+- GitHub issue #18 is defined as one compact Workflow v2 work item with explicit boundaries against issue #19.
 
 ## Source of Truth
 
 - `AGENTS.md`
 - `docs/work-items/2026-07-31-complete-review-batch-evidence/work-item.md`
-- `https://github.com/jimzord12/ai-arsenal/issues/17`
+- `https://github.com/jimzord12/ai-arsenal/issues/18`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`

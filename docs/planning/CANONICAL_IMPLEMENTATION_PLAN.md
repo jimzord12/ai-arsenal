@@ -1078,4 +1078,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Workflow v2 complete matching review-batch evidence issue `#17` has passed final verification and is in delivery. Complete its Git/CI/issue-closure evidence and clear active registration; then define validator advancement and stale-snapshot enforcement issue `#18` as the next bounded child.
+Workflow v2 complete matching review-batch evidence issue `#17` is delivered and closed. No work item is active; define validator advancement and stale-snapshot enforcement issue `#18` as the next bounded child through Workflow v2.

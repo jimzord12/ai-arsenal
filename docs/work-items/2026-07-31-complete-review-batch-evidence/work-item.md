@@ -3,7 +3,7 @@
 Work item: 2026-07-31-complete-review-batch-evidence
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-07-31T14:22:26+03:00
 Max time: 5 hours
 Last time check: 2026-07-31T14:40:49+03:00
@@ -76,4 +76,9 @@ Result: passed
 ## Delivery evidence
 
 - Proportionality check at `2026-07-31T14:40:49+03:00`: elapsed work is approximately 19 minutes against the 5-hour maximum. Scope remains the smallest honest issue-#17 boundary despite two review-discovered integration repairs; no simplification or escalation is needed.
-- Delivery is in progress; artifact commit, push, exact-SHA CI, issue closure, and completed-state evidence are pending.
+- Artifact-bearing commit `a2e68b6c0f6db06966ff9bf964d3716c5ec3972e` was committed as `fix(workflow): require complete review batches` and pushed to `origin/master`; a fresh fetch confirmed local `HEAD` and `origin/master` equality and the worktree was clean before closure-record edits.
+- Exact-SHA Quality run `https://github.com/jimzord12/ai-arsenal/actions/runs/30627935387` completed successfully for the artifact commit, including repository checks and private artifact validation.
+- Exact-SHA Portability run `https://github.com/jimzord12/ai-arsenal/actions/runs/30627935388` completed successfully for the same commit; both supported-platform jobs passed.
+- GitHub issue `#17` was read back as `CLOSED` with reason `COMPLETED`. The connected GitHub app lacked close permission (`403 Resource not accessible by integration`), so authenticated `gh issue close` performed the bounded mutation and `gh issue view` verified it.
+- This is workflow-policy behavior, not shipped CLI behavior; no Changeset, package version, packed artifact replacement, registry publication, or global installation applies.
+- Canonical planning truth records the runtime-neutral complete matching review-batch evidence boundary. Validator advancement/freshness enforcement issue `#18` is the next bounded child; integrated regression and normative documentation issue `#19` remains separate.
