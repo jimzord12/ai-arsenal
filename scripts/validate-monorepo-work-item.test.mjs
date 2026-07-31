@@ -63,6 +63,13 @@ const deliverSkillPath = path.join(
   'deliver-monorepo-change',
   'SKILL.md',
 );
+const qualityWorkflowPath = path.join(
+  scriptsDirectory,
+  '..',
+  '.github',
+  'workflows',
+  'quality.yml',
+);
 const workItemId = '2026-07-13-example';
 const reviewDigest = `sha256:${'a'.repeat(64)}`;
 const reviewBatch = 'review-20260731-01';
@@ -76,6 +83,11 @@ function matchingReviewResults(snapshot = reviewDigest, batchId = reviewBatch) {
     snapshot,
   }));
 }
+
+test('quality CI fetches the parent commit required by clean delivery validation', () => {
+  const workflow = fs.readFileSync(qualityWorkflowPath, 'utf8');
+  assert.match(workflow, /uses: actions\/checkout@v6\s+with:\s+fetch-depth: 2/);
+});
 
 function createFixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-arsenal-work-item-'));

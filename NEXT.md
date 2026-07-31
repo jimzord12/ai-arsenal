@@ -3,8 +3,8 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** The user-authorized successor's gitlink snapshot-equivalence repair passed cycle-3 review and final stable-snapshot verification; the exhausted predecessor remains preserved as blocked evidence.
-**Current phase:** Deliver the verified gitlink snapshot repair
+**State:** The fourth and final review cycle and final verification passed the Quality checkout-depth repair; the exact repaired snapshot is ready for replacement delivery.
+**Current phase:** Deliver the CI-ready artifact
 **Active work item:** `2026-07-31-fix-gitlink-snapshot-equivalence`
 **Pipeline step:** `deliver-monorepo-change`
 
@@ -14,14 +14,14 @@ Use `deliver-monorepo-change` for `2026-07-31-fix-gitlink-snapshot-equivalence`.
 
 ## Why This Is Next
 
-- The cycle-3 reviewers independently matched snapshot `sha256:a2a6af33aac6cc70c389c4d9721fc4e7c442aced60107494e081782cf3ace128` with no required findings.
+- Both cycle-4 reviewers independently matched snapshot `sha256:41e38f2c5a9d1fe2e54358c3f7fad341a98f57e9ecb413ecf2fbb3e4dda2cc48`.
 - Full final verification passed on that unchanged snapshot.
-- The verified artifact is eligible for commit, push, exact-SHA CI, reconciliation, and issue closure.
+- The replacement artifact is eligible for commit, push, and exact-SHA CI.
 
 ## Requirements
 
-- Commit and push the exact verified artifact, then require successful Quality and Portability runs for that SHA.
-- Reconcile the canonical plan and `NEXT.md`, close issue #18, and preserve the predecessor as historical blocked evidence.
+- Commit and push the exact verified replacement, then require successful Quality and Portability runs for that SHA.
+- Reconcile issue #18 only after both runs succeed; keep issue #19 out of scope until closure.
 - Keep issue #19's integration matrix and normative documentation work out of scope.
 
 ## Blockers / Escalation
@@ -30,7 +30,7 @@ Use `deliver-monorepo-change` for `2026-07-31-fix-gitlink-snapshot-equivalence`.
 
 ## Done When
 
-- The artifact and closure commits are pushed and CI-green, issue #18 is closed, the work item is delivered, active registration is cleared, and issue #19 is next.
+- Replacement artifact CI is green, issue #18 is reconciled and closed, active registration is cleared, and issue #19 is next.
 
 ## Source of Truth
 

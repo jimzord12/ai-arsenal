@@ -8,12 +8,12 @@ Started at: 2026-07-31T19:16:04+03:00
 Max time: 3 hours
 Last time check: 2026-07-31T19:16:04+03:00
 Turns since time check: 1
-Review cycles: 3
+Review cycles: 4
 Review status: passed
-Review snapshot: sha256:a2a6af33aac6cc70c389c4d9721fc4e7c442aced60107494e081782cf3ace128
-Review batch: review-20260731-gitlink-03
+Review snapshot: sha256:41e38f2c5a9d1fe2e54358c3f7fad341a98f57e9ecb413ecf2fbb3e4dda2cc48
+Review batch: review-20260731-gitlink-04
 Review expected: ["contract","quality"]
-Review received: [{"reviewer":"contract","outcome":"passed","batchId":"review-20260731-gitlink-03","snapshot":"sha256:a2a6af33aac6cc70c389c4d9721fc4e7c442aced60107494e081782cf3ace128"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260731-gitlink-03","snapshot":"sha256:a2a6af33aac6cc70c389c4d9721fc4e7c442aced60107494e081782cf3ace128"}]
+Review received: [{"reviewer":"contract","outcome":"passed","batchId":"review-20260731-gitlink-04","snapshot":"sha256:41e38f2c5a9d1fe2e54358c3f7fad341a98f57e9ecb413ecf2fbb3e4dda2cc48"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260731-gitlink-04","snapshot":"sha256:41e38f2c5a9d1fe2e54358c3f7fad341a98f57e9ecb413ecf2fbb3e4dda2cc48"}]
 Dangerous deletion or irreversible data loss: no
 Hard prerequisites: resolved
 Approval: not-required
@@ -54,17 +54,18 @@ Complete the remaining GitHub issue #18 delivery repair by making the shared par
 - Cycle 2 (`review-20260731-gitlink-02`, `sha256:02b60cab28416a8939c3c0b241d631ebd3e01c7291ce8225950bd1172e280e06`): contract passed; quality failed with one Medium finding. Commit-source `git diff --name-only` still honored `submodule.*.ignore=all` or `diff.ignoreSubmodules=all`, so a legitimate committed gitlink change could be omitted and fail exact equivalence.
 - Repair: force `--ignore-submodules=none` on commit-tree diff discovery too. The real gitlink fixture now proves ordinary configured diff omits the addition while explicit discovery sees it and retains the same reviewed digest.
 - Cycle 3 (`review-20260731-gitlink-03`, `sha256:a2a6af33aac6cc70c389c4d9721fc4e7c442aced60107494e081782cf3ace128`): contract and quality both passed on the unchanged candidate with no required findings. Both reviewers independently recomputed the exact snapshot; 67 tests passed with one existing Windows privilege-dependent skip, and focused static checks passed.
+- Delivery CI exposed a shallow-checkout prerequisite after cycle 3: Quality run `30647997996` failed because the clean-delivery fallback correctly requested `HEAD^`, but the default one-commit `actions/checkout` clone did not contain it. Portability run `30647998169` passed on both Windows and Ubuntu. The repair sets Quality checkout `fetch-depth: 2` and locks that prerequisite with a root test before the fourth and final review cycle.
+- Cycle 4 (`review-20260731-gitlink-04`, `sha256:41e38f2c5a9d1fe2e54358c3f7fad341a98f57e9ecb413ecf2fbb3e4dda2cc48`): contract and quality both passed with no required findings. Both reviewers independently matched the exact snapshot, confirmed two-commit Quality checkout is sufficient for `HEAD^`, and confirmed the earlier gitlink and dirty-state protections remain intact; 68 tests passed with one existing privilege-dependent skip.
 
 ## Final verification
 
 Result: passed
 
-- Stable reviewed snapshot: `sha256:a2a6af33aac6cc70c389c4d9721fc4e7c442aced60107494e081782cf3ace128` (recomputed immediately before and after the full gate).
-- `pnpm check`: passed; package lint, typecheck, tests, workflow tests, and workflow validation all exited `0`.
-- `pnpm lint:root`: passed.
-- `node scripts/validate-living-workflow.mjs`: passed with 95 tests, two existing Windows privilege-dependent skips, and 23 required files.
-- Selected work-item validation, `git diff --check`, and exact snapshot freshness: passed.
+- Cycle-3 verification passed on `sha256:a2a6af33aac6cc70c389c4d9721fc4e7c442aced60107494e081782cf3ace128`, but delivery CI invalidated that candidate by discovering the shallow-checkout prerequisite.
+- Final cycle-4 snapshot `sha256:41e38f2c5a9d1fe2e54358c3f7fad341a98f57e9ecb413ecf2fbb3e4dda2cc48` passed `pnpm check`, `pnpm lint:root`, living-workflow validation, selected work-item validation, exact snapshot recomputation, and `git diff --check`.
+- The full workflow suite passed 96 tests with two existing Windows privilege-dependent skips; the focused snapshot/validator suite passed 68 tests with one existing skip.
 
 ## Delivery evidence
 
-Pending exact artifact commit, push, CI, reconciliation, and issue closure.
+- Artifact commit `7d3daa365821082f237c41a0df6312660cb653ef` was pushed. Portability run `30647998169` passed; Quality run `30647997996` failed only at clean-delivery validation because its one-commit checkout lacked `HEAD^`.
+- Pending cycle-4 review, replacement artifact commit, exact-SHA CI, reconciliation, and issue closure.
