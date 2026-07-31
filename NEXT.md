@@ -3,40 +3,39 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** The verified Node.js 24 `weekly-report-cli` foundation is being extended with bounded deterministic Git evidence collection.
-**Current phase:** Deliver the Git evidence collector
-**Active work item:** `2026-07-31-add-git-evidence-collector`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Weekly-report CLI `0.1.0` deterministic Git evidence collection is delivered, exact-SHA CI-green, and globally installed from its byte-proven private artifact.
+**Current phase:** Define Trello member and owner filtering
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Use `deliver-monorepo-change` for `2026-07-31-add-git-evidence-collector`.
+Use `define-monorepo-change` for native Trello card-member output/filtering and verified Work Unit owner filtering.
 
 ## Why This Is Next
 
-- The bounded implementation, independent review, and final stable-snapshot verification passed.
-- Delivery must commit and push the artifact-bearing snapshot, observe CI, then pack and install that exact CI-green commit before workflow closure.
-- Deployment collection and private integration remain separate work.
+- The user explicitly requested filtering cards by involved Trello member and by Work Unit metadata owner.
+- Native card membership and Work Unit owner are distinct responsibilities and must remain separately observable and filterable.
+- The prior weekly-report item is fully delivered and no active workflow item blocks definition.
 
 ## Requirements
 
-- Keep the public collector generic and free of consumer identities, credentials, private history, and delivery behavior.
-- Preserve the Node.js 24 compiled executable, validated JSON, stdout/stderr, exit-code, and exact packed-artifact boundaries.
-- Use synthetic temporary repositories for development and verification.
-- Complete the repository-mandated Changesets, exact-CI-green packing, checksum, global installation, smoke verification, and rollback-evidence chain for CLI behavior changes.
+- Define stable native-member identity fields and matching semantics without conflating them with metadata `owner`.
+- Preserve existing list filters and fail-closed Work Unit parsing.
+- Use offline Trello fixtures by default and keep live production-board mutation out of scope.
+- Include the mandatory Changesets, exact-CI-green artifact, global installation, and installed-shim verification chain for CLI behavior changes.
 
 ## Blockers / Escalation
 
 - No active blocker.
-- Dangerous deletion or irreversible data loss is not authorized or required.
+- Dangerous deletion, production Trello mutation, and registry publication are not authorized or required.
 
 ## Done When
 
-- The work item's review, verification, delivery, versioned local distribution, and workflow closure requirements pass.
+- A compact Workflow v2 Trello filtering work item is defined and routed to focused implementation.
 
 ## Source of Truth
 
 - `AGENTS.md`
-- `docs/work-items/2026-07-31-add-git-evidence-collector/work-item.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`

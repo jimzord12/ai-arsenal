@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** The Workflow v2 pipeline and Trello Flow CLI `0.4.2` are complete; weekly-report CLI `0.1.0` Git evidence collection has passed final verification and is in versioned local delivery
+> **Status:** The Workflow v2 pipeline, Trello Flow CLI `0.4.2`, and globally installed weekly-report CLI `0.1.0` Git evidence collector are complete; no work item is active
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
-> **Current phase:** Deliver the verified weekly-report Git evidence collector
+> **Current phase:** Define Trello card-member and Work Unit owner filtering
 > **Operator view:** `NEXT.md`
 
 ---
@@ -119,7 +119,7 @@ Reconciliation must update classifications as evidence improves.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[VERIFIED]` The 2026-07-29 standing-autonomy directive applies to routine bounded work: agents proceed through review, commit, and push without a separate permission stop. Workflow v2 records direct approval only for dangerous deletion or irreversible data loss and still requires fresh execution-time confirmation; unavailable hard prerequisites still escalate.
 - `[VERIFIED]` `packages/weekly-report-cli` is the private, non-published Node.js 24 and TypeScript package `@jz/ai-arsenal-weekly-report-cli`. Version `0.1.0` exposes only the compiled `weekly-report-cli` executable and adds `collect git` for one explicitly configured working tree, remote, default branch, and inclusive interval. It emits runtime-validated versioned JSON separating default-branch interval commits from active and inactive unmerged remote branches, with explicit unverifiable evidence for invalid or unrelated Git state.
-- `[VERIFIED]` The weekly-report CLI packs exactly `README.md`, `package.json`, and six compiled production modules under `dist/`. Thirty unit/process/distribution tests, strict publint, a clean temporary consumer whose path contains spaces, root quality/validation gates, shell-free synthetic Git workflows, credential redaction, and deterministic ordering cover the verified implementation snapshot. Exact-SHA CI, global installation, and installed-shim evidence remain the active delivery step.
+- `[VERIFIED]` Weekly-report CLI `0.1.0` packs exactly `README.md`, `package.json`, and six compiled production modules under `dist/`. Thirty unit/process/distribution tests, strict publint, a clean temporary consumer whose path contains spaces, root quality/validation gates, shell-free synthetic Git workflows, credential redaction, and deterministic ordering cover the implementation. Artifact commit `d7971f27f37d27e226c102f1a30e2af86dee3bdc` passed exact-SHA Quality and Windows/Linux Portability CI; tarball SHA-256 `e61086ea4da72a40125cc8860970bce64fa9f9c3ea2055fd506faf032e6b5da8` is globally installed with byte-exact package proof and generated-shim synthetic collection.
 
 ## 4.2 Product context supplied by the user
 
@@ -473,7 +473,7 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 - Packed boundary: `README.md`, `package.json`, `dist/arguments.js`, `dist/bin.js`, `dist/cli.js`, `dist/evidence-schema.js`, `dist/git-collector.js`, and `dist/redaction.js` only.
 - Current behavior: honest help/version and usage diagnostics plus deterministic `collect git` evidence for an explicit working tree, remote, default branch, and inclusive interval.
 - Consumer boundary: runtime target configuration and machine-readable evidence cross the process boundary; consumer identity, credentials, report interpretation, scheduling, and delivery remain outside this package.
-- Validation: 30 passing unit/process/distribution tests, strict publint, synthetic temporary repositories, shell-free Git invocation, clean packed-consumer execution on Node.js 24, and paths containing spaces. Exact-SHA CI and global installed-shim proof remain delivery obligations for version `0.1.0`.
+- Validation: 30 passing unit/process/distribution tests, strict publint, synthetic temporary repositories, shell-free Git invocation, clean packed-consumer execution on Node.js 24, paths containing spaces, exact-SHA Quality and Windows/Linux Portability CI, and a byte-exact globally installed generated-shim smoke for version `0.1.0`.
 
 ## 7.8 Behavioral and persistence contract
 
@@ -1039,4 +1039,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Weekly-report CLI `0.1.0` Git evidence collection has passed independent review and final stable-snapshot verification. Commit and push the artifact-bearing snapshot, require Quality and Windows/Linux Portability CI, then pack that exact green commit, install the resulting tarball in the Windows global pnpm environment, and record checksum, rollback, version/help, and disposable synthetic-repository smoke evidence before closing `2026-07-31-add-git-evidence-collector`. Consumer repositories, private history, deployment systems, Trello, and registry state remain outside this delivery.
+Weekly-report CLI `0.1.0` Git evidence collection is delivered from exact CI-green commit `d7971f27f37d27e226c102f1a30e2af86dee3bdc` and globally installed from the byte-proven artifact. The next explicit request is to expose native Trello card members and support filtering cards by involved member while preserving and verifying the existing Work Unit metadata-owner filter. Define that bounded Trello CLI behavior and versioned local-delivery contract through Workflow v2 before implementation.

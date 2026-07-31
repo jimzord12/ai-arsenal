@@ -3,7 +3,7 @@
 Work item: 2026-07-31-add-git-evidence-collector
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-07-31T00:32:01+03:00
 Max time: 8 hours
 Last time check: 2026-07-31T10:14:03+03:00
@@ -67,3 +67,13 @@ Result: passed
 - Focused post-review checks — exit `0`: five synthetic collector tests, targeted Prettier, ESLint, and TypeScript validation passed, including explicit `GIT_BRANCH_UNRELATED` evidence.
 - Privacy observations — exit `0`: no consumer identity matches for `ics-vcr`, `Greek Essence`, `TestingBoard`, or `jimzord12`; credential-like literals are limited to `example.invalid` synthetic redaction and Git-author fixtures. No real credential, consumer history, remote URL, or environment value is committed.
 - Manual diff review confirmed all changed paths match the implementation summary; the packed boundary is exactly `README.md`, `package.json`, `dist/arguments.js`, `dist/bin.js`, `dist/cli.js`, `dist/evidence-schema.js`, `dist/git-collector.js`, and `dist/redaction.js`.
+
+## Delivery evidence
+
+- Artifact-bearing commit: `d7971f27f37d27e226c102f1a30e2af86dee3bdc`; local `HEAD`, `origin/master`, and both CI `headSha` values matched before packing.
+- Required CI passed on the exact artifact commit: Quality run `30612443170` (`https://github.com/jimzord12/ai-arsenal/actions/runs/30612443170`) and Portability run `30612443130` (`https://github.com/jimzord12/ai-arsenal/actions/runs/30612443130`), including Ubuntu and Windows weekly-report packed-artifact smoke.
+- Exact tarball: `jz-ai-arsenal-weekly-report-cli-0.1.0.tgz`; SHA-256 `e61086ea4da72a40125cc8860970bce64fa9f9c3ea2055fd506faf032e6b5da8`; eight-file packed inventory exactly matched final verification.
+- Preflight found no prior global `@jz/ai-arsenal-weekly-report-cli` installation or `weekly-report-cli` shim. Rollback is `pnpm remove -g @jz/ai-arsenal-weekly-report-cli`.
+- Global install command: `pnpm add -g <exact-0.1.0-tarball>`; `pnpm list -g --depth 0 --json` reported `@jz/ai-arsenal-weekly-report-cli 0.1.0`, and `Get-Command` resolved the generated global PowerShell shim under the pnpm global bin directory.
+- Independent installed verification passed: global `--version` returned `0.1.0`, help exposed `collect git`, all eight installed package files byte-matched the tarball, and the generated global shim returned schema `1` verified evidence with one expected commit and no branches from a disposable synthetic repository whose path contained spaces.
+- Registry publication, consumer repository access, private-history collection, and destructive cleanup did not occur. Disposable artifact, comparison, and smoke directories remain under the user temp directory rather than being deleted without direct approval.
