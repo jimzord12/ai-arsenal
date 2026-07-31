@@ -51,6 +51,9 @@ Turns since time check: 2
 Review cycles: 0
 Review status: pending
 Review snapshot: pending
+Review batch: pending
+Review expected: pending
+Review received: pending
 Dangerous deletion or irreversible data loss: no
 Hard prerequisites: resolved
 Approval: not-required
@@ -308,6 +311,15 @@ test('permitted work-item control and evidence updates do not self-invalidate', 
     .replace(
       'Review snapshot: pending',
       `Review snapshot: sha256:${'a'.repeat(64)}`,
+    )
+    .replace('Review batch: pending', 'Review batch: review-example-01')
+    .replace(
+      'Review expected: pending',
+      'Review expected: ["contract","quality"]',
+    )
+    .replace(
+      'Review received: pending',
+      'Review received: [{"reviewer":"contract","outcome":"passed"}]',
     )
     .replace('Pending.', 'No required findings.')
     .replace('Result: pending', 'Result: passed');

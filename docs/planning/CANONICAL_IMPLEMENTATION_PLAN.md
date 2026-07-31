@@ -540,9 +540,22 @@ item remains included after narrowly removing only stage/status/timing/review
 control fields and review, verification, and delivery evidence; its identity,
 safety classification, goal, non-goals, acceptance criteria, and implementation
 description remain reviewed input. The callable API and command return only a
-`sha256:<64 lowercase hexadecimal characters>` digest. Review-batch evidence,
-snapshot freshness enforcement, and the integrated barrier remain separate
-children `#17`–`#19`.
+`sha256:<64 lowercase hexadecimal characters>` digest.
+
+Workflow v2 review uses one runtime-neutral batch-evidence contract. Before
+dispatch it records a concrete candidate snapshot, non-pending batch identity,
+and unique deterministic reviewer roles; every received result carries its
+reviewer, outcome, batch, and snapshot. One reusable reconciliation function
+canonicalizes immediate or later-arriving results identically. Incomplete or
+structurally mismatched evidence remains pending, a complete matching batch
+with any unsuccessful required result is failed, and passed requires exactly
+one matching successful result per expected role with no invalid extras.
+Candidate-changing repair resets all review evidence before a fresh snapshot
+and batch. The three review-evidence fields are excluded by the shared snapshot
+calculation as mutable control state, and a concrete pending snapshot is valid
+only while the item remains in review. Validator advancement/freshness
+enforcement and the integrated barrier remain separate children `#18` and
+`#19`.
 
 ## 8.2 Reconciliation and current truth
 
@@ -1065,4 +1078,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Workflow v2 deterministic review-candidate digest issue `#16` is delivered and closed. No work item is active; define the next bounded child, complete matching review-batch evidence issue `#17`, through Workflow v2.
+Workflow v2 complete matching review-batch evidence issue `#17` has passed final verification and is in delivery. Complete its Git/CI/issue-closure evidence and clear active registration; then define validator advancement and stale-snapshot enforcement issue `#18` as the next bounded child.

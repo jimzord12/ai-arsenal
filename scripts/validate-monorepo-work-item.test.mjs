@@ -369,6 +369,20 @@ test('v2 accepts each valid explicit review state', (t) => {
   }
 });
 
+test('v2 accepts a pending concrete snapshot only during review', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'review',
+    reviewStatus: 'pending',
+    reviewSnapshot: reviewDigest,
+  });
+  writeActiveState(fixture.root, workItemId, 'review-monorepo-change');
+
+  const result = runValidator(fixture.root);
+  assert.equal(result.status, 0, result.json.blocker);
+  assert.equal(result.json.nextSkill, 'review-monorepo-change');
+});
+
 test('v2 rejects malformed or contradictory explicit review states', (t) => {
   for (const [name, reviewStatus, reviewSnapshot, blocker] of [
     ['pending with digest', 'pending', reviewDigest, /pending snapshot/i],

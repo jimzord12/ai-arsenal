@@ -16,6 +16,9 @@ const excludedWorkItemFields = new Set([
   'Review cycles',
   'Review status',
   'Review snapshot',
+  'Review batch',
+  'Review expected',
+  'Review received',
 ]);
 const excludedWorkItemSections = new Set([
   '## Review findings and repairs',

@@ -586,8 +586,12 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
       'Review snapshot',
       /^(pending|sha256:[0-9a-f]{64})$/,
     );
-    if (reviewStatus === 'pending' && reviewSnapshot !== 'pending') {
-      throw new Error('Pending review requires a pending snapshot');
+    if (
+      reviewStatus === 'pending' &&
+      reviewSnapshot !== 'pending' &&
+      stage !== 'review'
+    ) {
+      throw new Error('A pending snapshot digest is valid only during review');
     }
     if (reviewStatus !== 'pending' && reviewSnapshot === 'pending') {
       throw new Error(

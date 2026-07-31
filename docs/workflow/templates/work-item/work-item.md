@@ -11,6 +11,9 @@ Turns since time check: 1
 Review cycles: 0
 Review status: pending
 Review snapshot: pending
+Review batch: pending
+Review expected: pending
+Review received: pending
 Dangerous deletion or irreversible data loss: <yes|no>
 Hard prerequisites: <resolved|blocked>
 Approval: <not-required|required|approved>
@@ -21,7 +24,9 @@ Review lifecycle:
 - Definition and entry into review use Review status: pending and Review snapshot: pending.
 - An unsuccessful required review for a concrete candidate uses Review status: failed and Review snapshot: sha256:<64 lowercase hexadecimal characters>.
 - Complete required review evidence for a concrete candidate uses Review status: passed and Review snapshot: sha256:<64 lowercase hexadecimal characters>.
-- Any repair that changes candidate bytes resets both fields to pending before re-review.
+- Before dispatch, a concrete review records a non-pending batch identifier, a JSON array of unique deterministic reviewer roles, and an initially empty JSON received-results array.
+- Reconciliation preserves every received result and permits passed only when every expected role has exactly one matching successful result and no mismatched or unexpected evidence exists.
+- Any repair that changes candidate bytes resets status, snapshot, batch, expected, and received fields to pending before re-review.
 - Review cycles remain bounded at four; an unsuccessful fourth cycle is blocked.
 -->
 
