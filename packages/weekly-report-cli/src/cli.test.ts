@@ -46,7 +46,7 @@ describe('weekly-report-cli usage failures', () => {
   it('writes a structured diagnostic to stderr for an unknown command', () => {
     expect(runCli(['deploy'])).toEqual({
       exitCode: 2,
-      stderr: 'USAGE_ERROR: Unknown command: deploy.\n',
+      stderr: 'USAGE_ERROR: Unknown command.\n',
       stdout: '',
     });
   });
@@ -172,3 +172,93 @@ it('converts invalid collector output into explicit validation failure evidence'
     status: 'unverifiable',
   });
 });
+
+it.each([
+  [
+    'malformed commit SHA',
+    {
+      branches: [],
+      collector: 'git',
+      defaultBranchCommits: [
+        {
+          committedAt: '2026-07-21T10:00:00Z',
+          parentShas: [],
+          sha: 'not-an-object-id',
+          subject: 'synthetic outcome',
+        },
+      ],
+      interval: {
+        since: '2026-07-20T00:00:00Z',
+        until: '2026-07-26T23:59:59Z',
+      },
+      schemaVersion: '1',
+      source: { defaultBranch: 'main', remote: 'origin' },
+      status: 'verified',
+    },
+  ],
+  [
+    'malformed commit timestamp',
+    {
+      branches: [],
+      collector: 'git',
+      defaultBranchCommits: [
+        {
+          committedAt: 'not-an-instant',
+          parentShas: [],
+          sha: 'a'.repeat(40),
+          subject: 'synthetic outcome',
+        },
+      ],
+      interval: {
+        since: '2026-07-20T00:00:00Z',
+        until: '2026-07-26T23:59:59Z',
+      },
+      schemaVersion: '1',
+      source: { defaultBranch: 'main', remote: 'origin' },
+      status: 'verified',
+    },
+  ],
+  [
+    'malformed interval timestamp',
+    {
+      branches: [],
+      collector: 'git',
+      defaultBranchCommits: [],
+      interval: { since: 'not-an-instant', until: '2026-07-26T23:59:59Z' },
+      schemaVersion: '1',
+      source: { defaultBranch: 'main', remote: 'origin' },
+      status: 'verified',
+    },
+  ],
+])(
+  'turns %s from the collector into a CLI validation failure',
+  (_name, evidence) => {
+    const result = runCli(
+      [
+        'collect',
+        'git',
+        '--repository',
+        'repository',
+        '--remote',
+        'origin',
+        '--default-branch',
+        'main',
+        '--since',
+        '2026-07-20T00:00:00Z',
+        '--until',
+        '2026-07-26T23:59:59Z',
+      ],
+      () => evidence,
+    );
+
+    expect(result).toMatchObject({
+      exitCode: 1,
+      stderr:
+        'COLLECTION_ERROR GIT_OUTPUT_VALIDATION_FAILED: Git evidence collection failed.\n',
+    });
+    expect(JSON.parse(result.stdout)).toMatchObject({
+      errors: [{ code: 'GIT_OUTPUT_VALIDATION_FAILED' }],
+      status: 'unverifiable',
+    });
+  },
+);

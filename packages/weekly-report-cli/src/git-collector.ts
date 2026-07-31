@@ -239,12 +239,29 @@ export function collectGitEvidence(
       `Configured remote was not found: ${request.remote}.`,
     );
   }
+  const selectedRemoteNamespace = request.remote.toLowerCase();
+  const hasNamespaceConflict = remotes.some((otherRemote) => {
+    if (otherRemote === request.remote) return false;
+    const otherNamespace = otherRemote.toLowerCase();
+    return (
+      otherNamespace === selectedRemoteNamespace ||
+      otherNamespace.startsWith(`${selectedRemoteNamespace}/`) ||
+      selectedRemoteNamespace.startsWith(`${otherNamespace}/`)
+    );
+  });
+  if (hasNamespaceConflict) {
+    throw new GitCollectionFailure(
+      'GIT_REMOTE_NAMESPACE_CONFLICT',
+      'Configured remote namespace overlaps another remote.',
+    );
+  }
 
   try {
     runGit(request.repository, 'fetch', [
       'fetch',
       '--prune',
       '--no-tags',
+      '--no-recurse-submodules',
       '--no-write-fetch-head',
       '--no-auto-maintenance',
       '--',

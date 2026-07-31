@@ -1,6 +1,6 @@
 {
   "name": "@jz/ai-arsenal-weekly-report-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Generic deterministic evidence CLI for weekly engineering reports.",
   "type": "module",

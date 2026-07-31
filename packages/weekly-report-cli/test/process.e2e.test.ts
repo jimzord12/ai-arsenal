@@ -68,7 +68,157 @@ it('keeps stdout and stderr separated for version and usage results', () => {
   });
   expect(unknown).toMatchObject({
     status: 2,
-    stderr: 'USAGE_ERROR: Unknown command: deploy.\n',
+    stderr: 'USAGE_ERROR: Unknown command.\n',
+    stdout: '',
+  });
+});
+
+it.each([
+  'https://account:private-token@example.invalid/repository.git',
+  'origin\nprivate-token',
+  'a..b',
+  'foo.lock',
+  'a/b.LOCK',
+])('rejects unsafe remote input without exposing it: %s', (remote) => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      binPath,
+      'collect',
+      'git',
+      '--repository',
+      'unused',
+      '--remote',
+      remote,
+      '--default-branch',
+      'main',
+      '--since',
+      '2026-07-20T00:00:00Z',
+      '--until',
+      '2026-07-26T23:59:59Z',
+    ],
+    { cwd: packageRoot, encoding: 'utf8', windowsHide: true },
+  );
+
+  expect(result).toMatchObject({
+    status: 2,
+    stderr: 'USAGE_ERROR: Invalid remote name.\n',
+    stdout: '',
+  });
+  expect(`${result.stdout}${result.stderr}`).not.toContain(remote);
+  expect(`${result.stdout}${result.stderr}`).not.toContain('private-token');
+  expect(`${result.stdout}${result.stderr}`).not.toContain(
+    'https://account:private-token@example.invalid/repository.git',
+  );
+});
+
+it.each([
+  [
+    'credential-bearing since',
+    [
+      'collect',
+      'git',
+      '--repository',
+      'unused',
+      '--remote',
+      'origin',
+      '--default-branch',
+      'main',
+      '--since',
+      'https://account:private-token@example.invalid/since',
+      '--until',
+      '2026-07-26T23:59:59Z',
+    ],
+    'USAGE_ERROR: Invalid ISO instant for --since.\n',
+  ],
+  [
+    'credential-bearing until',
+    [
+      'collect',
+      'git',
+      '--repository',
+      'unused',
+      '--remote',
+      'origin',
+      '--default-branch',
+      'main',
+      '--since',
+      '2026-07-20T00:00:00Z',
+      '--until',
+      'https://account:private-token@example.invalid/until',
+    ],
+    'USAGE_ERROR: Invalid ISO instant for --until.\n',
+  ],
+  [
+    'credential-bearing default branch',
+    [
+      'collect',
+      'git',
+      '--repository',
+      'unused',
+      '--remote',
+      'origin',
+      '--default-branch',
+      'https://account:private-token@example.invalid/branch',
+      '--since',
+      '2026-07-20T00:00:00Z',
+      '--until',
+      '2026-07-26T23:59:59Z',
+    ],
+    'USAGE_ERROR: Invalid default branch name.\n',
+  ],
+  [
+    'credential-bearing unknown command',
+    ['https://account:private-token@example.invalid/command'],
+    'USAGE_ERROR: Unknown command.\n',
+  ],
+  [
+    'credential-bearing unknown option',
+    [
+      'collect',
+      'git',
+      'https://account:private-token@example.invalid/option',
+      'value',
+    ],
+    'USAGE_ERROR: Unknown or incomplete option.\n',
+  ],
+])('does not disclose %s', (_name, args, stderr) => {
+  const result = spawnSync(process.execPath, [binPath, ...args], {
+    cwd: packageRoot,
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+
+  expect(result).toMatchObject({ status: 2, stderr, stdout: '' });
+  expect(`${result.stdout}${result.stderr}`).not.toContain('private-token');
+  expect(`${result.stdout}${result.stderr}`).not.toContain('https://account:');
+});
+
+it('rejects impossible instants as stderr-only usage errors', () => {
+  const impossible = '2026-02-30T00:00:00Z';
+  const result = spawnSync(
+    process.execPath,
+    [
+      binPath,
+      'collect',
+      'git',
+      '--repository',
+      'unused',
+      '--remote',
+      'origin',
+      '--default-branch',
+      'main',
+      '--since',
+      impossible,
+      '--until',
+      '2026-07-26T23:59:59Z',
+    ],
+    { cwd: packageRoot, encoding: 'utf8', windowsHide: true },
+  );
+
+  expect(result).toMatchObject({
+    status: 2,
+    stderr: 'USAGE_ERROR: Invalid ISO instant for --since.\n',
     stdout: '',
   });
 });
