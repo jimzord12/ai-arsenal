@@ -3,26 +3,25 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** Trello Flow CLI `0.5.1` all-visible/open-card member filtering passed final stable-snapshot verification.
-**Current phase:** Deliver all-visible/open-card member filtering
-**Active work item:** `2026-07-31-filter-all-open-trello-cards-by-member`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Trello Flow CLI `0.5.1` all-visible/open-card member filtering is delivered, exact-SHA CI-green, and globally installed from the byte-proven private artifact.
+**Current phase:** Await the next bounded request
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Use `deliver-monorepo-change` for `2026-07-31-filter-all-open-trello-cards-by-member`.
+Use `define-monorepo-change` for the next explicit bounded monorepo request.
 
 ## Why This Is Next
 
-- Final root, package, workflow, packed-consumer, official-skill, live-safety, privacy, and diff gates passed.
-- Read-only TestingBoard evidence returned exactly the expected ordinary card and Work Unit, with owner composition excluding the ordinary card.
-- The verified `0.5.1` snapshot is ready for exact-commit Git/CI delivery and global artifact replacement.
+- Member filtering now returns all matching visible/open ordinary cards and Work Units while archived cards stay excluded.
+- Exact metadata-owner filtering remains separate, conjunctive, and Work Unit-specific.
+- Artifact commit `f4d756cd634898804850cfc20596b7f145ef7515` passed required CI; its byte-proven `0.5.1` tarball is globally installed with retained `0.5.0` rollback.
 
 ## Requirements
 
-- Reconcile canonical/current-state records, commit and push the verified artifact snapshot, and require exact-SHA Quality plus Windows/Linux Portability CI.
-- Pack only that CI-green commit, retain the exact `0.5.0` rollback artifact, and obtain fresh confirmation immediately before global replacement.
-- Verify installed package bytes, generated shim, version, and read-only TestingBoard behavior; do not publish or mutate Trello.
+- Preserve the delivered member/owner responsibility boundary, exact matching semantics, and archived-card exclusion.
+- Keep registry publication, production Trello mutation, and source deletion behind separate bounded work.
 
 ## Blockers / Escalation
 
@@ -31,7 +30,7 @@ Use `deliver-monorepo-change` for `2026-07-31-filter-all-open-trello-cards-by-me
 
 ## Done When
 
-- Member-filter queries return all matching visible/open ordinary cards and Work Units, exact owner composition remains correct, `0.5.1` is installed from its CI-green artifact, and the work item is closed.
+- A new explicit request is defined as a compact Workflow v2 work item.
 
 ## Source of Truth
 
