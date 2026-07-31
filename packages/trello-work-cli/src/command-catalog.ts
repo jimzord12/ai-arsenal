@@ -69,7 +69,8 @@ const BASE_COMMAND_CATALOG: CommandDefinition[] = [
   {
     id: 'list',
     syntax: 'jz-trello-flow list',
-    summary: 'List normalized Work Units with optional filters.',
+    summary:
+      'List normalized Work Units, or all visible member cards with --member.',
     options: [
       '--status',
       '--type',

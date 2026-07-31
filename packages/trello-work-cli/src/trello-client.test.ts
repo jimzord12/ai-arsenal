@@ -199,7 +199,15 @@ describe('Trello REST API v1 client', () => {
           closed: false,
         },
       ]),
-      json([card]),
+      json([
+        { ...card, closed: false },
+        {
+          ...card,
+          id: 'aaaaaaaaaaaaaaaaaaaaaaaa',
+          idShort: 43,
+          closed: true,
+        },
+      ]),
     );
     const api = client(transport);
 
@@ -227,6 +235,12 @@ describe('Trello REST API v1 client', () => {
       '/1/boards/board-1/lists',
       '/1/boards/board-1/cards',
     ]);
+    expect(
+      new URL(transport.requests.at(-1)?.url ?? '').searchParams.get('filter'),
+    ).toBe('visible');
+    expect(
+      new URL(transport.requests.at(-1)?.url ?? '').searchParams.get('fields'),
+    ).toContain('closed');
   });
 
   it('constructs list create, read, update, action, and occupancy requests', async () => {

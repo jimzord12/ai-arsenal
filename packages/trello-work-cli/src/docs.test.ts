@@ -141,6 +141,9 @@ describe('offline Work CLI documentation', () => {
       'exact member ID',
       'case-insensitive exact username',
       'does not match display names',
+      'all visible board cards',
+      'ordinary cards and Work Units',
+      'archived cards are excluded',
     ]) {
       expect(guide).toContain(phrase);
     }

@@ -11,6 +11,7 @@ import {
   getWorkUnit,
   listInboxCards,
   listWorkUnits,
+  normalizeRemoteCard,
   validateLocalWorkUnit,
   validateRemoteWorkUnit,
   type ReadCommandClient,
@@ -301,6 +302,15 @@ describe('read-only commands', () => {
   });
 
   it('filters native card members separately from exact metadata owner', async () => {
+    const ordinary = await card({
+      id: 'aaaaaaaaaaaaaaaaaaaaaaaa',
+      idShort: 44,
+      name: 'Ordinary assigned card',
+      desc: 'A plain Trello card assigned to the selected member.',
+      members: [
+        { id: 'member-1', username: 'Dev-One', fullName: 'Developer One' },
+      ],
+    });
     const matching = await card({
       desc: await persistedDescription({ owner: 'codex:worker-1' }),
       members: [
@@ -317,17 +327,38 @@ describe('read-only commands', () => {
       }),
       members: [{ id: 'member-2', username: 'alex', fullName: 'Alex Example' }],
     });
-    const client = fakeClient([matching, other]);
+    const client = fakeClient([ordinary, matching, other]);
 
     await expect(
       listWorkUnits({ member: 'dev-one' }, config(), client),
     ).resolves.toMatchObject({
       filters: { member: 'dev-one' },
-      items: [{ card: { members: [{ id: 'member-1' }] } }],
+      items: [
+        {
+          id: ordinary.id,
+          kind: 'ordinary',
+          members: [{ id: 'member-1' }],
+        },
+        {
+          id: matching.id,
+          kind: 'work-unit',
+          members: [{ id: 'member-1' }],
+          workUnit: { metadata: { id: 'WU-42' } },
+        },
+      ],
     });
     await expect(
       listWorkUnits({ member: 'MEMBER-1' }, config(), client),
-    ).resolves.toMatchObject({ items: [{ metadata: { id: 'WU-42' } }] });
+    ).resolves.toMatchObject({
+      items: [
+        { id: ordinary.id, kind: 'ordinary' },
+        {
+          id: matching.id,
+          kind: 'work-unit',
+          workUnit: { metadata: { id: 'WU-42' } },
+        },
+      ],
+    });
     await expect(
       listWorkUnits({ owner: 'codex:worker-1' }, config(), client),
     ).resolves.toMatchObject({ items: [{ metadata: { id: 'WU-42' } }] });
@@ -337,7 +368,15 @@ describe('read-only commands', () => {
         config(),
         client,
       ),
-    ).resolves.toMatchObject({ items: [{ metadata: { id: 'WU-42' } }] });
+    ).resolves.toMatchObject({
+      items: [
+        {
+          id: matching.id,
+          kind: 'work-unit',
+          workUnit: { metadata: { id: 'WU-42' } },
+        },
+      ],
+    });
     await expect(
       listWorkUnits(
         { member: 'dev-one', owner: 'codex:worker-2' },
@@ -360,6 +399,16 @@ describe('read-only commands', () => {
         fakeClient([await card()]),
       ),
     ).resolves.toMatchObject({ items: [] });
+
+    const malformed = await card({
+      desc: 'Damaged content\n<!-- work-operation: design-start-1 deadbeef -->',
+      members: [
+        { id: 'member-1', username: 'dev-one', fullName: 'Developer One' },
+      ],
+    });
+    await expect(
+      listWorkUnits({ member: 'dev-one' }, config(), fakeClient([malformed])),
+    ).rejects.toMatchObject({ code: 'INVALID_REMOTE_WORK_UNIT' });
   });
 
   it('lists ordinary Inbox cards while Work Unit listing skips them', async () => {
@@ -378,8 +427,9 @@ describe('read-only commands', () => {
         { id: persisted.id, kind: 'work-unit', members: [] },
       ],
     });
-    await expect(listWorkUnits({}, config(), client)).resolves.toMatchObject({
-      items: [{ metadata: { id: 'WU-42' } }],
+    await expect(listWorkUnits({}, config(), client)).resolves.toEqual({
+      filters: {},
+      items: [normalizeRemoteCard(persisted)],
     });
   });
 

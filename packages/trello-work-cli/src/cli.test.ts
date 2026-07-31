@@ -734,10 +734,38 @@ describe('list filters', () => {
         { id: 'member-1', username: 'dev-one', fullName: 'Developer One' },
       ],
     };
+    const ordinary = {
+      ...fixture.card,
+      id: 'aaaaaaaaaaaaaaaaaaaaaaaa',
+      idShort: 43,
+      name: 'Ordinary assigned card',
+      desc: 'Plain Trello intake.',
+      members: [
+        { id: 'member-1', username: 'dev-one', fullName: 'Developer One' },
+      ],
+    };
     const client = {
       ...fixture.client,
-      listBoardCards: async () => [card],
+      listBoardCards: async () => [ordinary, card],
     };
+
+    const memberResult = await runWorkCli(
+      ['list', '--board', 'Testing', '--member', 'DEV-ONE', '--output', 'json'],
+      { config: fixture.config, client: client as never },
+    );
+
+    expect(memberResult).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(JSON.parse(memberResult.stdout)).toMatchObject({
+      filters: { member: 'DEV-ONE' },
+      items: [
+        { id: ordinary.id, kind: 'ordinary' },
+        {
+          id: card.id,
+          kind: 'work-unit',
+          workUnit: { metadata: { owner: 'codex:worker-1' } },
+        },
+      ],
+    });
 
     const result = await runWorkCli(
       [
@@ -757,7 +785,14 @@ describe('list filters', () => {
     expect(result).toMatchObject({ exitCode: 0, stderr: '' });
     expect(JSON.parse(result.stdout)).toMatchObject({
       filters: { member: 'DEV-ONE', owner: 'codex:worker-1' },
-      items: [{ card: { members: [{ id: 'member-1' }] } }],
+      items: [
+        {
+          id: card.id,
+          kind: 'work-unit',
+          members: [{ id: 'member-1' }],
+          workUnit: { metadata: { owner: 'codex:worker-1' } },
+        },
+      ],
     });
   });
 });

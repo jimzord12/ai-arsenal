@@ -1,5 +1,11 @@
 # @jz/ai-arsenal-trello-work-cli
 
+## 0.5.1
+
+### Patch Changes
+
+- Return ordinary cards as well as Work Units from member-filtered visible board listings while keeping archived cards excluded and metadata filters Work Unit-specific.
+
 ## 0.5.0
 
 ### Minor Changes

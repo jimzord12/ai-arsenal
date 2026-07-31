@@ -20,6 +20,7 @@ const CARD_FIELDS = [
   'name',
   'desc',
   'idList',
+  'closed',
   'dateLastActivity',
   'shortUrl',
 ].join(',');
@@ -532,6 +533,7 @@ export class TrelloClient {
       `/boards/${encodeURIComponent(boardId)}/cards`,
       {
         fields: CARD_FIELDS,
+        filter: 'visible',
         members: true,
         member_fields: 'id,username,fullName',
       },
@@ -542,7 +544,16 @@ export class TrelloClient {
             'Trello returned an invalid card collection.',
           );
         }
-        return value.map((entry) => normalizeCard(entry));
+        return value.flatMap((entry) => {
+          const card = requireObject(entry, 'card response');
+          if (typeof card.closed !== 'boolean') {
+            throw new WorkCliError(
+              'TRELLO_RESPONSE_INVALID',
+              'Trello card response is missing closed.',
+            );
+          }
+          return card.closed ? [] : [normalizeCard(card)];
+        });
       },
     );
   }

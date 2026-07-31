@@ -46,12 +46,12 @@ only files already completed.
 
 ### jz-trello-flow list
 
-List normalized Work Units on the explicitly selected board. Filters:
+Without `--member`, list normalized Work Units on the explicitly selected board. With `--member`, search all visible board cards and return matching ordinary cards and Work Units using the same discriminated shapes as Inbox; archived cards are excluded. Filters:
 `--status`, `--type`, `--priority`, `--owner`, `--member`, `--parent`, and one
 `--label`. `--owner` is an exact metadata-owner match. `--member` matches an
 exact member ID or case-insensitive exact username and does not match display
-names or substrings. All filters compose conjunctively. Duplicate options are
-rejected.
+names or substrings. Metadata filters exclude ordinary cards, and all filters
+compose conjunctively. Duplicate options are rejected.
 
 ### jz-trello-flow boards list
 
