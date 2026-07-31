@@ -7,6 +7,8 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import { calculateReviewSnapshot } from './calculate-review-snapshot.mjs';
+
 const scriptsDirectory = path.dirname(fileURLToPath(import.meta.url));
 const validatorPath = path.join(
   scriptsDirectory,
@@ -63,10 +65,29 @@ const deliverSkillPath = path.join(
 );
 const workItemId = '2026-07-13-example';
 const reviewDigest = `sha256:${'a'.repeat(64)}`;
+const reviewBatch = 'review-20260731-01';
+const reviewExpected = ['contract', 'quality'];
+
+function matchingReviewResults(snapshot = reviewDigest, batchId = reviewBatch) {
+  return reviewExpected.map((reviewer) => ({
+    reviewer,
+    outcome: 'passed',
+    batchId,
+    snapshot,
+  }));
+}
 
 function createFixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-arsenal-work-item-'));
   const workItemDirectory = path.join(root, 'docs', 'work-items', workItemId);
+  fs.mkdirSync(workItemDirectory, { recursive: true });
+  t.after(() => fs.rmSync(root, { force: true, recursive: true }));
+  return { root, workItemDirectory };
+}
+
+function createNamedFixture(t, id) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-arsenal-work-item-'));
+  const workItemDirectory = path.join(root, 'docs', 'work-items', id);
   fs.mkdirSync(workItemDirectory, { recursive: true });
   t.after(() => fs.rmSync(root, { force: true, recursive: true }));
   return { root, workItemDirectory };
@@ -207,6 +228,40 @@ function writeActiveState(root, activeWorkItem, pipelineStep) {
   );
 }
 
+function runGit(root, arguments_) {
+  const result = spawnSync('git', arguments_, { cwd: root, encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout.trim();
+}
+
+function initializeGitFixture(root) {
+  runGit(root, ['init', '--quiet']);
+  runGit(root, ['config', 'user.name', 'Workflow Tests']);
+  runGit(root, ['config', 'user.email', 'workflow-tests@example.invalid']);
+  runGit(root, ['add', '.']);
+  runGit(root, ['commit', '--quiet', '-m', 'fixture baseline']);
+}
+
+function makeActiveCandidateFresh(root, workItemDirectory) {
+  initializeGitFixture(root);
+  const workItemPath = path.join(workItemDirectory, 'work-item.md');
+  const recordedSnapshot = fs
+    .readFileSync(workItemPath, 'utf8')
+    .match(/^Review snapshot: (sha256:[0-9a-f]{64})$/m)?.[1];
+  assert.ok(recordedSnapshot);
+  const freshSnapshot = calculateReviewSnapshot({
+    repositoryRoot: root,
+    workItemPath,
+  });
+  fs.writeFileSync(
+    workItemPath,
+    fs
+      .readFileSync(workItemPath, 'utf8')
+      .replaceAll(recordedSnapshot, freshSnapshot),
+    'utf8',
+  );
+}
+
 function addPassedCompletion(workItemDirectory) {
   addRequest(workItemDirectory);
   addContext(workItemDirectory);
@@ -243,6 +298,19 @@ function addV2WorkItem(
     reviewSnapshot = stage === 'verify' || stage === 'deliver'
       ? reviewDigest
       : 'pending',
+    reviewBatchId = reviewSnapshot === 'pending' ? 'pending' : reviewBatch,
+    expectedReviewers = reviewSnapshot === 'pending'
+      ? 'pending'
+      : reviewExpected,
+    receivedResults = reviewSnapshot === 'pending'
+      ? 'pending'
+      : matchingReviewResults(reviewSnapshot, reviewBatchId).map(
+          (result, index) =>
+            reviewStatus === 'failed' && index === 0
+              ? { ...result, outcome: 'failed' }
+              : result,
+        ),
+    omitBatchEvidence = false,
     legacyRequiredFindings,
     dangerous = 'no',
     prerequisites = 'resolved',
@@ -267,7 +335,19 @@ Turns since time check: ${turns}
 Review cycles: ${reviewCycles}
 ${
   legacyRequiredFindings === undefined
-    ? `Review status: ${reviewStatus}\nReview snapshot: ${reviewSnapshot}`
+    ? `Review status: ${reviewStatus}\nReview snapshot: ${reviewSnapshot}${
+        omitBatchEvidence
+          ? ''
+          : `\nReview batch: ${reviewBatchId}\nReview expected: ${
+              typeof expectedReviewers === 'string'
+                ? expectedReviewers
+                : JSON.stringify(expectedReviewers)
+            }\nReview received: ${
+              typeof receivedResults === 'string'
+                ? receivedResults
+                : JSON.stringify(receivedResults)
+            }`
+      }`
     : `Required findings remaining: ${legacyRequiredFindings}`
 }
 Dangerous deletion or irreversible data loss: ${dangerous}
@@ -352,17 +432,30 @@ test('stage skills define pending entry, failed review, pass, and repair reset',
 });
 
 test('v2 accepts each valid explicit review state', (t) => {
-  for (const [name, reviewStatus, reviewSnapshot] of [
-    ['pending', 'pending', 'pending'],
-    ['failed', 'failed', reviewDigest],
-    ['passed', 'passed', reviewDigest],
+  for (const [name, options, step] of [
+    ['pending', {}, 'implement-monorepo-change'],
+    [
+      'failed',
+      {
+        stage: 'review',
+        reviewStatus: 'failed',
+        reviewSnapshot: reviewDigest,
+        reviewBatchId: reviewBatch,
+        expectedReviewers: reviewExpected,
+        receivedResults: matchingReviewResults().map((result, index) =>
+          index === 0 ? { ...result, outcome: 'failed' } : result,
+        ),
+      },
+      'review-monorepo-change',
+    ],
+    ['passed', { stage: 'verify' }, 'verify-monorepo-change'],
   ]) {
     const fixture = createFixture(t);
-    addV2WorkItem(fixture.workItemDirectory, {
-      reviewStatus,
-      reviewSnapshot,
-    });
-    writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+    addV2WorkItem(fixture.workItemDirectory, options);
+    writeActiveState(fixture.root, workItemId, step);
+    if (options.stage === 'verify') {
+      makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+    }
 
     const result = runValidator(fixture.root);
     assert.equal(result.status, 0, `${name}: ${result.json.blocker}`);
@@ -375,12 +468,266 @@ test('v2 accepts a pending concrete snapshot only during review', (t) => {
     stage: 'review',
     reviewStatus: 'pending',
     reviewSnapshot: reviewDigest,
+    reviewBatchId: reviewBatch,
+    expectedReviewers: reviewExpected,
+    receivedResults: [],
   });
   writeActiveState(fixture.root, workItemId, 'review-monorepo-change');
 
   const result = runValidator(fixture.root);
   assert.equal(result.status, 0, result.json.blocker);
   assert.equal(result.json.nextSkill, 'review-monorepo-change');
+});
+
+test('review evidence fields are required and must contain valid JSON shapes', (t) => {
+  for (const [name, options, blocker] of [
+    [
+      'missing batch evidence',
+      { stage: 'verify', omitBatchEvidence: true },
+      /Review batch.*Review expected.*Review received/i,
+    ],
+    [
+      'malformed expected JSON',
+      { stage: 'verify', expectedReviewers: '["contract"' },
+      /Review expected.*JSON/i,
+    ],
+    [
+      'invalid received shape',
+      { stage: 'verify', receivedResults: {} },
+      /Review received.*array/i,
+    ],
+  ]) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, options);
+    writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 1, name);
+    assert.match(result.json.blocker, blocker, name);
+  }
+});
+
+test('review stage remains in review until the complete matching batch passes', (t) => {
+  for (const [name, options, blocker] of [
+    ['undispatched', { stage: 'review' }, /review has not been dispatched/i],
+    [
+      'incomplete',
+      {
+        stage: 'review',
+        reviewSnapshot: reviewDigest,
+        reviewBatchId: reviewBatch,
+        expectedReviewers: reviewExpected,
+        receivedResults: [matchingReviewResults()[0]],
+      },
+      /missing required reviewer: quality/i,
+    ],
+    [
+      'failed',
+      {
+        stage: 'review',
+        reviewStatus: 'failed',
+        reviewSnapshot: reviewDigest,
+        reviewBatchId: reviewBatch,
+        expectedReviewers: reviewExpected,
+        receivedResults: matchingReviewResults().map((result, index) =>
+          index === 0 ? { ...result, outcome: 'failed' } : result,
+        ),
+      },
+      /contract review outcome: failed/i,
+    ],
+  ]) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, options);
+    writeActiveState(fixture.root, workItemId, 'review-monorepo-change');
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 0, `${name}: ${result.json.blocker}`);
+    assert.equal(result.json.nextSkill, 'review-monorepo-change', name);
+    assert.match(result.json.blocker, blocker, name);
+  }
+});
+
+test('verify rejects incomplete, mismatched, and inconsistent review evidence', (t) => {
+  for (const [name, options, blocker] of [
+    [
+      'pending',
+      {
+        stage: 'verify',
+        reviewStatus: 'pending',
+        reviewSnapshot: 'pending',
+        reviewBatchId: 'pending',
+        expectedReviewers: 'pending',
+        receivedResults: 'pending',
+      },
+      /Review status must be passed/i,
+    ],
+    [
+      'incomplete',
+      { stage: 'verify', receivedResults: [matchingReviewResults()[0]] },
+      /missing required reviewer: quality/i,
+    ],
+    [
+      'wrong batch',
+      {
+        stage: 'verify',
+        receivedResults: matchingReviewResults().map((result, index) =>
+          index === 0 ? { ...result, batchId: 'review-wrong' } : result,
+        ),
+      },
+      /wrong batch for reviewer contract/i,
+    ],
+    [
+      'wrong snapshot',
+      {
+        stage: 'verify',
+        receivedResults: matchingReviewResults().map((result, index) =>
+          index === 0
+            ? { ...result, snapshot: `sha256:${'b'.repeat(64)}` }
+            : result,
+        ),
+      },
+      /wrong snapshot for reviewer contract/i,
+    ],
+    [
+      'duplicate reviewer',
+      {
+        stage: 'verify',
+        receivedResults: [
+          ...matchingReviewResults(),
+          matchingReviewResults()[0],
+        ],
+      },
+      /duplicate required reviewer: contract/i,
+    ],
+    [
+      'unexpected reviewer',
+      {
+        stage: 'verify',
+        receivedResults: [
+          ...matchingReviewResults(),
+          {
+            reviewer: 'security',
+            outcome: 'passed',
+            batchId: reviewBatch,
+            snapshot: reviewDigest,
+          },
+        ],
+      },
+      /unexpected reviewer: security/i,
+    ],
+    [
+      'recorded status mismatch',
+      {
+        stage: 'verify',
+        reviewStatus: 'failed',
+        receivedResults: matchingReviewResults(),
+      },
+      /Review status must be passed/i,
+    ],
+  ]) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, options);
+    writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 1, name);
+    assert.match(result.json.blocker, blocker, name);
+  }
+});
+
+test('verify and active deliver require the fresh current candidate snapshot', (t) => {
+  for (const stage of ['verify', 'deliver']) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      stage,
+      reviewSnapshot: reviewDigest,
+    });
+    writeActiveState(fixture.root, workItemId, `${stage}-monorepo-change`);
+    initializeGitFixture(fixture.root);
+    const workItemPath = path.join(fixture.workItemDirectory, 'work-item.md');
+    const freshSnapshot = calculateReviewSnapshot({
+      repositoryRoot: fixture.root,
+      workItemPath,
+    });
+    const contents = fs
+      .readFileSync(workItemPath, 'utf8')
+      .replaceAll(reviewDigest, freshSnapshot);
+    fs.writeFileSync(workItemPath, contents, 'utf8');
+
+    const unchanged = runValidator(fixture.root);
+    assert.equal(unchanged.status, 0, `${stage}: ${unchanged.json.blocker}`);
+    assert.equal(fs.readFileSync(workItemPath, 'utf8'), contents);
+
+    fs.writeFileSync(path.join(fixture.root, 'candidate.txt'), 'changed\n');
+    const stale = runValidator(fixture.root);
+    assert.equal(stale.status, 1, stage);
+    assert.match(stale.json.blocker, /review snapshot is stale.*re-review/i);
+  }
+});
+
+test('freshness-required stages fail closed without Git metadata', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, { stage: 'verify' });
+  writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+
+  const result = runValidator(fixture.root);
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /requires Git repository metadata/i);
+});
+
+test('newly delivered records require complete evidence and a clean candidate', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    status: 'delivered',
+  });
+  writeActiveState(fixture.root, 'none', 'none');
+  initializeGitFixture(fixture.root);
+
+  const clean = runValidator(fixture.root);
+  assert.equal(clean.status, 0, clean.json.blocker);
+
+  fs.writeFileSync(path.join(fixture.root, 'candidate.txt'), 'changed\n');
+  const changed = runValidator(fixture.root);
+  assert.equal(changed.status, 1);
+  assert.match(
+    changed.json.blocker,
+    /delivered candidate has uncommitted changes/i,
+  );
+
+  const incomplete = createFixture(t);
+  addV2WorkItem(incomplete.workItemDirectory, {
+    stage: 'deliver',
+    status: 'delivered',
+    receivedResults: [matchingReviewResults()[0]],
+  });
+  writeActiveState(incomplete.root, 'none', 'none');
+  initializeGitFixture(incomplete.root);
+  const incompleteResult = runValidator(incomplete.root);
+  assert.equal(incompleteResult.status, 1);
+  assert.match(incompleteResult.json.blocker, /missing required reviewer/i);
+});
+
+test('committed batch-field removal cannot impersonate a delivered historical record', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, { stage: 'verify' });
+  writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+  initializeGitFixture(fixture.root);
+  const workItemPath = path.join(fixture.workItemDirectory, 'work-item.md');
+  const bypass = fs
+    .readFileSync(workItemPath, 'utf8')
+    .replace('Stage: verify', 'Stage: deliver')
+    .replace('Status: active', 'Status: delivered')
+    .replace('Result: pending', 'Result: passed')
+    .replace(/^Review (?:batch|expected|received): .*\n/gm, '');
+  fs.writeFileSync(workItemPath, bypass, 'utf8');
+  writeActiveState(fixture.root, 'none', 'none');
+  runGit(fixture.root, ['add', '.']);
+  runGit(fixture.root, ['commit', '--quiet', '-m', 'attempted bypass']);
+
+  const result = runValidator(fixture.root);
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /current review evidence requires/i);
 });
 
 test('v2 rejects malformed or contradictory explicit review states', (t) => {
@@ -442,6 +789,7 @@ test('v2 accepts recorded turn counts through four in verify and deliver', (t) =
     const fixture = createFixture(t);
     addV2WorkItem(fixture.workItemDirectory, { stage, turns: 4 });
     writeActiveState(fixture.root, workItemId, `${stage}-monorepo-change`);
+    makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
 
     const result = runValidator(fixture.root);
 
@@ -506,6 +854,7 @@ test('completed v2 work validates with cleared registration', (t) => {
     status: 'delivered',
   });
   writeActiveState(fixture.root, 'none', 'none');
+  initializeGitFixture(fixture.root);
 
   const result = runValidator(fixture.root);
 
@@ -514,7 +863,7 @@ test('completed v2 work validates with cleared registration', (t) => {
   assert.match(result.json.blocker, /delivered/i);
 });
 
-test('completed legacy v2 work remains readable without schema rewriting', (t) => {
+test('newly fabricated legacy v2 work cannot claim historical compatibility', (t) => {
   const fixture = createFixture(t);
   addV2WorkItem(fixture.workItemDirectory, {
     stage: 'deliver',
@@ -522,12 +871,39 @@ test('completed legacy v2 work remains readable without schema rewriting', (t) =
     legacyRequiredFindings: 'no',
   });
   writeActiveState(fixture.root, 'none', 'none');
-
   const result = runValidator(fixture.root);
 
-  assert.equal(result.status, 0, result.json.blocker);
-  assert.equal(result.json.valid, true);
-  assert.match(result.json.blocker, /delivered/i);
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /immutable delivered historical records/i);
+});
+
+test('immutable pre-batch delivered records remain readable without rewriting', (t) => {
+  for (const historicalId of [
+    '2026-07-29-workflow-v2',
+    '2026-07-31-deterministic-review-snapshot',
+  ]) {
+    const fixture = createNamedFixture(t, historicalId);
+    const historicalPath = path.join(
+      scriptsDirectory,
+      '..',
+      'docs',
+      'work-items',
+      historicalId,
+      'work-item.md',
+    );
+    writeArtifact(
+      fixture.workItemDirectory,
+      'work-item.md',
+      fs.readFileSync(historicalPath, 'utf8'),
+    );
+    writeActiveState(fixture.root, 'none', 'none');
+
+    const result = runValidator(fixture.root, ['--work-item', historicalId]);
+
+    assert.equal(result.status, 0, `${historicalId}: ${result.json.blocker}`);
+    assert.equal(result.json.valid, true);
+    assert.match(result.json.blocker, /delivered/i);
+  }
 });
 
 test('active legacy v2 work must adopt the explicit review lifecycle', (t) => {

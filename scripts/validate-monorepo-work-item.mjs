@@ -1,6 +1,10 @@
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+
+import { calculateReviewSnapshot } from './calculate-review-snapshot.mjs';
+import { reconcileReviewBatch } from './reconcile-review-batch.mjs';
 
 const root = process.cwd();
 const autonomousApprovalSource = 'policy:ai-arsenal-autonomy-v1';
@@ -67,6 +71,52 @@ const artifactByKey = new Map(
   ]),
 );
 const workItemPattern = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const immutablePreReviewBatchRecords = new Map([
+  [
+    '2026-07-29-workflow-v2',
+    '4a4b0348d7bcac172def0598bd7cfd9607621f67a010d4ec635aff682fb48864',
+  ],
+  [
+    '2026-07-30-add-weekly-report-cli-foundation',
+    '7e8d0fd11ccb4f4b2b9a779c7c85aa36d0153ff0ec8fc8c076271d6940c97f8e',
+  ],
+  [
+    '2026-07-30-fix-trello-mutation-recovery',
+    '8e421437d351accc64fe29c2acded21eeeef2566f947db3f84517913e74a1bfc',
+  ],
+  [
+    '2026-07-30-make-trello-skills-install-self-contained',
+    '72057502d19fe5af9948c150223a2be2ffff495f69952acabf7bf4d525031d50',
+  ],
+  [
+    '2026-07-30-reconcile-next',
+    '24cd9e096d3691b6ca4c85642dfde21ab98326d80e1af08c377f7b7734476461',
+  ],
+  [
+    '2026-07-31-add-git-evidence-collector',
+    'b14afac1de48397ab53bdd56828e998ee082013b6629aad24efaafd5c0ba0eb4',
+  ],
+  [
+    '2026-07-31-deterministic-review-snapshot',
+    'd355defcb756b233d38c6af182479f6f054988b6c9389f461e802e71e3134976',
+  ],
+  [
+    '2026-07-31-filter-all-open-trello-cards-by-member',
+    'e82707d173e03eb71473a095fffaac2e4d2bdc5ebd15b375a0ef64a8407c430c',
+  ],
+  [
+    '2026-07-31-filter-trello-card-members',
+    '7184c879e492536241c5ea6aa888fe3c24169c6edb64f9aefbdfc770cf4b730c',
+  ],
+  [
+    '2026-07-31-model-workflow-review-lifecycle',
+    'b67ba3128ba67a8b4b3acfc4837a435619ac96ab1c427704f29af6fae8b38d7c',
+  ],
+  [
+    '2026-07-31-recover-git-evidence-collector',
+    'dd153ade7d78ec93a0909feb4543e091b0e2b4f888df241b73640c78df0b56a9',
+  ],
+]);
 
 function parseArguments(argv) {
   let workItem = null;
@@ -503,6 +553,174 @@ function readSingleField(contents, label, pattern) {
   return matches[0][1];
 }
 
+function parseJsonReviewField(contents, label) {
+  const value = readSingleField(contents, label, /^.+$/);
+  try {
+    return JSON.parse(value);
+  } catch {
+    throw new Error(`${label} must contain valid JSON`);
+  }
+}
+
+function validateReviewBatchEvidence({
+  contents,
+  workItemPath,
+  stage,
+  status,
+  reviewStatus,
+  reviewSnapshot,
+}) {
+  const labels = ['Review batch', 'Review expected', 'Review received'];
+  const matches = labels.map((label) => [
+    ...contents.matchAll(new RegExp(`^${label}: (.+)\\r?$`, 'gm')),
+  ]);
+  const fieldCount = matches.reduce((total, fieldMatches) => {
+    return total + fieldMatches.length;
+  }, 0);
+
+  if (fieldCount === 0) {
+    if (
+      stage === 'deliver' &&
+      status === 'delivered' &&
+      isImmutablePreReviewBatchRecord(workItemPath, contents)
+    ) {
+      return { historical: true, blocker: null };
+    }
+    throw new Error(
+      'Current review evidence requires Review batch, Review expected, and Review received exactly once; reset all three fields to pending and re-review',
+    );
+  }
+  if (matches.some((fieldMatches) => fieldMatches.length !== 1)) {
+    throw new Error(
+      'Review batch, Review expected, and Review received must each appear exactly once',
+    );
+  }
+
+  const batchId = matches[0][0][1];
+  const expectedText = matches[1][0][1];
+  const receivedText = matches[2][0][1];
+  const pendingFields = [batchId, expectedText, receivedText].filter(
+    (value) => value === 'pending',
+  ).length;
+  if (pendingFields > 0) {
+    if (
+      pendingFields !== 3 ||
+      reviewStatus !== 'pending' ||
+      reviewSnapshot !== 'pending'
+    ) {
+      throw new Error(
+        'Pending review evidence requires status, snapshot, batch, expected, and received fields all reset to pending before re-review',
+      );
+    }
+    if (stage !== 'review' && stage !== 'implement' && stage !== 'define') {
+      throw new Error(
+        'Review status must be passed before verify or deliver; complete a fresh matching review batch',
+      );
+    }
+    return {
+      historical: false,
+      blocker:
+        'Review has not been dispatched; record a fresh snapshot and complete review batch.',
+    };
+  }
+
+  const expectedReviewers = parseJsonReviewField(contents, 'Review expected');
+  const receivedResults = parseJsonReviewField(contents, 'Review received');
+  if (!Array.isArray(expectedReviewers)) {
+    throw new Error('Review expected must contain a JSON array');
+  }
+  if (!Array.isArray(receivedResults)) {
+    throw new Error('Review received must contain a JSON array');
+  }
+
+  let reconciliation;
+  try {
+    reconciliation = reconcileReviewBatch({
+      batchId,
+      snapshot: reviewSnapshot,
+      expectedReviewers,
+      receivedResults,
+    });
+  } catch (error) {
+    throw new Error(`Review evidence is malformed: ${error.message}`, {
+      cause: error,
+    });
+  }
+
+  const remediation =
+    reconciliation.blockers.length > 0
+      ? `${reconciliation.blockers.join('; ')}; complete a fresh matching review batch before advancing`
+      : null;
+  if (stage === 'review') {
+    if (reviewStatus !== reconciliation.status) {
+      throw new Error(
+        `Review status ${reviewStatus} does not match reconciled status ${reconciliation.status}; reconcile and record the complete batch evidence`,
+      );
+    }
+    return { historical: false, blocker: remediation };
+  }
+  if (reviewStatus !== 'passed') {
+    throw new Error(
+      'Review status must be passed before verify or deliver; complete a fresh matching review batch',
+    );
+  }
+  if (reconciliation.status !== 'passed') {
+    throw new Error(`Review barrier is incomplete: ${remediation}`);
+  }
+  return { historical: false, blocker: null };
+}
+
+function requireGitRepository(repositoryRoot) {
+  if (!fs.existsSync(path.join(repositoryRoot, '.git'))) {
+    throw new Error(
+      'Review freshness requires Git repository metadata; restore the repository context before validating',
+    );
+  }
+  const result = spawnSync('git', ['rev-parse', '--is-inside-work-tree'], {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (result.error || result.status !== 0 || result.stdout.trim() !== 'true') {
+    throw new Error(
+      'Review freshness requires a readable Git repository; restore the repository context before validating',
+    );
+  }
+}
+
+function isImmutablePreReviewBatchRecord(workItemPath, contents) {
+  const workItem = path.basename(path.dirname(workItemPath));
+  const expectedHash = immutablePreReviewBatchRecords.get(workItem);
+  if (!expectedHash) return false;
+  const currentHash = createHash('sha256')
+    .update(Buffer.from(contents, 'utf8'))
+    .digest('hex');
+  return currentHash === expectedHash;
+}
+
+function hasUncommittedCandidateChanges(repositoryRoot) {
+  const result = spawnSync(
+    'git',
+    [
+      '-c',
+      'core.quotepath=false',
+      'status',
+      '--porcelain=v2',
+      '-z',
+      '--untracked-files=all',
+      '--no-renames',
+      '--',
+      '.',
+      ':(exclude)NEXT.md',
+    ],
+    { cwd: repositoryRoot, encoding: 'buffer', windowsHide: true },
+  );
+  if (result.error || result.status !== 0) {
+    throw new Error('Git could not inspect delivered candidate freshness');
+  }
+  return result.stdout.length > 0;
+}
+
 function validateV2ActiveRoute(activeState, output) {
   const complete = output.artifacts.workItem.status === 'delivered';
   if (complete) {
@@ -570,6 +788,7 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     reviewStatusMatches.length > 0 || reviewSnapshotMatches.length > 0;
   let reviewStatus;
   let reviewSnapshot;
+  let reviewBarrier;
   if (usesExplicitReviewLifecycle) {
     if (legacyRequiredFindingsMatches.length > 0) {
       throw new Error(
@@ -598,6 +817,14 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
         `${reviewStatus === 'passed' ? 'Passed' : 'Failed'} review requires a concrete snapshot`,
       );
     }
+    reviewBarrier = validateReviewBatchEvidence({
+      contents,
+      workItemPath,
+      stage,
+      status,
+      reviewStatus,
+      reviewSnapshot,
+    });
   } else {
     if (
       legacyRequiredFindingsMatches.length !== 1 ||
@@ -610,14 +837,16 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     if (
       stage !== 'deliver' ||
       status !== 'delivered' ||
-      legacyRequiredFindingsMatches[0][1] !== 'no'
+      legacyRequiredFindingsMatches[0][1] !== 'no' ||
+      !isImmutablePreReviewBatchRecord(workItemPath, contents)
     ) {
       throw new Error(
-        'Required findings remaining is supported only for delivered historical records',
+        'Required findings remaining is supported only for immutable delivered historical records',
       );
     }
     reviewStatus = 'passed';
     reviewSnapshot = null;
+    reviewBarrier = { historical: true, blocker: null };
   }
   const dangerous = readSingleField(
     contents,
@@ -747,6 +976,30 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     throw new Error('Deliver requires explicit passed final verification');
   }
 
+  if (
+    !reviewBarrier.historical &&
+    (stage === 'verify' || (stage === 'deliver' && status === 'active'))
+  ) {
+    requireGitRepository(root);
+    const currentSnapshot = calculateReviewSnapshot({
+      repositoryRoot: root,
+      workItemPath,
+    });
+    if (currentSnapshot !== reviewSnapshot) {
+      throw new Error(
+        'Review snapshot is stale for the current candidate; reset review evidence and re-review the fresh candidate before advancing',
+      );
+    }
+  }
+  if (!reviewBarrier.historical && status === 'delivered') {
+    requireGitRepository(root);
+    if (hasUncommittedCandidateChanges(root)) {
+      throw new Error(
+        'Delivered candidate has uncommitted changes; restore the delivered snapshot or reopen the item for fresh review',
+      );
+    }
+  }
+
   const currentV1Files = artifactDefinitions
     .map((definition) => definition.file)
     .concat(revisionRequestDefinition.file)
@@ -766,7 +1019,7 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     reviewSnapshot,
     turnsSinceTimeCheck,
   };
-  let blocker = null;
+  let blocker = stage === 'review' ? reviewBarrier.blocker : null;
   let nextSkill = status === 'delivered' ? null : v2StageSkills[stage];
   if (status === 'blocked') {
     nextSkill = null;
