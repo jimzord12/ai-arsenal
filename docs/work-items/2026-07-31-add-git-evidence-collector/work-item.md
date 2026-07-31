@@ -82,4 +82,4 @@ Result: passed
 
 - This delivered record preserves the evidence observed at premature closure: 28 focused implementation tests before the unrelated-history review repair and 30 tests at the recorded final verification snapshot.
 - Later independent review found credential-disclosure and evidence-integrity defects in installed version `0.1.0`; its Delivered status is historical workflow evidence, not current acceptance for credential-bearing input.
-- Corrective work item `2026-07-31-recover-git-evidence-collector` owns the recovery. Its unverified `0.1.1` candidate currently passes 79 package tests; final review, CI, artifact, installation, and Trello evidence remain pending.
+- Corrective work item `2026-07-31-recover-git-evidence-collector` delivered private patch `0.1.1` through merged PR `#20`; this record remains immutable evidence of the defective historical `0.1.0` closure rather than being rewritten to make that closure appear valid.

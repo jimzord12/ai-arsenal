@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** WU-30 corrective recovery is active because historical weekly-report CLI `0.1.0` is defective; reviewed, verified, exact-commit CI-green `0.1.1` is globally installed and awaits merge plus closure evidence
+> **Status:** Workflow v2, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered and globally installed; no work item is active
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
-> **Current phase:** Deliver the WU-30 weekly-report Git collector recovery before starting WU-31
+> **Current phase:** Await the next bounded request
 > **Operator view:** `NEXT.md`
 
 ---
@@ -120,7 +120,7 @@ Reconciliation must update classifications as evidence improves.
 - [VERIFIED] eatures-cli provides offline, read-only built-in workflow documentation through docs, docs --index, exact canonical/numeric topic lookup, and docs current. The typed docs model has exhaustive frontier guidance, preserves the unchanged progress --json object, exposes structured docs JSON errors, and makes current PRD-authoring and feature-review ownership gaps explicit. The 11-file packed artifact passes strict publint and clean-consumer docs invocation; full regression passes 154 tests.
 - `[VERIFIED]` The 2026-07-29 standing-autonomy directive applies to routine bounded work: agents proceed through review, commit, and push without a separate permission stop. Workflow v2 records direct approval only for dangerous deletion or irreversible data loss and still requires fresh execution-time confirmation; unavailable hard prerequisites still escalate.
 - `[HISTORICAL EVIDENCE]` `packages/weekly-report-cli` version `0.1.0` established the private, non-published Node.js 24 process-only package and its eight-file packed boundary. Its recorded 30-test, strict-publint, clean-consumer, exact-SHA CI, tarball-checksum, and global-install evidence remains immutable, but later independent review found credential-disclosure and evidence-integrity defects, so `0.1.0` is not accepted for credential-bearing input.
-- `[ACTIVE]` Corrective work item `2026-07-31-recover-git-evidence-collector` generated private patch `0.1.1`. Four joined review cycles have no required finding; final verification and exact-commit Quality `30618704374` plus Windows/Linux Portability `30618704403` passed at `0bd9416ae8b7fd4f99be390c31247844788f3905`. Exact eight-file tarball SHA-256 `60adadd364debf8dfe77b14a6634d70fbe203f8cfe356a11823fefecaaf505f7` byte-matches the global `0.1.1` installation and passes clean-consumer plus generated-shim smoke. Merge, immutable closure evidence, repository equality, and guarded Trello closure remain.
+- `[VERIFIED]` Corrective work item `2026-07-31-recover-git-evidence-collector` delivered private patch `0.1.1` through merged PR `#20` at default-branch commit `0f6dee6abc3e689ffb7e743649451335a00b288b`. Four joined review cycles have no required finding; exact final PR head `8798b27df4fcee8cc4392782eec73f0f12069c6b` passed Quality and Windows/Linux Portability CI. Exact eight-file tarball SHA-256 `60adadd364debf8dfe77b14a6634d70fbe203f8cfe356a11823fefecaaf505f7` byte-matches global `0.1.1` and passes clean-consumer plus generated-shim smoke. Default-branch package bytes match the reviewed artifact-bearing commit, and Trello WU-30 is read-back-confirmed Done.
 
 ## 4.2 Product context supplied by the user
 
@@ -474,7 +474,7 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 - Packed boundary: `README.md`, `package.json`, `dist/arguments.js`, `dist/bin.js`, `dist/cli.js`, `dist/evidence-schema.js`, `dist/git-collector.js`, and `dist/redaction.js` only.
 - Current behavior: honest help/version and usage diagnostics plus deterministic `collect git` evidence for an explicit working tree, remote, default branch, and inclusive interval.
 - Consumer boundary: runtime target configuration and machine-readable evidence cross the process boundary; consumer identity, credentials, report interpretation, scheduling, and delivery remain outside this package.
-- Validation: historical `0.1.0` evidence records 30 passing tests, strict publint, synthetic repositories, clean packed-consumer execution, exact-SHA Quality and Windows/Linux Portability CI, and byte-exact global installation. That release is now known defective. `0.1.1` behavior and its portable test-only fixture repair pass 79 package tests, strict publint, clean packed-consumer execution, full repository gates, workflow validators, privacy inspection, four joined review cycles, exact-commit Quality and Windows/Linux Portability CI, exact eight-file tarball proof, clean-consumer smoke, byte-exact global installation, and generated-shim smoke. Merge and closure evidence remain.
+- Validation: historical `0.1.0` evidence remains immutable but that release is defective. Delivered `0.1.1` behavior and its portable test-only fixture repair pass 79 package tests, strict publint, clean packed-consumer execution, full repository gates, workflow validators, privacy inspection, four joined review cycles, exact-commit Quality and Windows/Linux Portability CI, exact eight-file tarball proof, clean-consumer smoke, byte-exact global installation, generated-shim smoke, merged default-branch equality, and guarded Trello closure.
 
 ## 7.8 Behavioral and persistence contract
 
@@ -1041,4 +1041,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Complete WU-30 delivery through corrective work item `2026-07-31-recover-git-evidence-collector`: record immutable CI/artifact/install evidence, merge the one recovery PR, verify default-branch and package-tree equality, then perform guarded Trello Review/Done transitions with read-backs before starting WU-31.
+WU-30 recovery is delivered and WU-31 is no longer dependency-blocked, but no new work item is active. Define the next explicit bounded request through Workflow v2.

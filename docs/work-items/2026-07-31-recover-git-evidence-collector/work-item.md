@@ -3,7 +3,7 @@
 Work item: 2026-07-31-recover-git-evidence-collector
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-07-31T10:56:22+03:00
 Max time: 8 hours
 Last time check: 2026-07-31T12:04:15+03:00
@@ -83,4 +83,7 @@ Result: passed
 - Clean unrelated consumer installed the exact tarball and passed version/help plus synthetic Git collection with schema `1`, status `verified`, one default-branch commit, no branches, and empty stderr.
 - Preflight reported global `@jz/ai-arsenal-weekly-report-cli 0.1.0`; the exact tarball replaced it with `0.1.1`. All eight installed package files byte-match extracted tarball files. The generated native pnpm shim passed version/help and independent synthetic Git collection with schema `1`, status `verified`, one default-branch commit, no branches, and empty stderr.
 - Safe rollback is `pnpm remove -g @jz/ai-arsenal-weekly-report-cli`; reinstalling defective `0.1.0` is intentionally not the preferred rollback. Registry publication, consumer-repository access, private-history collection, destructive cleanup, and WU-31 work did not occur. Disposable artifacts and synthetic repositories remain under the user temp directory.
-- Delivery remains active until PR merge, default-branch and package-tree equality, immutable closure commit, and guarded Trello Review/Done read-backs are complete.
+- Final PR head `8798b27df4fcee8cc4392782eec73f0f12069c6b` integrated current `master` without weekly-report package changes and passed duplicate push/PR exact-commit Quality runs `30619300101` and `30619303071` plus Portability runs `30619299966` and `30619303032`; both Ubuntu and Windows jobs passed.
+- PR `#20` merged by squash at default-branch commit `0f6dee6abc3e689ffb7e743649451335a00b288b`. After fetch, local detached default-branch HEAD equaled `origin/master`, `git diff 0bd9416ae8b7fd4f99be390c31247844788f3905..0f6dee6abc3e689ffb7e743649451335a00b288b -- packages/weekly-report-cli` was empty, repacking from final CI-green PR head reproduced SHA-256 `60adadd364debf8dfe77b14a6634d70fbe203f8cfe356a11823fefecaaf505f7`, and the global shim reported `weekly-report-cli 0.1.1`.
+- Trello WU-30 evidence was patched with the merged PR, permanent default-branch work-item link, final CI revision, artifact checksum, installation, and smoke summary. Guarded dry-run/read/write/read-back transitions moved `in_progress` version `2026-07-31T09:24:01.949Z` to `review` version `2026-07-31T09:24:28.736Z`, then to `done` version `2026-07-31T09:24:52.666Z`; owner remained `hermes-greek-essence`. The Done card was not archived.
+- Delivery is complete. WU-31 is no longer dependency-blocked but was not started by this recovery.
