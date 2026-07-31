@@ -10,13 +10,16 @@ criteria, implementation summary, diff, and focused test evidence. Consolidate
 findings by severity and acceptance impact. Ignore optional or out-of-scope
 polish. Repair every Critical, High, Medium, and acceptance-related Minor
 finding, rerun only checks invalidated by each repair, and record findings and
-repairs in `work-item.md`. Entry into review requires review status, snapshot,
-batch, expected membership, and received results all to be `pending`.
+repairs in `work-item.md`. Entry into review requires all five fields to be
+`pending`, in this order: `Review status`, `Review snapshot`, `Review batch`,
+`Review expected`, and `Review received`.
 
-For each concrete review attempt, compute and record the candidate snapshot,
-set a new non-pending batch identifier, and record a JSON array of unique,
-deterministic required reviewer roles in `Review expected` plus an initially
-empty JSON array in `Review received` before or with dispatch. Dispatch every
+For each concrete review attempt, compute and record the candidate snapshot
+with `scripts/calculate-review-snapshot.mjs`; `NEXT.md` is excluded as
+routing-only state. Set a new non-pending batch identifier, and record a JSON
+array of unique, deterministic required reviewer roles in `Review expected`
+plus an initially empty JSON array in `Review received` before or with
+dispatch. Dispatch every
 required reviewer against that exact batch and snapshot. A result record has
 exactly `reviewer`, `outcome`, `batchId`, and `snapshot`; outcome is `passed`,
 `failed`, `cancelled`, or `unknown`. Persist received results even when review
@@ -50,5 +53,6 @@ review evidence exists for the recorded concrete candidate, retain its concrete
 batch, expected membership, and complete received set, set
 `Review status: passed` with that concrete snapshot, set `Stage: verify`, and
 route `NEXT.md` to `verify-monorepo-change`. This skill consumes a concrete
-candidate snapshot but does not define its deterministic computation. Continue
-with the smallest reliable scope; elapsed time is not itself failure.
+candidate snapshot. Verify and deliver fail closed unless that snapshot has a
+complete matching passed review batch and remains fresh. Continue with the
+smallest reliable scope; elapsed time is not itself failure.

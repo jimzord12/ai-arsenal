@@ -27,6 +27,9 @@ Review lifecycle:
 - Before dispatch, a concrete review records a non-pending batch identifier, a JSON array of unique deterministic reviewer roles, and an initially empty JSON received-results array.
 - Reconciliation preserves every received result and permits passed only when every expected role has exactly one matching successful result and no mismatched or unexpected evidence exists.
 - Any repair that changes candidate bytes resets status, snapshot, batch, expected, and received fields to pending before re-review.
+- Review snapshot is the digest returned by scripts/calculate-review-snapshot.mjs; NEXT.md is excluded as routing-only state.
+- Verify and deliver fail closed unless the recorded review is passed, complete, matching, and fresh for the current candidate.
+- Historical compatibility applies only to validator-recognized immutable delivered records with an exact matching hash.
 - Review cycles remain bounded at four; an unsuccessful fourth cycle is blocked.
 -->
 

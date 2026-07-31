@@ -128,6 +128,16 @@ Use the router-selected stage only after its prerequisites are valid:
 All current state lives in one `docs/work-items/<id>/work-item.md`. Historical
 v1 multi-file work items remain readable but never dictate routing for v2 work.
 
+Review uses one snapshot-bound evidence contract across every live Workflow v2
+surface. `Review status`, `Review snapshot`, `Review batch`, `Review expected`,
+and `Review received` start pending. A concrete batch passes only when every
+expected reviewer has exactly one matching successful result for the recorded
+snapshot. Candidate-changing repair resets all five fields to pending; verify
+and deliver fail closed until a fresh complete batch passes. Historical
+compatibility is limited to validator-recognized immutable delivered records.
+The snapshot comes only from `scripts/calculate-review-snapshot.mjs`; `NEXT.md`
+is excluded as routing-only state.
+
 ### `initializing-living-plan-workflow`
 
 Use only for workflow bootstrap or router-reported structural corruption. It

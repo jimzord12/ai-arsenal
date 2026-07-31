@@ -26,6 +26,16 @@ const retiredV1Skills = [
   'reconcile-monorepo-change',
 ];
 
+const reviewBarrierFixture = `
+Review status, Review snapshot, Review batch, Review expected, and Review received are all five pending initially.
+The snapshot comes from calculate-review-snapshot.mjs and NEXT.md is excluded.
+Every expected reviewer has exactly one matching successful result and appears exactly once with matching passed evidence.
+Every expected role has exactly one matching successful result.
+A candidate-changing repair resets all five fields to pending; a repair that changes candidate bytes resets them to pending.
+Verify and deliver fail closed.
+Immutable historical compatibility requires an exact hash; immutable delivered records require an exact matching hash.
+`;
+
 function write(relativePath, content) {
   const absolutePath = path.join(root, relativePath);
   fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
@@ -37,7 +47,7 @@ function createFixture() {
 
   write(
     'AGENTS.md',
-    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${normalSkills.join('\n')}\n`,
+    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${normalSkills.join('\n')}\n${reviewBarrierFixture}`,
   );
   write(
     'NEXT.md',
@@ -56,7 +66,10 @@ function createFixture() {
       '# 24. Immediate Next Step',
     ].join('\n'),
   );
-  write('docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md', '# Pipeline\n');
+  write(
+    'docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md',
+    `# Pipeline\n${reviewBarrierFixture}`,
+  );
   write(
     'docs/workflow/WORKFLOW_OVERVIEW.md',
     '# Overview\n\ndefine → implement → review/repair → verify → deliver\none compact `work-item.md`\norchestrate-monorepo-work\ndeliver-monorepo-change\n',
@@ -67,7 +80,7 @@ function createFixture() {
   );
   write(
     'docs/workflow/templates/work-item/work-item.md',
-    '## Goal\n## Non-goals\n## Acceptance criteria\nStarted at:\nMax time:\n## Implementation summary\n## Review findings and repairs\n## Final verification\n',
+    `## Goal\n## Non-goals\n## Acceptance criteria\nStarted at:\nMax time:\n## Implementation summary\n## Review findings and repairs\n## Final verification\n${reviewBarrierFixture}`,
   );
   write(
     'package.json',
@@ -85,10 +98,12 @@ function createFixture() {
     'reconciling-living-plan',
     ...normalSkills,
   ]) {
-    const body =
+    const body = [
       skill === 'orchestrate-monorepo-work'
         ? '\ndefine → implement → review/repair → verify → deliver\ndefine-monorepo-change\n'
-        : '';
+        : '',
+      skill === 'review-monorepo-change' ? reviewBarrierFixture : '',
+    ].join('');
     write(
       `.agents/skills/${skill}/SKILL.md`,
       `---\nname: ${skill}\ndescription: Use when validating the fixture.\n---\n${body}`,

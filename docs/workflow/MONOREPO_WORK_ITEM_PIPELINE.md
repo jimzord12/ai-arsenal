@@ -60,6 +60,40 @@ delivered item clears both to `none`. Intentional blocked states have no next
 skill and remain registered at their current stage. Only malformed compact
 state routes to `initializing-living-plan-workflow`.
 
+## Review barrier
+
+Every current Workflow v2 item carries exactly one field for each of these
+labels:
+
+- `Review status`
+- `Review snapshot`
+- `Review batch`
+- `Review expected`
+- `Review received`
+
+Definition and entry into review set all five to `pending`. Before dispatch,
+review records the candidate from `scripts/calculate-review-snapshot.mjs`, a
+non-pending batch identifier, a JSON array of unique deterministic reviewer
+roles, and an initially empty JSON received-results array. `NEXT.md` is
+excluded from that candidate because it is routing-only state; the active
+work-item identity, safety classification, goal, non-goals, acceptance
+criteria, and implementation description remain snapshot input.
+
+Each received result has exactly `reviewer`, `outcome`, `batchId`, and
+`snapshot`. Immediate and later-arriving results use the same reconciliation
+path. Missing, duplicate, unexpected, wrong-batch, or wrong-snapshot evidence
+remains pending. A complete matching batch with any unsuccessful required
+result is failed. Passed means every expected reviewer appears exactly once
+with a matching successful result and no invalid extra evidence.
+
+A candidate-changing repair resets all five review fields to pending before a
+new snapshot and batch. Verify and deliver fail closed unless review is passed,
+the complete batch matches the recorded snapshot, and that snapshot still
+matches the current candidate. Newly delivered records retain that evidence
+and require a clean candidate. Immutable historical compatibility is limited
+to the validator's pre-batch delivered-record allowlist, where each exact hash
+must match; newly fabricated or modified records cannot claim it.
+
 ## Historical v1 compatibility
 
 Directories without `work-item.md` may be validated by the historical v1 path

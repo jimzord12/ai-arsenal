@@ -8,6 +8,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { calculateReviewSnapshot } from './calculate-review-snapshot.mjs';
+import { reconcileReviewBatch } from './reconcile-review-batch.mjs';
 
 const scriptsDirectory = path.dirname(fileURLToPath(import.meta.url));
 const validatorPath = path.join(
@@ -69,6 +70,18 @@ const qualityWorkflowPath = path.join(
   '.github',
   'workflows',
   'quality.yml',
+);
+const agentsPath = path.join(scriptsDirectory, '..', 'AGENTS.md');
+const pipelinePath = path.join(
+  scriptsDirectory,
+  '..',
+  'docs',
+  'workflow',
+  'MONOREPO_WORK_ITEM_PIPELINE.md',
+);
+const livingValidatorPath = path.join(
+  scriptsDirectory,
+  'validate-living-workflow.mjs',
 );
 const workItemId = '2026-07-13-example';
 const reviewDigest = `sha256:${'a'.repeat(64)}`;
@@ -441,6 +454,308 @@ test('stage skills define pending entry, failed review, pass, and repair reset',
   assert.match(verifySkill, /Review snapshot: sha256/);
   assert.match(deliverSkill, /Review status: passed/);
   assert.match(deliverSkill, /Review snapshot: sha256/);
+});
+
+test('live Workflow v2 authorities define one review-barrier contract', () => {
+  const authorities = new Map([
+    ['root operating guidance', fs.readFileSync(agentsPath, 'utf8')],
+    ['compact template', fs.readFileSync(compactTemplatePath, 'utf8')],
+    ['review skill', fs.readFileSync(reviewSkillPath, 'utf8')],
+    ['normative pipeline', fs.readFileSync(pipelinePath, 'utf8')],
+    [
+      'living-workflow assertions',
+      fs.readFileSync(livingValidatorPath, 'utf8'),
+    ],
+  ]);
+
+  for (const [name, contents] of authorities) {
+    for (const field of [
+      'Review status',
+      'Review snapshot',
+      'Review batch',
+      'Review expected',
+      'Review received',
+    ]) {
+      assert.match(contents, new RegExp(field), `${name}: ${field}`);
+    }
+  }
+
+  const pipeline = authorities.get('normative pipeline');
+  assert.match(pipeline, /calculate-review-snapshot\.mjs/);
+  assert.match(pipeline, /NEXT\.md.*excluded/is);
+  assert.match(pipeline, /candidate-changing repair.*all five.*pending/is);
+  assert.match(pipeline, /verify and deliver.*fail closed/is);
+  assert.match(pipeline, /immutable.*historical.*exact.*hash/is);
+
+  const semanticExpectations = new Map([
+    [
+      'root operating guidance',
+      [
+        /calculate-review-snapshot\.mjs.*NEXT\.md.*excluded/is,
+        /all five.*pending/is,
+        /every\s+expected reviewer.*exactly one matching successful/is,
+        /candidate-changing repair resets all five.*pending/is,
+        /verify\s+and\s+deliver fail closed/is,
+        /immutable delivered records/is,
+      ],
+    ],
+    [
+      'compact template',
+      [
+        /calculate-review-snapshot\.mjs.*NEXT\.md.*excluded/is,
+        /status.*snapshot.*batch.*expected.*received.*pending/is,
+        /every expected role.*exactly one matching successful/is,
+        /repair that changes candidate bytes resets.*pending/is,
+        /verify\s+and\s+deliver fail closed/is,
+        /immutable delivered records.*exact matching hash/is,
+      ],
+    ],
+    [
+      'review skill',
+      [
+        /calculate-review-snapshot\.mjs.*NEXT\.md.*excluded/is,
+        /Review status.*Review snapshot.*Review batch.*Review expected.*Review received.*pending/is,
+        /every\s+expected reviewer.*exactly once.*matching passed/is,
+        /repair that changes candidate bytes resets.*pending/is,
+        /verify\s+and\s+deliver fail closed/is,
+      ],
+    ],
+    [
+      'normative pipeline',
+      [
+        /calculate-review-snapshot\.mjs.*NEXT\.md.*excluded/is,
+        /all five.*pending/is,
+        /every\s+expected reviewer.*exactly once.*matching successful/is,
+        /candidate-changing repair resets all five.*pending/is,
+        /verify\s+and\s+deliver fail closed/is,
+        /immutable historical compatibility.*exact hash/is,
+      ],
+    ],
+  ]);
+  for (const [name, patterns] of semanticExpectations) {
+    for (const pattern of patterns) {
+      assert.match(authorities.get(name), pattern, `${name}: ${pattern}`);
+    }
+  }
+
+  const livingAssertions = authorities.get('living-workflow assertions');
+  for (const label of [
+    'snapshot definition',
+    'pending initialization',
+    'complete matching evidence',
+    'repair reset',
+    'fail-closed advancement',
+    'historical compatibility',
+  ]) {
+    assert.match(livingAssertions, new RegExp(label), label);
+  }
+});
+
+test('integrated review-barrier lifecycle matrix fails closed and preserves compatibility', async (t) => {
+  await t.test('new or unperformed review cannot verify', () => {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      stage: 'verify',
+      reviewStatus: 'pending',
+      reviewSnapshot: 'pending',
+    });
+    writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 1);
+    assert.match(result.json.blocker, /Review status must be passed/i);
+  });
+
+  await t.test('pending and failed review cannot verify', () => {
+    for (const [name, options] of [
+      [
+        'pending',
+        {
+          stage: 'verify',
+          reviewStatus: 'pending',
+          reviewSnapshot: reviewDigest,
+          receivedResults: [matchingReviewResults()[0]],
+        },
+      ],
+      [
+        'failed',
+        {
+          stage: 'verify',
+          reviewStatus: 'failed',
+          reviewSnapshot: reviewDigest,
+          receivedResults: matchingReviewResults().map((result, index) =>
+            index === 0 ? { ...result, outcome: 'failed' } : result,
+          ),
+        },
+      ],
+    ]) {
+      const fixture = createFixture(t);
+      addV2WorkItem(fixture.workItemDirectory, options);
+      writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+
+      const result = runValidator(fixture.root);
+      assert.equal(result.status, 1, name);
+      assert.match(result.json.blocker, /pending|passed/i, name);
+    }
+  });
+
+  await t.test('incomplete or mismatched batch evidence cannot verify', () => {
+    for (const [name, receivedResults, blocker] of [
+      [
+        'incomplete',
+        [matchingReviewResults()[0]],
+        /missing required reviewer/i,
+      ],
+      [
+        'mismatched',
+        matchingReviewResults().map((result, index) =>
+          index === 0 ? { ...result, batchId: 'review-wrong' } : result,
+        ),
+        /wrong batch/i,
+      ],
+    ]) {
+      const fixture = createFixture(t);
+      addV2WorkItem(fixture.workItemDirectory, {
+        stage: 'verify',
+        receivedResults,
+      });
+      writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+
+      const result = runValidator(fixture.root);
+      assert.equal(result.status, 1, name);
+      assert.match(result.json.blocker, blocker, name);
+    }
+  });
+
+  await t.test(
+    'unchanged reviewed bytes verify and changed bytes do not',
+    () => {
+      const fixture = createFixture(t);
+      addV2WorkItem(fixture.workItemDirectory, { stage: 'verify' });
+      writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+      makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+
+      const unchanged = runValidator(fixture.root);
+      assert.equal(unchanged.status, 0, unchanged.json.blocker);
+
+      fs.writeFileSync(path.join(fixture.root, 'candidate.txt'), 'changed\n');
+      const changed = runValidator(fixture.root);
+      assert.equal(changed.status, 1);
+      assert.match(
+        changed.json.blocker,
+        /review snapshot is stale.*re-review/i,
+      );
+    },
+  );
+
+  await t.test(
+    'candidate repair resets all review evidence before re-review',
+    () => {
+      const fixture = createFixture(t);
+      addV2WorkItem(fixture.workItemDirectory, { stage: 'verify' });
+      writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+      makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+      fs.writeFileSync(path.join(fixture.root, 'candidate.txt'), 'repaired\n');
+      assert.equal(runValidator(fixture.root).status, 1);
+
+      addV2WorkItem(fixture.workItemDirectory, { stage: 'review' });
+      writeActiveState(fixture.root, workItemId, 'review-monorepo-change');
+      const reset = runValidator(fixture.root);
+      assert.equal(reset.status, 0, reset.json.blocker);
+      assert.equal(reset.json.nextSkill, 'review-monorepo-change');
+      assert.match(reset.json.blocker, /not been dispatched/i);
+    },
+  );
+
+  await t.test(
+    'active deliver and newly delivered records cannot bypass review',
+    () => {
+      for (const status of ['active', 'delivered']) {
+        const fixture = createFixture(t);
+        addV2WorkItem(fixture.workItemDirectory, {
+          stage: 'deliver',
+          status,
+          reviewStatus: 'pending',
+          reviewSnapshot: 'pending',
+        });
+        writeActiveState(
+          fixture.root,
+          status === 'active' ? workItemId : 'none',
+          status === 'active' ? 'deliver-monorepo-change' : 'none',
+        );
+
+        const result = runValidator(fixture.root);
+        assert.equal(result.status, 1, status);
+        assert.match(result.json.blocker, /Review status must be passed/i);
+      }
+    },
+  );
+
+  await t.test(
+    'immediate and later-arriving complete batches validate equivalently',
+    () => {
+      const immediate = reconcileReviewBatch({
+        batchId: reviewBatch,
+        snapshot: reviewDigest,
+        expectedReviewers: reviewExpected,
+        receivedResults: matchingReviewResults().toReversed(),
+      });
+      const partial = reconcileReviewBatch({
+        batchId: reviewBatch,
+        snapshot: reviewDigest,
+        expectedReviewers: reviewExpected,
+        receivedResults: [matchingReviewResults()[1]],
+      });
+      const resumed = reconcileReviewBatch({
+        batchId: reviewBatch,
+        snapshot: reviewDigest,
+        expectedReviewers: reviewExpected,
+        receivedResults: [
+          ...partial.receivedResults,
+          matchingReviewResults()[0],
+        ],
+      });
+      assert.deepEqual(resumed, immediate);
+
+      for (const evidence of [immediate, resumed]) {
+        const fixture = createFixture(t);
+        addV2WorkItem(fixture.workItemDirectory, {
+          stage: 'verify',
+          reviewStatus: evidence.status,
+          expectedReviewers: evidence.expectedReviewers,
+          receivedResults: evidence.receivedResults,
+        });
+        writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+        makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+
+        const result = runValidator(fixture.root);
+        assert.equal(result.status, 0, result.json.blocker);
+      }
+    },
+  );
+
+  await t.test('exact immutable historical records remain readable', () => {
+    const historicalId = '2026-07-31-deterministic-review-snapshot';
+    const fixture = createNamedFixture(t, historicalId);
+    const historicalPath = path.join(
+      scriptsDirectory,
+      '..',
+      'docs',
+      'work-items',
+      historicalId,
+      'work-item.md',
+    );
+    writeArtifact(
+      fixture.workItemDirectory,
+      'work-item.md',
+      fs.readFileSync(historicalPath, 'utf8'),
+    );
+    writeActiveState(fixture.root, 'none', 'none');
+
+    const result = runValidator(fixture.root, ['--work-item', historicalId]);
+    assert.equal(result.status, 0, result.json.blocker);
+    assert.match(result.json.blocker, /delivered/i);
+  });
 });
 
 test('v2 accepts each valid explicit review state', (t) => {

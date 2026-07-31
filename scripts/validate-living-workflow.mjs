@@ -55,6 +55,9 @@ const agents = read('AGENTS.md');
 const next = read('NEXT.md');
 const plan = read('docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md');
 const overview = read('docs/workflow/WORKFLOW_OVERVIEW.md');
+const pipeline = read('docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md');
+const reviewSkill = read('.agents/skills/review-monorepo-change/SKILL.md');
+const compactTemplate = read('docs/workflow/templates/work-item/work-item.md');
 const agentsTemplate = read(
   '.agents/skills/initializing-living-plan-workflow/assets/AGENTS.template.md',
 );
@@ -77,6 +80,98 @@ for (const [file, contents] of [
   ]) {
     if (!pattern.test(contents)) {
       errors.push(`${file} is missing Workflow v2 guidance: ${label}`);
+    }
+  }
+}
+
+for (const [file, contents, requirements] of [
+  [
+    'AGENTS.md',
+    agents,
+    [
+      [
+        'snapshot definition',
+        /calculate-review-snapshot\.mjs.*NEXT\.md.*excluded/is,
+      ],
+      ['pending initialization', /all five.*pending/is],
+      [
+        'complete matching evidence',
+        /every\s+expected reviewer.*exactly one matching successful/is,
+      ],
+      ['repair reset', /candidate-changing repair resets all five.*pending/is],
+      ['fail-closed advancement', /verify\s+and\s+deliver fail closed/is],
+      ['historical compatibility', /immutable delivered records/is],
+    ],
+  ],
+  [
+    'docs/workflow/templates/work-item/work-item.md',
+    compactTemplate,
+    [
+      [
+        'snapshot definition',
+        /calculate-review-snapshot\.mjs.*NEXT\.md.*excluded/is,
+      ],
+      [
+        'pending initialization',
+        /status.*snapshot.*batch.*expected.*received.*pending/is,
+      ],
+      [
+        'complete matching evidence',
+        /every expected role.*exactly one matching successful/is,
+      ],
+      ['repair reset', /repair that changes candidate bytes resets.*pending/is],
+      ['fail-closed advancement', /verify\s+and\s+deliver fail closed/is],
+      [
+        'historical compatibility',
+        /immutable delivered records.*exact matching hash/is,
+      ],
+    ],
+  ],
+  [
+    '.agents/skills/review-monorepo-change/SKILL.md',
+    reviewSkill,
+    [
+      [
+        'snapshot definition',
+        /calculate-review-snapshot\.mjs.*NEXT\.md.*excluded/is,
+      ],
+      [
+        'pending initialization',
+        /Review status.*Review snapshot.*Review batch.*Review expected.*Review received.*pending/is,
+      ],
+      [
+        'complete matching evidence',
+        /every\s+expected reviewer.*exactly once.*matching passed/is,
+      ],
+      ['repair reset', /repair that changes candidate bytes resets.*pending/is],
+      ['fail-closed advancement', /verify\s+and\s+deliver fail closed/is],
+    ],
+  ],
+  [
+    'docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md',
+    pipeline,
+    [
+      [
+        'snapshot definition',
+        /calculate-review-snapshot\.mjs.*NEXT\.md.*excluded/is,
+      ],
+      ['pending initialization', /all five.*pending/is],
+      [
+        'complete matching evidence',
+        /every\s+expected reviewer.*exactly once.*matching successful/is,
+      ],
+      ['repair reset', /candidate-changing repair resets all five.*pending/is],
+      ['fail-closed advancement', /verify\s+and\s+deliver fail closed/is],
+      [
+        'historical compatibility',
+        /immutable historical compatibility.*exact hash/is,
+      ],
+    ],
+  ],
+]) {
+  for (const [label, pattern] of requirements) {
+    if (!pattern.test(contents)) {
+      errors.push(`${file} is missing review-barrier ${label}.`);
     }
   }
 }
@@ -211,7 +306,6 @@ for (const skill of retiredV1Skills) {
   }
 }
 
-const compactTemplate = read('docs/workflow/templates/work-item/work-item.md');
 for (const token of [
   '## Goal',
   '## Non-goals',
@@ -224,6 +318,25 @@ for (const token of [
 ]) {
   if (!compactTemplate.includes(token)) {
     errors.push(`Compact work-item template missing: ${token}`);
+  }
+}
+
+for (const [file, contents] of [
+  ['AGENTS.md', agents],
+  ['docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md', pipeline],
+  ['docs/workflow/templates/work-item/work-item.md', compactTemplate],
+  ['.agents/skills/review-monorepo-change/SKILL.md', reviewSkill],
+]) {
+  for (const field of [
+    'Review status',
+    'Review snapshot',
+    'Review batch',
+    'Review expected',
+    'Review received',
+  ]) {
+    if (!contents.includes(field)) {
+      errors.push(`${file} is missing review-barrier field: ${field}`);
+    }
   }
 }
 
