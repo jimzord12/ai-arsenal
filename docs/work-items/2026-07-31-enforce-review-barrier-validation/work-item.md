@@ -2,18 +2,18 @@
 
 Work item: 2026-07-31-enforce-review-barrier-validation
 Workflow: 2
-Stage: deliver
-Status: active
+Stage: review
+Status: blocked
 Started at: 2026-07-31T18:26:16+03:00
 Max time: 5 hours
 Last time check: 2026-07-31T18:26:16+03:00
-Turns since time check: 1
-Review cycles: 3
-Review status: passed
-Review snapshot: sha256:68bb115d64f84eba7ab76e2a0d6b8a583a415d5c7c9f91684681f48057d8dd6d
-Review batch: review-20260731-03
+Turns since time check: 2
+Review cycles: 4
+Review status: failed
+Review snapshot: sha256:6d241f438d0e29f9489c427b7ea2633a7a28c17efbe7a032fce1f9d2230c0db5
+Review batch: review-20260731-04
 Review expected: ["contract","quality"]
-Review received: [{"reviewer":"contract","outcome":"passed","batchId":"review-20260731-03","snapshot":"sha256:68bb115d64f84eba7ab76e2a0d6b8a583a415d5c7c9f91684681f48057d8dd6d"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260731-03","snapshot":"sha256:68bb115d64f84eba7ab76e2a0d6b8a583a415d5c7c9f91684681f48057d8dd6d"}]
+Review received: [{"reviewer":"contract","outcome":"failed","batchId":"review-20260731-04","snapshot":"sha256:6d241f438d0e29f9489c427b7ea2633a7a28c17efbe7a032fce1f9d2230c0db5"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260731-04","snapshot":"sha256:6d241f438d0e29f9489c427b7ea2633a7a28c17efbe7a032fce1f9d2230c0db5"}]
 Dangerous deletion or irreversible data loss: no
 Hard prerequisites: resolved
 Approval: not-required
@@ -46,6 +46,8 @@ Implement GitHub issue #18 by making the Workflow v2 validator parse and enforce
 - Extended `scripts/validate-monorepo-work-item.test.mjs` with focused fixtures for evidence parsing and shapes, review retention, actionable blocker text, batch/snapshot mismatch cases, stale verify/deliver candidates, delivered bypass attempts, mutation-free validation, and delivered-history compatibility. The existing fixture generator now emits canonical issue-#17 evidence for explicit current records.
 - RED: `node --test scripts/validate-monorepo-work-item.test.mjs` exited `1` with five new enforcement groups failing before validator implementation.
 - GREEN: the initial focused suite exited `0` with 46/46 tests passing. After cycle-1 repairs, it exited `0` with 49/49 tests passing; focused Prettier and ESLint also exited `0`.
+- Exact-SHA CI repair: extended `calculateReviewSnapshot` with optional paired `baselineRef`/`candidateRef` inputs that read both Git trees without checkout and feed the unchanged path framing, mode, byte filtering, and SHA-256 algorithm. Active delivery uses `HEAD^`→`HEAD` only when the ordinary current-candidate digest mismatches and the candidate is otherwise clean.
+- Added a shared-seam equality regression proving a committed parent→child candidate reproduces its pre-commit working snapshot, and extended active-deliver coverage to validate the clean reviewed artifact commit before confirming a later dirty change is still stale. RED: the new equality assertion failed and the clean artifact could not validate before implementation. GREEN: `node --test scripts/calculate-review-snapshot.test.mjs scripts/validate-monorepo-work-item.test.mjs` exited `0` with 65 passed and one existing platform-dependent skip; focused ESLint passed.
 
 ## Review findings and repairs
 
@@ -60,10 +62,15 @@ Implement GitHub issue #18 by making the Workflow v2 validator parse and enforce
 - Repaired the remaining High by replacing mutable `HEAD` inference with an exact SHA-256 allowlist of the eleven delivered pre-review-batch work-item byte sequences already in repository history. Both the older `Required findings remaining` schema and the issue-#15/#16 explicit lifecycle without batch fields are readable only when their current bytes match that immutable compatibility boundary.
 - Extended the bypass regression to commit the forged delivered/no-batch state before validation; it remains rejected. Added representative exact-byte compatibility checks for both a legacy record and an explicit-lifecycle pre-batch record. The focused suite remains 49/49 green with ESLint, Prettier, and `git diff --check` passing.
 - Cycle 3, batch `review-20260731-03`, snapshot `sha256:68bb115d64f84eba7ab76e2a0d6b8a583a415d5c7c9f91684681f48057d8dd6d`: both required reviewers returned matching passed results. They independently recomputed the exact snapshot, confirmed all eleven immutable compatibility hashes, exercised the committed bypass and missing-Git failures, and reported no remaining Critical, High, Medium, or acceptance-related Minor findings.
+- Artifact commit `a9b2be73e6f21fcae3541bb50eeb86f341ee9ecf` exposed one delivery-timing defect in exact-SHA Quality run `30644565179`: a clean checkout at active delivery has no working-tree diff, so recomputing only against current `HEAD` incorrectly marked the reviewed parent-to-commit candidate stale. Portability run `30644565335` was still in progress when the deterministic Quality failure was diagnosed.
+- Repair scope for the final cycle: extend the shared snapshot seam with a checkout-free parent-to-commit source mode that preserves the existing framing/filter/digest algorithm, use it only as the active-deliver fallback for a clean candidate, and add equality plus clean-artifact routing regressions. This resolves established delivery timing without weakening dirty-candidate freshness or duplicating digest mechanics.
+- Cycle 4, batch `review-20260731-04`, snapshot `sha256:6d241f438d0e29f9489c427b7ea2633a7a28c17efbe7a032fce1f9d2230c0db5`: quality passed; contract failed with one Medium required finding. Commit-mode snapshotting hard-codes `submoduleState: N...`, while the working-tree source frames Git's `S<c><m><u>` state for gitlinks, so an exact reviewed gitlink update can mismatch after commit. Focused coverage currently proves regular-file equivalence only.
+- The four-cycle review limit is exhausted. The item is blocked with the concrete failed batch preserved; no fifth repair, verification, delivery, planning reconciliation, or issue closure is permitted without a new user-directed work-item decision.
+- On 2026-07-31 the user explicitly directed creation of successor work item `2026-07-31-fix-gitlink-snapshot-equivalence`. This record remains blocked with its exact failed batch; the successor owns the gitlink-only repair and issue-#18 completion route.
 
 ## Final verification
 
-Result: passed
+Result: pending
 
 - Changed-path inspection found exactly `NEXT.md`, the active compact work item, `scripts/validate-monorepo-work-item.mjs`, and its focused test. All are attributable to issue #18; no shipped CLI, package metadata, Changeset, normative issue-#19 documentation, or delivered historical work-item bytes changed.
 - Full repository gate: `pnpm check` — exit `0`; formatting, four-package lint/typecheck/test tasks, 94 workflow tests, and both workflow validators passed. Workflow tests reported 92 passed and two documented Windows privilege-dependent skips.
@@ -73,3 +80,7 @@ Result: passed
 - Snapshot freshness: `node scripts/calculate-review-snapshot.mjs --repository-root . --work-item docs/work-items/2026-07-31-enforce-review-barrier-validation/work-item.md` — exit `0`; output remained exactly `sha256:68bb115d64f84eba7ab76e2a0d6b8a583a415d5c7c9f91684681f48057d8dd6d` after every verification command.
 - Whitespace gate: `git diff --check` — exit `0` with no output.
 - Manual evidence inspection confirmed one matching passed result per required role, immutable exact-byte compatibility for all eleven pre-batch delivered records, rejection of committed no-batch and fabricated-legacy bypasses, actionable missing-Git and stale-snapshot blockers, and mutation-free validation.
+
+## Delivery evidence
+
+- Artifact attempt `a9b2be73e6f21fcae3541bb50eeb86f341ee9ecf` was pushed to `origin/master`. Exact-SHA Quality run `https://github.com/jimzord12/ai-arsenal/actions/runs/30644565179` failed only because the active-deliver validator could not yet reconstruct the reviewed parent-to-commit candidate in CI's clean checkout; the failure is preserved as repair evidence and the item returned to review.

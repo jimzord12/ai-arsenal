@@ -45,7 +45,12 @@ const excludedWorkItemSections = new Set([
  * addition. The only public result is a lowercase SHA-256 digest with the
  * `sha256:` prefix.
  */
-export function calculateReviewSnapshot({ repositoryRoot, workItemPath }) {
+export function calculateReviewSnapshot({
+  repositoryRoot,
+  workItemPath,
+  baselineRef,
+  candidateRef,
+}) {
   if (typeof repositoryRoot !== 'string' || repositoryRoot.length === 0) {
     throw new Error('repositoryRoot must be a non-empty path');
   }
@@ -56,11 +61,33 @@ export function calculateReviewSnapshot({ repositoryRoot, workItemPath }) {
   const root = fs.realpathSync(path.resolve(repositoryRoot));
   assertRepositoryRoot(root);
   const normalizedWorkItemPath = normalizeRepositoryPath(root, workItemPath);
-  const entries = discoverCandidateEntries(root);
+  const usesCommitCandidate =
+    baselineRef !== undefined || candidateRef !== undefined;
+  if (
+    usesCommitCandidate &&
+    (typeof baselineRef !== 'string' ||
+      baselineRef.length === 0 ||
+      typeof candidateRef !== 'string' ||
+      candidateRef.length === 0)
+  ) {
+    throw new Error(
+      'baselineRef and candidateRef must both be non-empty strings',
+    );
+  }
+  const entries = usesCommitCandidate
+    ? discoverCommitCandidateEntries(root, baselineRef, candidateRef)
+    : discoverCandidateEntries(root);
   if (!entries.has(normalizedWorkItemPath)) {
     entries.set(
       normalizedWorkItemPath,
-      readForcedWorkItemEntry(root, normalizedWorkItemPath),
+      usesCommitCandidate
+        ? readForcedCommitWorkItemEntry(
+            root,
+            normalizedWorkItemPath,
+            baselineRef,
+            candidateRef,
+          )
+        : readForcedWorkItemEntry(root, normalizedWorkItemPath),
     );
   }
 
@@ -86,6 +113,89 @@ export function calculateReviewSnapshot({ repositoryRoot, workItemPath }) {
     frame(hash, bytes);
   }
   return `${digestPrefix}${hash.digest('hex')}`;
+}
+
+function discoverCommitCandidateEntries(root, baselineRef, candidateRef) {
+  verifyCommitRef(root, baselineRef);
+  verifyCommitRef(root, candidateRef);
+  const changedPaths = splitNullRecords(
+    runGit(root, [
+      'diff',
+      '--name-only',
+      '-z',
+      '--no-renames',
+      '--ignore-submodules=none',
+      baselineRef,
+      candidateRef,
+      '--',
+    ]),
+  ).map((record) => normalizeGitPath(record.toString('utf8')));
+  const entries = new Map();
+  for (const relativePath of changedPaths) {
+    if (excludedRepositoryPaths.has(relativePath)) continue;
+    const baseline = readTreeEntry(root, baselineRef, relativePath);
+    const candidate = readTreeEntry(root, candidateRef, relativePath);
+    entries.set(relativePath, commitCandidateEntry(root, baseline, candidate));
+  }
+  return entries;
+}
+
+function verifyCommitRef(root, ref) {
+  runGit(root, ['rev-parse', '--verify', `${ref}^{commit}`]);
+}
+
+function readTreeEntry(root, ref, relativePath) {
+  const records = splitNullRecords(
+    runGit(root, ['ls-tree', '-z', ref, '--', relativePath]),
+  );
+  if (records.length === 0) return null;
+  if (records.length !== 1) {
+    throw new Error('Git returned an ambiguous tree entry');
+  }
+  const match = records[0]
+    .toString('utf8')
+    .match(/^([0-7]{6}) (blob|commit) ([0-9a-f]+)\t(.+)$/);
+  if (!match || normalizeGitPath(match[4]) !== relativePath) {
+    throw new Error('Git returned an unsupported tree entry');
+  }
+  return { mode: match[1], type: match[2], objectId: match[3] };
+}
+
+function commitCandidateEntry(root, baseline, candidate) {
+  if (!baseline && !candidate) {
+    throw new Error('Git candidate entry is absent from both commits');
+  }
+  return {
+    state: candidate ? 'present' : 'deleted',
+    baselineBytes: readTreeEntryBytes(root, baseline),
+    baselineMode: baseline?.mode ?? '000000',
+    currentMode: candidate?.mode ?? '000000',
+    submoduleState:
+      baseline?.mode === '160000' || candidate?.mode === '160000'
+        ? 'S...'
+        : 'N...',
+    bytes: readTreeEntryBytes(root, candidate),
+  };
+}
+
+function readTreeEntryBytes(root, entry) {
+  if (!entry) return Buffer.alloc(0);
+  if (entry.mode === '160000' || entry.type === 'commit') {
+    return Buffer.from(entry.objectId, 'ascii');
+  }
+  return runGit(root, ['cat-file', '-p', entry.objectId]);
+}
+
+function readForcedCommitWorkItemEntry(
+  root,
+  relativePath,
+  baselineRef,
+  candidateRef,
+) {
+  const baseline = readTreeEntry(root, baselineRef, relativePath);
+  const candidate = readTreeEntry(root, candidateRef, relativePath);
+  if (!candidate) throw new Error('The active work item does not exist');
+  return commitCandidateEntry(root, baseline, candidate);
 }
 
 function assertRepositoryRoot(root) {
@@ -122,6 +232,7 @@ function discoverCandidateEntries(root) {
     '--porcelain=v2',
     '-z',
     '--untracked-files=all',
+    '--ignore-submodules=none',
     '--no-renames',
   ]);
   const entries = new Map();
@@ -153,7 +264,7 @@ function discoverCandidateEntries(root) {
         : '000000';
       entries.set(relativePath, {
         state: exists ? 'present' : 'deleted',
-        baselineBytes: readBaselineBytes(root, baselineObject),
+        baselineBytes: readBaselineBytes(root, baselineObject, baselineMode),
         baselineMode,
         currentMode,
         submoduleState,
@@ -198,7 +309,7 @@ function readForcedWorkItemEntry(root, relativePath) {
   return {
     state: 'present',
     baselineBytes: tracked
-      ? readBaselineBytes(root, tracked[2])
+      ? readBaselineBytes(root, tracked[2], trackedMode)
       : Buffer.alloc(0),
     baselineMode: trackedMode ?? '000000',
     currentMode,
@@ -207,7 +318,8 @@ function readForcedWorkItemEntry(root, relativePath) {
   };
 }
 
-function readBaselineBytes(root, objectId) {
+function readBaselineBytes(root, objectId, mode) {
+  if (mode === '160000') return Buffer.from(objectId, 'ascii');
   return /^0+$/.test(objectId)
     ? Buffer.alloc(0)
     : runGit(root, ['cat-file', '-p', objectId]);

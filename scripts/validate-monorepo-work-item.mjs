@@ -708,6 +708,7 @@ function hasUncommittedCandidateChanges(repositoryRoot) {
       '--porcelain=v2',
       '-z',
       '--untracked-files=all',
+      '--ignore-submodules=none',
       '--no-renames',
       '--',
       '.',
@@ -985,7 +986,23 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
       repositoryRoot: root,
       workItemPath,
     });
-    if (currentSnapshot !== reviewSnapshot) {
+    const cleanCommittedDelivery =
+      currentSnapshot !== reviewSnapshot &&
+      stage === 'deliver' &&
+      status === 'active' &&
+      !hasUncommittedCandidateChanges(root);
+    const committedSnapshot = cleanCommittedDelivery
+      ? calculateReviewSnapshot({
+          repositoryRoot: root,
+          workItemPath,
+          baselineRef: 'HEAD^',
+          candidateRef: 'HEAD',
+        })
+      : null;
+    if (
+      currentSnapshot !== reviewSnapshot &&
+      committedSnapshot !== reviewSnapshot
+    ) {
       throw new Error(
         'Review snapshot is stale for the current candidate; reset review evidence and re-review the fresh candidate before advancing',
       );

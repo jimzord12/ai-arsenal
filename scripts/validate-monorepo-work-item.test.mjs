@@ -644,6 +644,7 @@ test('verify and active deliver require the fresh current candidate snapshot', (
     });
     writeActiveState(fixture.root, workItemId, `${stage}-monorepo-change`);
     initializeGitFixture(fixture.root);
+    fs.writeFileSync(path.join(fixture.root, 'candidate.txt'), 'reviewed\n');
     const workItemPath = path.join(fixture.workItemDirectory, 'work-item.md');
     const freshSnapshot = calculateReviewSnapshot({
       repositoryRoot: fixture.root,
@@ -658,11 +659,82 @@ test('verify and active deliver require the fresh current candidate snapshot', (
     assert.equal(unchanged.status, 0, `${stage}: ${unchanged.json.blocker}`);
     assert.equal(fs.readFileSync(workItemPath, 'utf8'), contents);
 
+    if (stage === 'deliver') {
+      runGit(fixture.root, ['add', '.']);
+      runGit(fixture.root, ['commit', '--quiet', '-m', 'reviewed artifact']);
+      const cleanArtifact = runValidator(fixture.root);
+      assert.equal(
+        cleanArtifact.status,
+        0,
+        `clean artifact: ${cleanArtifact.json.blocker}`,
+      );
+    }
+
     fs.writeFileSync(path.join(fixture.root, 'candidate.txt'), 'changed\n');
     const stale = runValidator(fixture.root);
     assert.equal(stale.status, 1, stage);
     assert.match(stale.json.blocker, /review snapshot is stale.*re-review/i);
   }
+});
+
+test('active deliver rejects dirty submodules even when repository config ignores them', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, { stage: 'deliver' });
+  writeActiveState(fixture.root, workItemId, 'deliver-monorepo-change');
+  initializeGitFixture(fixture.root);
+
+  const source = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'ai-arsenal-validator-submodule-'),
+  );
+  t.after(() => fs.rmSync(source, { force: true, recursive: true }));
+  runGit(source, ['init', '--quiet']);
+  runGit(source, ['config', 'user.name', 'Workflow Tests']);
+  runGit(source, ['config', 'user.email', 'workflow-tests@example.invalid']);
+  fs.writeFileSync(path.join(source, 'value.txt'), 'baseline\n');
+  runGit(source, ['add', '.']);
+  runGit(source, ['commit', '--quiet', '-m', 'submodule baseline']);
+  runGit(fixture.root, [
+    '-c',
+    'protocol.file.allow=always',
+    'submodule',
+    'add',
+    '--quiet',
+    source,
+    'modules/sample',
+  ]);
+  runGit(fixture.root, ['commit', '--quiet', '-am', 'add submodule baseline']);
+
+  fs.writeFileSync(path.join(fixture.root, 'candidate.txt'), 'reviewed\n');
+  const workItemPath = path.join(fixture.workItemDirectory, 'work-item.md');
+  const freshSnapshot = calculateReviewSnapshot({
+    repositoryRoot: fixture.root,
+    workItemPath,
+  });
+  fs.writeFileSync(
+    workItemPath,
+    fs
+      .readFileSync(workItemPath, 'utf8')
+      .replaceAll(reviewDigest, freshSnapshot),
+    'utf8',
+  );
+  runGit(fixture.root, ['add', '.']);
+  runGit(fixture.root, ['commit', '--quiet', '-m', 'reviewed artifact']);
+  const cleanArtifact = runValidator(fixture.root);
+  assert.equal(cleanArtifact.status, 0, cleanArtifact.json.blocker);
+
+  fs.writeFileSync(
+    path.join(fixture.root, 'modules', 'sample', 'untracked.txt'),
+    'dirty\n',
+  );
+  runGit(fixture.root, ['config', 'submodule.modules/sample.ignore', 'all']);
+  assert.equal(runGit(fixture.root, ['status', '--porcelain=v2']), '');
+
+  const dirtyArtifact = runValidator(fixture.root);
+  assert.equal(dirtyArtifact.status, 1);
+  assert.match(
+    dirtyArtifact.json.blocker,
+    /review snapshot is stale.*re-review/i,
+  );
 });
 
 test('freshness-required stages fail closed without Git metadata', (t) => {

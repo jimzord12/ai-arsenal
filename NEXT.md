@@ -3,39 +3,39 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** GitHub issue #18 is defined as one bounded Workflow v2 validator-enforcement work item.
-**Current phase:** Deliver validator parsing, review-barrier routing, and stale-snapshot enforcement
-**Active work item:** `2026-07-31-enforce-review-barrier-validation`
+**State:** The user-authorized successor's gitlink snapshot-equivalence repair passed cycle-3 review and final stable-snapshot verification; the exhausted predecessor remains preserved as blocked evidence.
+**Current phase:** Deliver the verified gitlink snapshot repair
+**Active work item:** `2026-07-31-fix-gitlink-snapshot-equivalence`
 **Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Use `deliver-monorepo-change` for `2026-07-31-enforce-review-barrier-validation`.
+Use `deliver-monorepo-change` for `2026-07-31-fix-gitlink-snapshot-equivalence`.
 
 ## Why This Is Next
 
-- The no-active-item validator passed before definition, and GitHub issues `#14`, `#18`, and `#19` were refreshed from the connected repository.
-- Issues #15-#17 provide the explicit lifecycle, deterministic snapshot, and complete matching batch evidence that issue #18 must now enforce.
-- The compact contract resolves delivery timing without changing digest mechanics: freshness is recomputed before active delivery mutations, and newly delivered records retain valid evidence and require a clean candidate state.
+- The cycle-3 reviewers independently matched snapshot `sha256:a2a6af33aac6cc70c389c4d9721fc4e7c442aced60107494e081782cf3ace128` with no required findings.
+- Full final verification passed on that unchanged snapshot.
+- The verified artifact is eligible for commit, push, exact-SHA CI, reconciliation, and issue closure.
 
 ## Requirements
 
-- Commit and push the exact verified implementation snapshot, observe required exact-SHA CI, then reconcile planning truth and close issue #18.
-- Preserve delivered historical compatibility and read-only validation.
-- Keep issue #19's integrated lifecycle matrix and normative documentation alignment out of scope.
+- Commit and push the exact verified artifact, then require successful Quality and Portability runs for that SHA.
+- Reconcile the canonical plan and `NEXT.md`, close issue #18, and preserve the predecessor as historical blocked evidence.
+- Keep issue #19's integration matrix and normative documentation work out of scope.
 
 ## Blockers / Escalation
 
-- No active blocker.
+- No active blocker; local Git supports disposable submodule fixtures without network access.
 
 ## Done When
 
-- The verified artifact and closure records are pushed, CI is green, issue #18 is closed, planning is reconciled to issue #19, and active registration is cleared.
+- The artifact and closure commits are pushed and CI-green, issue #18 is closed, the work item is delivered, active registration is cleared, and issue #19 is next.
 
 ## Source of Truth
 
 - `AGENTS.md`
-- `docs/work-items/2026-07-31-enforce-review-barrier-validation/work-item.md`
+- `docs/work-items/2026-07-31-fix-gitlink-snapshot-equivalence/work-item.md`
 - `https://github.com/jimzord12/ai-arsenal/issues/18`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`

@@ -100,10 +100,24 @@ function createRepository(t) {
   return root;
 }
 
+function createSubmoduleSource(t) {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'review-submodule-'));
+  t.after(() => fs.rmSync(root, { force: true, recursive: true }));
+  git(root, ['init', '--quiet']);
+  git(root, ['config', 'user.email', 'tests@example.invalid']);
+  git(root, ['config', 'user.name', 'Workflow Tests']);
+  write(root, 'value.txt', 'one\n');
+  git(root, ['add', '--all']);
+  git(root, ['commit', '--quiet', '-m', 'submodule baseline']);
+  return root;
+}
+
 function snapshot(root, options = {}) {
   return calculateReviewSnapshot({
     repositoryRoot: options.repositoryRoot ?? root,
     workItemPath: options.workItemPath ?? workItemRelativePath,
+    baselineRef: options.baselineRef,
+    candidateRef: options.candidateRef,
   });
 }
 
@@ -170,6 +184,128 @@ test('staging unchanged candidate bytes does not change the digest', (t) => {
   git(root, ['add', '--all']);
 
   assert.equal(snapshot(root), unstaged);
+});
+
+test('a committed candidate reproduces its pre-commit working snapshot', (t) => {
+  const root = createRepository(t);
+  write(root, 'src/new.txt', 'reviewed\n');
+  write(root, 'src/base.txt', 'modified\n');
+  const workingSnapshot = snapshot(root);
+  git(root, ['add', '--all']);
+  git(root, ['commit', '--quiet', '-m', 'reviewed candidate']);
+
+  const committedSnapshot = snapshot(root, {
+    baselineRef: 'HEAD^',
+    candidateRef: 'HEAD',
+  });
+
+  assert.equal(committedSnapshot, workingSnapshot);
+});
+
+test('gitlink addition, staged update, and deletion preserve committed snapshot equivalence', (t) => {
+  const root = createRepository(t);
+  const source = createSubmoduleSource(t);
+  git(root, [
+    '-c',
+    'protocol.file.allow=always',
+    'submodule',
+    'add',
+    '--quiet',
+    source,
+    'modules/sample',
+  ]);
+  assert.match(
+    git(root, ['status', '--porcelain=v2']),
+    / A\. S\.\.\..*modules\/sample/m,
+  );
+  const additionSnapshot = snapshot(root);
+  git(root, ['commit', '--quiet', '-am', 'add submodule']);
+  git(root, ['config', 'submodule.modules/sample.ignore', 'all']);
+  git(root, ['config', 'diff.ignoreSubmodules', 'all']);
+  assert.equal(
+    git(root, ['diff', '--name-only', 'HEAD^', 'HEAD']),
+    '.gitmodules',
+  );
+  assert.equal(
+    git(root, [
+      'diff',
+      '--name-only',
+      '--ignore-submodules=none',
+      'HEAD^',
+      'HEAD',
+    ]),
+    '.gitmodules\nmodules/sample',
+  );
+  assert.equal(
+    snapshot(root, { baselineRef: 'HEAD^', candidateRef: 'HEAD' }),
+    additionSnapshot,
+  );
+  git(root, ['config', 'submodule.modules/sample.ignore', 'none']);
+  git(root, ['config', 'diff.ignoreSubmodules', 'none']);
+
+  write(source, 'value.txt', 'two\n');
+  git(source, ['add', '--all']);
+  git(source, ['commit', '--quiet', '-m', 'advance submodule']);
+  const advancedCommit = git(source, ['rev-parse', 'HEAD']);
+  const checkout = path.join(root, 'modules', 'sample');
+  git(checkout, ['fetch', '--quiet', 'origin']);
+  git(checkout, ['checkout', '--quiet', advancedCommit]);
+  git(root, ['add', 'modules/sample']);
+  assert.match(
+    git(root, ['status', '--porcelain=v2']),
+    / M\. S\.\.\..*modules\/sample/m,
+  );
+  const updateSnapshot = snapshot(root);
+  git(root, ['commit', '--quiet', '-m', 'update submodule']);
+  assert.equal(
+    snapshot(root, { baselineRef: 'HEAD^', candidateRef: 'HEAD' }),
+    updateSnapshot,
+  );
+
+  write(source, 'value.txt', 'three\n');
+  git(source, ['add', '--all']);
+  git(source, ['commit', '--quiet', '-m', 'advance dirty submodule']);
+  const dirtyCommit = git(source, ['rev-parse', 'HEAD']);
+  git(checkout, ['fetch', '--quiet', 'origin']);
+  git(checkout, ['checkout', '--quiet', dirtyCommit]);
+  git(root, ['add', 'modules/sample']);
+  write(
+    root,
+    'modules/sample/untracked.txt',
+    'not committed by superproject\n',
+  );
+  assert.match(
+    git(root, ['status', '--porcelain=v2']),
+    / MM S\.\.U.*modules\/sample/m,
+  );
+  const dirtySnapshot = snapshot(root);
+  git(root, ['commit', '--quiet', '-m', 'update dirty submodule pointer']);
+  assert.notEqual(
+    snapshot(root, { baselineRef: 'HEAD^', candidateRef: 'HEAD' }),
+    dirtySnapshot,
+  );
+  const visibleDirtySnapshot = snapshot(root);
+  git(root, ['config', 'submodule.modules/sample.ignore', 'all']);
+  assert.equal(git(root, ['status', '--porcelain=v2']), '');
+  assert.match(
+    git(root, ['status', '--porcelain=v2', '--ignore-submodules=none']),
+    / \.M S\.\.U.*modules\/sample/m,
+  );
+  assert.equal(snapshot(root), visibleDirtySnapshot);
+
+  fs.rmSync(checkout, { force: true, recursive: true });
+  fs.rmSync(path.join(root, '.gitmodules'));
+  git(root, ['add', '--all']);
+  assert.match(
+    git(root, ['status', '--porcelain=v2']),
+    / D\. S\.\.\..*modules\/sample/m,
+  );
+  const deletionSnapshot = snapshot(root);
+  git(root, ['commit', '--quiet', '-m', 'delete submodule']);
+  assert.equal(
+    snapshot(root, { baselineRef: 'HEAD^', candidateRef: 'HEAD' }),
+    deletionSnapshot,
+  );
 });
 
 test('deletions change the digest without reading the absent path', (t) => {
