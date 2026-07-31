@@ -3,7 +3,7 @@
 Work item: 2026-07-31-deterministic-review-snapshot
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-07-31T13:46:08+03:00
 Max time: 5 hours
 Last time check: 2026-07-31T13:46:08+03:00
@@ -65,3 +65,12 @@ Result: passed
 - Living-workflow validator: `node scripts/validate-living-workflow.mjs` — exit `0`; required workflow files and `NEXT.md` structure passed.
 - Whitespace gate: `git diff --check` — exit `0` with no output.
 - Manual acceptance inspection confirmed the single exported/API-and-command calculation includes tracked changes and non-ignored additions, raw baseline/current bytes, explicit deletions, rename-as-delete-plus-add behavior, modes/types, normalized ordinal paths, collision-safe length framing, and narrowly filtered active-work-item intent while excluding only `NEXT.md` routing and named mutable work-item control/evidence. Output contains only the prefixed digest, and review-batch orchestration, stale-snapshot gating, integrated regressions/normative documentation, package release, and historical-record rewriting remain excluded.
+
+## Delivery evidence
+
+- Verified artifact-bearing commit `6d0e7eac900ff3c418ecfdd2071ad989dcd28318` was committed as `feat(workflow): add deterministic review snapshots` and pushed to `origin/master`; a fresh fetch confirmed local `HEAD` and `origin/master` were equal, and the worktree was clean before closure-record edits.
+- Exact-commit Quality run `https://github.com/jimzord12/ai-arsenal/actions/runs/30625803324` completed successfully for head SHA `6d0e7eac900ff3c418ecfdd2071ad989dcd28318`, including repository checks and private artifact validation.
+- Exact-commit Portability run `https://github.com/jimzord12/ai-arsenal/actions/runs/30625803323` completed successfully for the same head SHA; both Ubuntu and Windows process/distribution jobs passed, so the focused snapshot suite ran on both supported platforms and the Unix symbolic-link type case ran in CI.
+- GitHub issue `#16` was read back as `CLOSED` with reason `COMPLETED`. The connected GitHub app lacked close permission (`403 Resource not accessible by integration`), so the authenticated `gh issue close` fallback performed the bounded mutation and `gh issue view` verified it.
+- This is workflow-policy behavior, not shipped CLI behavior; no Changeset, package version, packed artifact replacement, registry publication, or global installation applies.
+- Canonical planning truth records the reusable deterministic snapshot boundary. Review-batch evidence issue `#17` is the next bounded child; snapshot gating and integrated barrier alignment remain owned by issues `#18` and `#19`.

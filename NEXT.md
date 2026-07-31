@@ -3,35 +3,36 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** GitHub issue #16 passed final verification on its unchanged reviewed snapshot.
-**Current phase:** Deliver the active Workflow v2 work item
-**Active work item:** `2026-07-31-deterministic-review-snapshot`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** GitHub issue #16 is delivered and closed: Workflow v2 has one reusable deterministic review-candidate snapshot calculation with focused cross-platform digest coverage.
+**Current phase:** Await the next bounded request
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Use `deliver-monorepo-change` for `2026-07-31-deterministic-review-snapshot`.
+Use `define-monorepo-change` for GitHub issue #17, the next bounded child in the snapshot-bound review barrier.
 
 ## Why This Is Next
 
-- The no-active-item validator passed before definition, and GitHub issue `#16` is the next ordered child of parent issue `#14`.
-- The compact work item records one digest-only goal, observable acceptance criteria, resolved prerequisites, and explicit exclusions against issues `#17`–`#19`.
-- The change is routine workflow-policy code with no dangerous deletion, irreversible data loss, or shipped CLI behavior.
+- Commit `6d0e7eac900ff3c418ecfdd2071ad989dcd28318` contains the verified issue-#16 implementation and matched `origin/master` after push.
+- Exact-SHA Quality run `30625803324` and Portability run `30625803323` passed; Portability passed on Ubuntu and Windows.
+- GitHub issue `#16` is closed as completed. Parent issue `#14` remains open, and issue `#17` is its next ordered child.
 
 ## Requirements
 
-- Reconcile current planning truth, commit and push the verified candidate, observe exact-SHA CI, close GitHub issue `#16`, and clear the active registration.
+- Preserve issue #16's deterministic candidate calculation and issue #15's explicit lifecycle.
+- Keep issue #17 bounded to complete matching review-batch evidence; validator advancement enforcement and integrated regression/documentation alignment remain owned by issues `#18` and `#19`.
+- Continue through Workflow v2 rather than implementing from the issue body alone.
 - Preserve issue #15's explicit lifecycle, delivered-record compatibility, five-stage route, and four-cycle limit.
 - Keep review-batch semantics, validator advancement enforcement, and integrated regressions/normative documentation aligned with issues `#17`–`#19`.
 
 ## Blockers / Escalation
 
-- No active blocker; hard prerequisites are resolved and routine approval is not required.
+- No active blocker.
 
 ## Done When
 
-- The verified snapshot is committed and pushed, exact-SHA Quality and Portability CI pass, and GitHub issue `#16` is closed.
-- Delivery evidence is recorded, planning truth names issue `#17` next, the item is delivered, and active registration is cleared.
+- GitHub issue #17 is defined as one compact Workflow v2 work item with explicit boundaries against issues #18 and #19.
 
 ## Source of Truth
 

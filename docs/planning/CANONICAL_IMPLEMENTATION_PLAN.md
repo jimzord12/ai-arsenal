@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 deterministic review snapshots are verified and in delivery; Trello Flow CLI `0.5.1` and repaired weekly-report CLI `0.1.1` are delivered
+> **Status:** Workflow v2 deterministic review snapshots, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered; no work item is active
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
-> **Current phase:** Deliver the deterministic review-snapshot work item
+> **Current phase:** Await the next bounded request
 > **Operator view:** `NEXT.md`
 
 ---
@@ -1065,4 +1065,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Workflow v2 deterministic review-candidate digest issue `#16` has passed review and final verification on a matching concrete snapshot. Complete its active delivery by committing and pushing the verified candidate, observing exact-SHA Quality and Windows/Linux Portability CI, closing the GitHub issue, recording immutable evidence, and clearing active registration.
+Workflow v2 deterministic review-candidate digest issue `#16` is delivered and closed. No work item is active; define the next bounded child, complete matching review-batch evidence issue `#17`, through Workflow v2.
