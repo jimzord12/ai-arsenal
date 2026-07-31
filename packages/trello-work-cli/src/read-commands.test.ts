@@ -112,6 +112,7 @@ async function card(overrides: Partial<TrelloCard> = {}): Promise<TrelloCard> {
     idList: 'list-inbox',
     dateLastActivity: '2026-07-26T12:01:00.000Z',
     shortUrl: 'https://trello.com/c/AbCd1234/work-unit',
+    members: [],
     ...overrides,
   };
 }
@@ -299,6 +300,68 @@ describe('read-only commands', () => {
     });
   });
 
+  it('filters native card members separately from exact metadata owner', async () => {
+    const matching = await card({
+      desc: await persistedDescription({ owner: 'codex:worker-1' }),
+      members: [
+        { id: 'member-1', username: 'Dev-One', fullName: 'Developer One' },
+      ],
+    });
+    const other = await card({
+      id: 'abcdefabcdefabcdefabcdef',
+      idShort: 43,
+      desc: await persistedDescription({
+        id: 'WU-43',
+        trello_card_id: 'abcdefabcdefabcdefabcdef',
+        owner: 'codex:worker-2',
+      }),
+      members: [{ id: 'member-2', username: 'alex', fullName: 'Alex Example' }],
+    });
+    const client = fakeClient([matching, other]);
+
+    await expect(
+      listWorkUnits({ member: 'dev-one' }, config(), client),
+    ).resolves.toMatchObject({
+      filters: { member: 'dev-one' },
+      items: [{ card: { members: [{ id: 'member-1' }] } }],
+    });
+    await expect(
+      listWorkUnits({ member: 'MEMBER-1' }, config(), client),
+    ).resolves.toMatchObject({ items: [{ metadata: { id: 'WU-42' } }] });
+    await expect(
+      listWorkUnits({ owner: 'codex:worker-1' }, config(), client),
+    ).resolves.toMatchObject({ items: [{ metadata: { id: 'WU-42' } }] });
+    await expect(
+      listWorkUnits(
+        { member: 'dev-one', owner: 'codex:worker-1' },
+        config(),
+        client,
+      ),
+    ).resolves.toMatchObject({ items: [{ metadata: { id: 'WU-42' } }] });
+    await expect(
+      listWorkUnits(
+        { member: 'dev-one', owner: 'codex:worker-2' },
+        config(),
+        client,
+      ),
+    ).resolves.toMatchObject({ items: [] });
+    await expect(
+      listWorkUnits({ member: 'Developer One' }, config(), client),
+    ).resolves.toMatchObject({ items: [] });
+    await expect(
+      listWorkUnits({ member: 'dev' }, config(), client),
+    ).resolves.toMatchObject({
+      items: [],
+    });
+    await expect(
+      listWorkUnits(
+        { member: 'dev-one' },
+        config(),
+        fakeClient([await card()]),
+      ),
+    ).resolves.toMatchObject({ items: [] });
+  });
+
   it('lists ordinary Inbox cards while Work Unit listing skips them', async () => {
     const ordinary = await card({
       id: 'aaaaaaaaaaaaaaaaaaaaaaaa',
@@ -311,8 +374,8 @@ describe('read-only commands', () => {
 
     await expect(listInboxCards(config(), client)).resolves.toMatchObject({
       items: [
-        { id: ordinary.id, kind: 'ordinary' },
-        { id: persisted.id, kind: 'work-unit' },
+        { id: ordinary.id, kind: 'ordinary', members: [] },
+        { id: persisted.id, kind: 'work-unit', members: [] },
       ],
     });
     await expect(listWorkUnits({}, config(), client)).resolves.toMatchObject({

@@ -80,6 +80,7 @@ const VALUE_OPTIONS = new Set([
   '--type',
   '--priority',
   '--owner',
+  '--member',
   '--parent',
   '--label',
   '--name',
@@ -135,6 +136,7 @@ function commandOptions(command: string, positionals: string[]): Set<string> {
       '--type',
       '--priority',
       '--owner',
+      '--member',
       '--parent',
       '--label',
       ...configured,
@@ -779,6 +781,7 @@ export async function runWorkCli(
         ['--type', 'type'],
         ['--priority', 'priority'],
         ['--owner', 'owner'],
+        ['--member', 'member'],
         ['--parent', 'parent'],
         ['--label', 'label'],
       ] as const) {

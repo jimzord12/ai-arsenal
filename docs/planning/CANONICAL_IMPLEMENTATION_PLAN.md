@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** The Workflow v2 pipeline, Trello Flow CLI `0.4.2`, and globally installed weekly-report CLI `0.1.0` Git evidence collector are complete; no work item is active
+> **Status:** Trello Flow CLI `0.5.0` native card-member output/filtering and distinct owner filtering passed final verification and are in exact-artifact delivery
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
-> **Current phase:** Define Trello card-member and Work Unit owner filtering
+> **Current phase:** Deliver Trello card-member and Work Unit owner filtering
 > **Operator view:** `NEXT.md`
 
 ---
@@ -108,6 +108,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` `packages/trello-work-cli` is the private TypeScript package `@jz/ai-arsenal-trello-work-cli`. Its Work Unit V1 boundary implements deterministic parsing and schema enforcement, explicit stateless board selection, seven-list canonical workflow defaults with environment overrides, guarded workflow initialization, board-scoped list CRUD, dry-run plans, references, strict CLI parsing, version-guarded mutations, durable operation replay, partial-recovery signaling, secret redaction, API request construction, and built-in documentation.
 - `[VERIFIED]` Exact operation replay is resolved before ordinary stale-version rejection for update, transition, reconcile, and checklist mutations, while every new write remains version-guarded. Metadata/description replay re-verifies title, all request-managed metadata, and every section before returning `recovered`.
 - `[VERIFIED]` The Trello CLI supports ordinary Inbox cards and canonical Draft Work Units, `jz-trello-flow inbox list`, explicit `jz-trello-flow draft create`, the deprecated `jz-trello-flow create` alias, same-card `jz-trello-flow design start` promotion, canonical partial `in_design`, and strict In Design-to-Ready completeness gating. Malformed cards claiming Work Unit identity fail closed, and design operation IDs are checked board-wide before mutation.
+- `[VERIFIED]` Versioned source `0.5.0` requests and strictly normalizes native Trello card members as deterministic `id`, `username`, and `fullName` objects in `get`, `list`, and Inbox output. `list --member` matches an exact member ID or case-insensitive exact username, rejects display-name and substring matching, and composes conjunctively with the unchanged exact metadata `--owner` filter. Native members remain plural Trello assignment/attention state; owner remains the single stable agent or worker execution claim, with no automatic synchronization or member mutation.
 - `[VERIFIED]` The revised Trello CLI passes formatting, linting, strict typechecking, strict publint, 230 offline tests across 19 suites, repository-wide checks, 30 workflow tests, and credential-free verification of its gated live harness with 12 checks passing and 2 live cases skipped. Final independent review of the exact snapshot found no Critical or High issue.
 - `[VERIFIED]` Live validation remained allowlisted to `TestingBoard` (`6a16bbf1fea5389eb39636b7`). The revised seven-list onboarding harness independently initialized its preconditions, covered ordinary-card and Draft intake with full-card-scoped operation IDs, and passed all 14 checks. Generated Work Units remain in Done, the Inbox is empty, and disposable run lists are closed.
 - `[VERIFIED]` Active canonical Trello workflow resolution and guarded initialization ignore archived exact-name candidates, keep two open namesakes ambiguous, create a new open canonical list when only archived namesakes exist, and reject archived configured mappings before active card-placement or transition handlers. Explicit archived-list ID reads, close replay, cleanup verification, and open/archived audit visibility remain supported because the Trello client still returns all lists.
@@ -924,6 +925,7 @@ Protocol design, documentation, and the four open-standard skills were digest-au
 - `jz-trello-flow skills install` ships version-matched package copies of the four skills and their protocol authority, marks them as CLI-managed, and installs them under the selected repository's `.agents/skills/` directory.
 - Nested Git-root discovery is contained and ignores inherited repository selectors. Complete self-contained structural validation of the package-bundled transformed payload precedes four-target replacement; later swap failure rolls prior replacements back. Unrelated skills are preserved, and `--dry-run` reports the same installed/replaced plan without target mutation.
 - Official pinned `skills-ref` validation is a development/release gate against the exact transformed payload, not an end-user runtime dependency. Version `0.4.2` passes focused, package, official-validator, packed-consumer, root, workflow, exact-SHA CI, global-install, installed-byte, and repeat/sentinel gates without Trello or registry access.
+- Versioned source `0.5.0` adds strictly normalized native card-member output and exact member filtering while preserving owner as a separate execution-claim filter. The reviewed snapshot passes 281 package tests, strict publint, official pinned skill validation, root/workflow gates, credential-free live safety checks, a 32-file clean consumer, and privacy/diff checks; exact-SHA CI and global replacement remain delivery gates.
 
 ### Delivery boundary
 
@@ -1039,4 +1041,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Weekly-report CLI `0.1.0` Git evidence collection is delivered from exact CI-green commit `d7971f27f37d27e226c102f1a30e2af86dee3bdc` and globally installed from the byte-proven artifact. The next explicit request is to expose native Trello card members and support filtering cards by involved member while preserving and verifying the existing Work Unit metadata-owner filter. Define that bounded Trello CLI behavior and versioned local-delivery contract through Workflow v2 before implementation.
+Trello Flow CLI `0.5.0` native member output/filtering and distinct metadata-owner filtering have passed implementation, two review cycles, final package/repository verification, official pinned skill validation, and clean-consumer installation. Deliver the exact artifact-bearing snapshot through commit/push, required exact-SHA Quality and Windows/Linux Portability CI, byte-identified packing, authorized global replacement with `0.4.2` rollback, independent installed-artifact smoke, and workflow closure.

@@ -21,7 +21,7 @@ Use this precedence when instructions conflict:
 
 - Durable Work Unit identity and canonical description.
 - Status and Trello-list synchronization.
-- Assignment metadata used by this protocol.
+- Native Trello card members as plural human assignment/attention state, and Work Unit `owner` as the separate single stable agent or worker execution claim. Membership is not authorization, exclusivity, or an atomic claim, and the two representations are not synchronized automatically.
 - Lifecycle transition validation.
 - Version checks, durable operation identity, replay recognition, read-back verification, diagnostics, and recovery plans.
 - Concise evidence summaries and links needed to resume the task.

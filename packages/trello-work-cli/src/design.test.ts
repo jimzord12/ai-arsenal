@@ -17,6 +17,7 @@ const original: TrelloCard = {
   idList: 'inbox',
   dateLastActivity: '2026-07-28T12:00:00.000Z',
   shortUrl: 'https://trello.com/c/AbCd1234/card',
+  members: [],
 };
 const config: WorkConfig = {
   credentials: { apiKey: null, apiToken: null },

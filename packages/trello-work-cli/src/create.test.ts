@@ -57,6 +57,7 @@ class FakeCreateClient implements CreateClient {
       idList: input.idList,
       dateLastActivity: '2026-07-26T12:00:00.000Z',
       shortUrl: 'https://trello.com/c/AbCd1234/work-unit',
+      members: [],
     };
     this.cards = [created];
     return created;

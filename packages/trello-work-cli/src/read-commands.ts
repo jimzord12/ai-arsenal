@@ -31,7 +31,10 @@ export interface ReadCommandClient {
 }
 
 export type NormalizedWorkUnit = WorkUnitDocument & {
-  card: Pick<TrelloCard, 'id' | 'idShort' | 'idList' | 'name' | 'shortUrl'>;
+  card: Pick<
+    TrelloCard,
+    'id' | 'idShort' | 'idList' | 'name' | 'shortUrl' | 'members'
+  >;
   version: string;
 };
 
@@ -47,6 +50,7 @@ export type ListFilters = {
   owner?: string | null;
   parent?: string | null;
   label?: string;
+  member?: string;
 };
 
 function configurationMissing(names: string[]): never {
@@ -78,6 +82,7 @@ export function normalizeRemoteCard(card: TrelloCard): NormalizedWorkUnit {
         idList: card.idList,
         name: card.name,
         shortUrl: card.shortUrl,
+        members: card.members,
       },
       version: card.dateLastActivity,
     };
@@ -260,6 +265,12 @@ export async function listWorkUnits(
         (filters.priority === undefined ||
           metadata.priority === filters.priority) &&
         (filters.owner === undefined || metadata.owner === filters.owner) &&
+        (filters.member === undefined ||
+          item.card.members.some(
+            (member) =>
+              member.id.toLowerCase() === filters.member?.toLowerCase() ||
+              member.username.toLowerCase() === filters.member?.toLowerCase(),
+          )) &&
         (filters.parent === undefined || metadata.parent === filters.parent) &&
         (filters.label === undefined || metadata.labels.includes(filters.label))
       );
@@ -272,10 +283,16 @@ export async function listInboxCards(
   client: ReadCommandClient,
 ): Promise<{
   items: Array<
-    | (Pick<TrelloCard, 'id' | 'idShort' | 'idList' | 'name' | 'shortUrl'> & {
+    | (Pick<
+        TrelloCard,
+        'id' | 'idShort' | 'idList' | 'name' | 'shortUrl' | 'members'
+      > & {
         kind: 'ordinary';
       })
-    | (Pick<TrelloCard, 'id' | 'idShort' | 'idList' | 'name' | 'shortUrl'> & {
+    | (Pick<
+        TrelloCard,
+        'id' | 'idShort' | 'idList' | 'name' | 'shortUrl' | 'members'
+      > & {
         kind: 'work-unit';
         workUnit: NormalizedWorkUnit;
       })
@@ -295,6 +312,7 @@ export async function listInboxCards(
         idList: card.idList,
         name: card.name,
         shortUrl: card.shortUrl,
+        members: card.members,
       };
       try {
         return {

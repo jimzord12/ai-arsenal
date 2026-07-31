@@ -14,6 +14,7 @@ A Work Unit is one Trello card whose description is a canonical `# Work Unit` Ma
 - `WU-N` comes from Trello's server-assigned board-scoped `idShort`; gaps are valid and IDs are never predicted or reused.
 - `parent` and `blocked_by` contain Work Unit IDs, never Trello card IDs.
 - Status, IDs, and timestamps are system-managed.
+- Trello card members are plural native assignments for attention and notifications. Work Unit `owner` is the separate single stable agent or worker execution claim; neither field is synchronized automatically.
 
 A `<reference>` is exactly one of `WU-N`, a 24-character Trello card ID, or an HTTPS Trello card URL.
 
@@ -31,8 +32,9 @@ Missing/mismatched provenance or failed validation exits nonzero before replacem
 
 Read and normalize one Work Unit. Use `--board <id-or-exact-name>` on every
 invocation and `--output json` for automation. Every result includes
-`attachmentCount` and complete ordered attachment metadata. Ordinary `get`
-does not download or write files.
+deterministically ordered `card.members` objects with stable `id`, `username`,
+and `fullName`, plus `attachmentCount` and complete ordered attachment metadata.
+Ordinary `get` does not download or write files.
 
 Add `--attachments-dir <directory>` to download uploaded attachments with
 authenticated binary-safe transport and report each absolute completed path.
@@ -45,8 +47,11 @@ only files already completed.
 ### jz-trello-flow list
 
 List normalized Work Units on the explicitly selected board. Filters:
-`--status`, `--type`, `--priority`, `--owner`, `--parent`, and one `--label`.
-Duplicate options are rejected.
+`--status`, `--type`, `--priority`, `--owner`, `--member`, `--parent`, and one
+`--label`. `--owner` is an exact metadata-owner match. `--member` matches an
+exact member ID or case-insensitive exact username and does not match display
+names or substrings. All filters compose conjunctively. Duplicate options are
+rejected.
 
 ### jz-trello-flow boards list
 
@@ -76,7 +81,7 @@ list and never closes a list containing cards.
 
 ### jz-trello-flow inbox list
 
-List ordinary Inbox cards and canonical Draft Work Units without forcing ordinary cards to parse as Work Units.
+List ordinary Inbox cards and canonical Draft Work Units without forcing ordinary cards to parse as Work Units. Both shapes expose deterministic native Trello members.
 
 ### jz-trello-flow draft create --file <work-unit.md> | --stdin
 

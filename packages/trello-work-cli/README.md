@@ -10,6 +10,8 @@ The canonical document is one `# Work Unit` heading, one immediately following f
 
 Inbox supports two intake paths: ordinary Trello cards listed by `jz-trello-flow inbox list`, and agent-prepared Draft Work Units created by `jz-trello-flow draft create`. `jz-trello-flow create` remains a deprecated warning-emitting alias. `jz-trello-flow design start` converts the selected card in place to In Design, preserving its Trello identity and history. In Design requires every canonical section and permits explicit `Pending:` content and `Open Questions`; transition to Ready is rejected until both are resolved. A resolved Open Questions section may say only `None`, `N/A`, or `No open questions` (optionally as one bullet and with a terminal period), and is removed by the Ready transition.
 
+Native Trello card members and Work Unit metadata `owner` have distinct responsibilities. Members are plural Trello accounts assigned to the card for shared responsibility and attention; `owner` is the single stable agent or worker identity holding the execution claim. Trello watching/subscription is separate from membership. `get`, `list`, and `inbox list` expose deterministic member objects containing `id`, `username`, and `fullName`. `list --member <selector>` matches only an exact member ID or case-insensitive exact username and does not match display names or substrings. The existing `list --owner <stable-owner>` remains an exact metadata filter, and all supplied list filters compose conjunctively. Reads never add, remove, or synchronize members.
+
 ## Safety boundaries
 
 - `status`, IDs, and timestamps are system-managed.

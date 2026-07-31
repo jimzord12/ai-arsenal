@@ -75,6 +75,7 @@ const BASE_COMMAND_CATALOG: CommandDefinition[] = [
       '--type',
       '--priority',
       '--owner',
+      '--member',
       '--parent',
       '--label',
       '--output',

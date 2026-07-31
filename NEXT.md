@@ -3,27 +3,27 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** Weekly-report CLI `0.1.0` deterministic Git evidence collection is delivered, exact-SHA CI-green, and globally installed from its byte-proven private artifact.
-**Current phase:** Define Trello member and owner filtering
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** Native Trello member output/filtering and distinct owner filtering passed final stable-snapshot verification and await delivery.
+**Current phase:** Deliver Trello member and owner filtering
+**Active work item:** `2026-07-31-filter-trello-card-members`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Use `define-monorepo-change` for native Trello card-member output/filtering and verified Work Unit owner filtering.
+Use `deliver-monorepo-change` for `2026-07-31-filter-trello-card-members`.
 
 ## Why This Is Next
 
-- The user explicitly requested filtering cards by involved Trello member and by Work Unit metadata owner.
-- Native card membership and Work Unit owner are distinct responsibilities and must remain separately observable and filterable.
-- The prior weekly-report item is fully delivered and no active workflow item blocks definition.
+- Review cycle 2 repaired the consumer-identity fixture finding with neutral synthetic values.
+- Final verification passed root/package gates, the packed consumer, official skill validation, privacy/diff checks, and workflow validators on the repaired bytes.
+- Delivery must reconcile planning, commit and push the artifact snapshot, require exact-SHA CI, then pack and install that exact CI-green commit with rollback and independent global smoke evidence.
 
 ## Requirements
 
-- Define stable native-member identity fields and matching semantics without conflating them with metadata `owner`.
-- Preserve existing list filters and fail-closed Work Unit parsing.
-- Use offline Trello fixtures by default and keep live production-board mutation out of scope.
-- Include the mandatory Changesets, exact-CI-green artifact, global installation, and installed-shim verification chain for CLI behavior changes.
+- Match native members only by exact ID or case-insensitive exact username; do not match display names or substrings.
+- Preserve exact metadata-owner filtering as a separate conjunctive filter.
+- Keep the change read-only and use offline Trello fixtures; do not mutate live or production boards.
+- Complete the mandatory Changesets, exact-CI-green artifact, global installation, and installed-shim verification chain.
 
 ## Blockers / Escalation
 
@@ -32,10 +32,11 @@ Use `define-monorepo-change` for native Trello card-member output/filtering and 
 
 ## Done When
 
-- A compact Workflow v2 Trello filtering work item is defined and routed to focused implementation.
+- Member and owner output/filter acceptance passes review, final verification, exact-SHA CI, artifact installation, independent global smoke, and workflow closure.
 
 ## Source of Truth
 
 - `AGENTS.md`
+- `docs/work-items/2026-07-31-filter-trello-card-members/work-item.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`
