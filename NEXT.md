@@ -3,26 +3,26 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** GitHub issue #15 is defined as the active bounded Workflow v2 review-lifecycle change.
-**Current phase:** Deliver explicit review lifecycle schema and transitions
-**Active work item:** `2026-07-31-model-workflow-review-lifecycle`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** GitHub issue #15 is delivered and closed: Workflow v2 review is explicitly pending, failed, or passed for a concrete snapshot, while delivered legacy compact records remain readable.
+**Current phase:** Await the next bounded request
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Use `deliver-monorepo-change` for `2026-07-31-model-workflow-review-lifecycle`.
+Use `define-monorepo-change` for GitHub issue #16, the next bounded child in the snapshot-bound review barrier.
 
 ## Why This Is Next
 
-- The no-active-item validator passed before definition, and the worktree was clean at `c6303bb`.
-- GitHub issue `#15` is the first dependency in parent issue `#14` and owns only explicit review lifecycle fields and transitions.
-- The current compact template initializes implicit success with `Required findings remaining: no`; the bounded change replaces that representation while preserving delivered history.
+- Commit `94994da4c7862563364751719cecec82386952fa` contains the verified issue-#15 implementation and matched `origin/master` after push.
+- Exact-SHA Quality run `30622861219` and Portability run `30622861201` passed; Portability passed on Ubuntu and Windows.
+- GitHub issue `#15` is closed as completed. Parent issue `#14` remains open, and issue `#16` is its next ordered child.
 
 ## Requirements
 
-- Preserve the five-stage Workflow v2 route and four-cycle review limit.
-- Keep deterministic digest computation, complete review-batch semantics, the full advancement barrier, and integrated regression/documentation work in GitHub issues `#16` through `#19`.
-- Keep already-delivered compact records readable without rewriting them solely for schema adoption.
+- Preserve issue #15's explicit lifecycle, delivered-record compatibility, five-stage route, and four-cycle limit.
+- Keep issue #16 bounded to deterministic review-candidate digest mechanics; review-batch semantics, validator advancement enforcement, and integration/docs remain owned by issues #17–#19.
+- Continue through Workflow v2 rather than implementing from the issue body alone.
 
 ## Blockers / Escalation
 
@@ -30,7 +30,7 @@ Use `deliver-monorepo-change` for `2026-07-31-model-workflow-review-lifecycle`.
 
 ## Done When
 
-- Reconcile canonical planning truth, commit and push the exact verified workflow snapshot, record delivery evidence, and clear the active registration.
+- GitHub issue #16 is defined as one compact Workflow v2 work item with explicit boundaries against issues #17–#19.
 
 ## Source of Truth
 

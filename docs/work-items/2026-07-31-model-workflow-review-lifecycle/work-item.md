@@ -3,7 +3,7 @@
 Work item: 2026-07-31-model-workflow-review-lifecycle
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-07-31T13:05:00+03:00
 Max time: 4 hours
 Last time check: 2026-07-31T13:05:00+03:00
@@ -66,3 +66,12 @@ Result: passed
 - Living-workflow validator: `node scripts/validate-living-workflow.mjs` — exit `0`; required workflow files and `NEXT.md` structure passed.
 - Whitespace gate: `git diff --check` — exit `0` with no output.
 - Manual acceptance inspection confirmed that the active item uses the new fields, delivered historical work-item bytes are unchanged, the five-stage route and four-cycle limit remain intact, and deterministic digest computation, review-batch semantics, the full validator advancement barrier, and integrated documentation remain excluded for issues #16–#19.
+
+## Delivery evidence
+
+- Verified artifact-bearing commit `94994da4c7862563364751719cecec82386952fa` was committed with `fix(workflow): model explicit review lifecycle` and pushed to `origin/master`; local `HEAD` and `origin/master` were equal after a fresh fetch, and the worktree was clean before closure evidence edits.
+- Exact-commit Quality run `https://github.com/jimzord12/ai-arsenal/actions/runs/30622861219` completed successfully for head SHA `94994da4c7862563364751719cecec82386952fa`, including repository checks and private artifact validation.
+- Exact-commit Portability run `https://github.com/jimzord12/ai-arsenal/actions/runs/30622861201` completed successfully for the same head SHA; both Ubuntu and Windows process/distribution jobs passed.
+- GitHub issue `#15` was read back as `CLOSED` with reason `COMPLETED`. The connected GitHub app lacked close permission (`403`), so the authenticated `gh issue close` fallback performed the same bounded mutation and `gh issue view` verified it.
+- This is workflow-policy behavior, not a shipped CLI behavior change; no Changeset, package version, packed artifact replacement, registry publication, or global installation applies.
+- Canonical planning truth now records the explicit lifecycle and historical compatibility. The next planned child is GitHub issue `#16`, which remains a separate bounded request.

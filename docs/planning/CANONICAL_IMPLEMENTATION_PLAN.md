@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 explicit review lifecycle is verified and in delivery; Trello Flow CLI `0.5.1` and repaired weekly-report CLI `0.1.1` remain delivered and globally installed
+> **Status:** Workflow v2 explicit review lifecycle, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered; no work item is active
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
-> **Current phase:** Deliver the explicit Workflow v2 review lifecycle
+> **Current phase:** Await the next bounded request
 > **Operator view:** `NEXT.md`
 
 ---
@@ -1051,4 +1051,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-WU-30 recovery is delivered and WU-31 is no longer dependency-blocked, but no new work item is active. Define the next explicit bounded request through Workflow v2.
+Workflow v2 explicit review lifecycle issue `#15` is delivered and closed. No work item is active; define the next bounded child, deterministic review-candidate digest issue `#16`, through Workflow v2.
