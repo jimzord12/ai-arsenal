@@ -18,6 +18,9 @@ type ProcessResult = {
 const packageRoot = resolve(__dirname, '..');
 const binPath = join(packageRoot, 'src', 'bin.ts');
 const bunCommand = process.platform === 'win32' ? 'bun.exe' : 'bun';
+const packageVersion = JSON.parse(
+  readFileSync(join(packageRoot, 'package.json'), 'utf8'),
+) as { version: string };
 
 function runCli(args: string[]): Promise<ProcessResult> {
   return new Promise((resolvePromise, reject) => {
@@ -140,6 +143,34 @@ describe('jz-trello-flow process command contract', () => {
       expect(result.stdout).toContain(syntax);
     }
   });
+
+  it.each(['-v', '--version'])(
+    'prints the package version through the executable for %s without credentials',
+    async (flag) => {
+      const result = await runCli([flag]);
+
+      expect(result).toEqual({
+        exitCode: 0,
+        stderr: '',
+        stdout: `${packageVersion.version}\n`,
+      });
+    },
+  );
+
+  it.each(['-v', '--version'])(
+    'returns the package version directly for %s before configuration loading',
+    async (flag) => {
+      const result = await runWorkCli([flag], {
+        packageVersion: packageVersion.version,
+      });
+
+      expect(result).toEqual({
+        exitCode: 0,
+        stderr: '',
+        stdout: `${packageVersion.version}\n`,
+      });
+    },
+  );
 
   it('requires an explicit board selector for every board-dependent command', async () => {
     const config: WorkConfig = {

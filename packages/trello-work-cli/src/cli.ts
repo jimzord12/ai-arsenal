@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
 import {
   listReadableBoards,
   resolveBoardSelector,
@@ -59,6 +60,7 @@ export type CliResult = {
 export type CliDependencies = {
   config?: WorkConfig;
   client?: TrelloClient;
+  packageVersion?: string;
   installSkills?: (
     options: SkillsInstallOptions,
   ) => Promise<SkillsInstallResult>;
@@ -514,6 +516,19 @@ export async function runWorkCli(
 ): Promise<CliResult> {
   if (args.length === 0 || args[0] === '--help' || args[0] === 'help') {
     return { exitCode: 0, stderr: '', stdout: WORK_HELP };
+  }
+  if (args.length === 1 && (args[0] === '-v' || args[0] === '--version')) {
+    const version =
+      dependencies.packageVersion ??
+      (
+        JSON.parse(
+          await readFile(
+            resolve(dirname(process.argv[1] ?? ''), '..', 'package.json'),
+            'utf8',
+          ),
+        ) as { version: string }
+      ).version;
+    return success(version, false);
   }
   let json = false;
   let secrets: string[] = [];

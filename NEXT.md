@@ -3,24 +3,25 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-02
 **Project:** AI Arsenal monorepo
-**State:** The legacy Features CLI rollback junction is retired and delivered; the global private package and packed artifacts remain the stable and rollback routes.
-**Current phase:** Await the next bounded request
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** The legacy Features CLI rollback junction is retired and delivered; `jz-trello-flow` version flags are the active bounded change.
+**Current phase:** Add Trello Flow CLI version flags
+**Active work item:** `2026-08-02-trello-cli-version-flags`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-No work item is active. Define the next bounded request through Workflow v2.
+Implement and release top-level `jz-trello-flow -v` and `--version` support.
 
 ## Why This Is Next
 
-- Work item `2026-08-01-retire-source-cli` passed final verification and exact-SHA
-  Quality and Portability CI on `4110b3599ca1cdf2b340eec91977afe057883611`.
-- The legacy junction is retired; packaged artifacts remain the rollback route.
+- The package currently treats both requested flags as unknown commands.
+- This is a public CLI behavior change and requires the complete private
+  package version, packed-artifact, global-install, and CI delivery chain.
 
 ## Requirements
 
-- Define any new monorepo change before implementation.
+- Preserve all existing command behavior and command-specific `--if-version`
+  semantics; version flags must be credential-free and offline.
 
 ## Blockers / Escalation
 
@@ -28,12 +29,13 @@ No work item is active. Define the next bounded request through Workflow v2.
 
 ## Done When
 
-- The next bounded request has a valid compact Workflow v2 contract.
+- Both public flags are released and independently verified from the exact
+  globally installed private artifact.
 
 ## Source of Truth
 
 - `AGENTS.md`
-- `docs/work-items/2026-08-01-retire-source-cli/work-item.md`
+- `docs/work-items/2026-08-02-trello-cli-version-flags/work-item.md`
 - `docs/operations/features-cli-cutover.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`

@@ -1,5 +1,11 @@
 # @jz/ai-arsenal-trello-work-cli
 
+## 0.6.0
+
+### Minor Changes
+
+- Add credential-free top-level `-v` and `--version` package-version output.
+
 ## 0.5.1
 
 ### Patch Changes
