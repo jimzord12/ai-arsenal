@@ -1,42 +1,34 @@
 # NEXT
 
 **Workflow version:** 2.0
-**Last reconciled:** 2026-07-31
+**Last reconciled:** 2026-08-02
 **Project:** AI Arsenal monorepo
-**State:** The legacy Features CLI rollback junction is retired; the global private package and packed artifacts remain the stable and rollback routes.
-**Current phase:** Review and verify the legacy Features CLI junction retirement
-**Active work item:** `2026-08-01-retire-source-cli`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** The legacy Features CLI rollback junction is retired and delivered; the global private package and packed artifacts remain the stable and rollback routes.
+**Current phase:** Await the next bounded request
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Resolve the final formatting-gate failure without exceeding the four-cycle
-review limit, then complete verification and delivery for the verified legacy
-Features CLI junction retirement.
+No work item is active. Define the next bounded request through Workflow v2.
 
 ## Why This Is Next
 
-- The user completed the approved external removal and current read-only checks
-  confirm that only the junction is absent.
-- The global pnpm environment still exposes `@jz/ai-arsenal-features-cli@0.3.0`
-  through the generated `features-cli` shim; both consumer status checks pass.
+- Work item `2026-08-01-retire-source-cli` passed final verification and exact-SHA
+  Quality and Portability CI on `4110b3599ca1cdf2b340eec91977afe057883611`.
+- The legacy junction is retired; packaged artifacts remain the rollback route.
 
 ## Requirements
 
-- Preserve the packaged-artifact rollback route; do not recreate a legacy source
-  junction or change consumer `.scratch` data, the monorepo package, or the
-  global installation.
+- Define any new monorepo change before implementation.
 
 ## Blockers / Escalation
 
-- `pnpm format:check` reports mechanical formatting issues in the canonical
-  plan and active work item after the fourth review cycle; the current review
-  limit prevents an unreviewed repair.
+- No active blocker.
 
 ## Done When
 
-- Current-truth records describe the retired junction and packaged rollback.
-- Review, final verification, delivery, and exact-SHA CI evidence are complete.
+- The next bounded request has a valid compact Workflow v2 contract.
 
 ## Source of Truth
 

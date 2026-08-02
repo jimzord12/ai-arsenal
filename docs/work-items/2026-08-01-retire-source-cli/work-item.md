@@ -3,7 +3,7 @@
 Work item: 2026-08-01-retire-source-cli
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-01T00:42:33+03:00
 Max time: 90 minutes
 Last time check: 2026-08-02T15:55:26.8960100+03:00
@@ -145,6 +145,19 @@ Result: passed
   target are absent; the containing `scripts` and `.scratch` directories
   remain present; global `@jz/ai-arsenal-features-cli@0.3.0`, `--help`, and
   both read-only consumer status checks remain available.
+
+## Delivery evidence
+
+- Verified implementation commit: `4110b3599ca1cdf2b340eec91977afe057883611`
+  (`docs(features-cli): retire legacy rollback junction`).
+- `origin/master` equals that exact commit after push.
+- Exact-SHA CI passed: Quality
+  <https://github.com/jimzord12/ai-arsenal/actions/runs/30748982661> and
+  Windows/Linux Portability
+  <https://github.com/jimzord12/ai-arsenal/actions/runs/30748982666>.
+- No package behavior, package version, packed artifact, or global
+  installation changed; the documented packaged-artifact rollback route and
+  globally installed `@jz/ai-arsenal-features-cli@0.3.0` remain in place.
 - The user explicitly authorized one formatting-only exception on 2026-08-02.
   The formatter repair will receive a fresh review batch without increasing the
   recorded four-cycle limit.
