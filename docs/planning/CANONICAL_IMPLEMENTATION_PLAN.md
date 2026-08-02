@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 review-barrier integration, legacy Features CLI junction retirement, and repaired weekly-report CLI `0.1.1` are delivered; Trello Flow CLI `0.6.0` version-flag delivery is in progress
+> **Status:** Workflow v2 review-barrier integration, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered; documentation-only closure reconciliation is in progress
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-08-02
-> **Current phase:** Deliver Trello Flow CLI `0.6.0` version flags
+> **Current phase:** Deliver Trello Flow CLI `0.6.0` closure reconciliation
 > **Operator view:** `NEXT.md`
 
 ---

@@ -3,32 +3,32 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-02
 **Project:** AI Arsenal monorepo
-**State:** The legacy Features CLI rollback junction is retired and delivered; `jz-trello-flow` `0.6.0` version flags are delivered and globally installed.
-**Current phase:** No active bounded work item
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** The Trello Flow CLI `0.6.0` closure reconciliation is the active bounded documentation-only change.
+**Current phase:** Reconcile Trello Flow CLI version-flags closure
+**Active work item:** `2026-08-02-reconcile-version-flags-closure`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-No bounded work item is active.
+Record and deliver the canonical-plan closure repair for Trello Flow CLI `0.6.0`.
 
 ## Why This Is Next
 
-- The released `0.6.0` package implements both public version aliases through
-  the exact globally installed private artifact.
+- The release is delivered, but its final canonical-plan heading and concise
+  evidence record still need the user-authorized documentation commit.
 
 ## Requirements
 
-- No active blocker.
+- Keep the repair documentation-only; package and global-install state are
+  already delivered.
 
 ## Blockers / Escalation
 
-- Select or define the next bounded change through the Workflow v2 router.
+- No active blocker.
 
 ## Done When
 
-- A new bounded work item is defined only after a direct request or router
-  selection.
+- The exact documentation-only commit is pushed and its required CI passes.
 
 ## Source of Truth
 
