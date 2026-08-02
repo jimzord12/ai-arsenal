@@ -3,7 +3,7 @@
 Work item: 2026-08-02-reconcile-version-flags-closure
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-02T16:53:56.6016901+03:00
 Max time: 30 minutes
 Last time check: 2026-08-02T16:53:56.6016901+03:00
@@ -77,3 +77,10 @@ docs/work-items/2026-08-02-reconcile-version-flags-closure/work-item.md`
 scripts/validate-monorepo-work-item.mjs --work-item
 2026-08-02-reconcile-version-flags-closure --json`, and `git diff --check`
   each exited 0.
+
+## Delivery evidence
+
+- Documentation snapshot commit and matching remote SHA:
+  `cb2dbb1961c7ae89e14f7292047c82c7213e6b40`.
+- CI passed: [Quality 30751077268](https://github.com/jimzord12/ai-arsenal/actions/runs/30751077268)
+  and [Portability 30751077335](https://github.com/jimzord12/ai-arsenal/actions/runs/30751077335).
