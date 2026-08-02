@@ -44,8 +44,9 @@ Known:
 - The project goal is to create the `AI Arsenal` monorepo for the user’s AI-driven development tools.
 - The confirmed monorepo root is `C:\Users\jimzord12\Documents\GitHub\ai-arsenal`.
 - Git is initialized at the monorepo root with public remote `https://github.com/jimzord12/ai-arsenal`; the public `master` branch contains the Phase 7 reconciliation.
-- The existing TypeScript/Bun CLI lives at `C:\Users\jimzord12\Documents\ICS\github\ics-vcr.worktrees\remote-logging-system\scripts\features-cli`.
-- Its source worktree is at commit `ef977fe70663329f91c7145006eba93a92a161c3` on branch `remote-logging-system`; the CLI itself is Git-ignored and junction-shared, so that commit is consumer context rather than a CLI revision.
+- The legacy TypeScript/Bun CLI junction at the `remote-logging-system`
+  worktree has been retired; the private package and verified packed artifacts
+  are the stable command and rollback routes.
 - The monorepo uses pnpm `10.33.0` and Turborepo `2.10.4`.
 - npm packages use the `@jz/ai-arsenal-*` naming convention.
 - The private CLI package boundary is `@jz/ai-arsenal-features-cli` at `packages/features-cli`.
@@ -65,16 +66,15 @@ Known:
 - The user accepted Phase 8 final validation and operating documentation on 2026-07-12.
 - Latest `master` CI also passes on commit `c87a1451742d0fd434bdf104b9e008cfa0c612d5`: Quality run `29206548378` and Portability run `29206548382`.
 - The Linux CI failure on commit `b90a6bb` exposed a Corepack path assumption in the E2E harness; commits `3acdf64` and `8004c7a` made pnpm invocation portable and suppressed only Corepack's first-download prompt.
-- Version `0.1.0` is the verified private release for flexible feature selectors. Its packed tarball has the expected 10-file boundary, installs into a clean unrelated consumer, and is installed in the Windows user's global pnpm environment. The global `features-cli` command passed read-only index (`3`) and full-name (`003-remote-logging-mvp-v2`) selector smoke checks in the primary `ics-vcr` checkout. Its `remote-logging-system` worktree also retains its earlier stable-command and legacy-rollback smoke checks; three registered worktrees without `.scratch` and source-CLI junctions are not CLI consumers.
+- Version `0.1.0` is the verified private release for flexible feature selectors. Its packed tarball has the expected 10-file boundary, installs into a clean unrelated consumer, and is installed in the Windows user's global pnpm environment. The global `features-cli` command passed read-only index (`3`) and full-name (`003-remote-logging-mvp-v2`) selector smoke checks in the primary `ics-vcr` checkout. The `remote-logging-system` worktree now uses only the stable command; three registered worktrees without `.scratch` are not CLI consumers.
 - Trello Flow CLI `0.5.1` is the verified private release for all-visible/open-card member filtering, distinct metadata-owner filtering, and self-contained bundled Agent Skill installation. Artifact commit `f4d756cd634898804850cfc20596b7f145ef7515` passed exact-SHA Quality `30618130182` and Windows/Linux Portability `30618130154`; its exact 32-file SHA-256 `ee8671d777865cf1d9ff8de1d21c84d8e08dff70ca49602b0a172b4d90ebee66` artifact is globally installed and byte-proven. The installed shim returns matching ordinary cards and Work Units, excludes archived cards, preserves normalized Work Unit-only output without `--member`, keeps metadata filters Work Unit-specific, and passes read-only TestingBoard smoke. Exact `0.5.0` rollback remains available.
-- Active consumer documentation and the five personal `jz-*` skills use the stable `features-cli` command; `docs/operations/features-cli-cutover.md` records installation, rollback, and the deletion gate.
-- All 14 source hashes remain unchanged, `archives/v1/` was not copied, and the source remains available for rollback.
+- Active consumer documentation and the five personal `jz-*` skills use the stable `features-cli` command; `docs/operations/features-cli-cutover.md` records installation and packaged-artifact rollback.
+- The 14-source-file inventory is retained as migration evidence; `archives/v1/` was not copied, and the legacy source junction is retired.
 - Commit `332cff2` on `master` adds verified flexible `--feature` selectors. The approved private `0.1.0` release has a generated Changesets changelog, validated packed artifact, and verified global installation.
 - Workflow v2 review-barrier integration issue `#19` is delivered and closed. Artifact commit `b7b095d27fb2750bfeaef670a384670e7fe30dda` passed exact-SHA Quality runs `30652534854` and `30652535100` plus Portability runs `30652534982` and `30652535659`; the blocked four-cycle predecessor and user-authorized one-attempt successor preserve the complete audit.
 
-Not yet done:
-
-- The source CLI remains available for rollback and awaits its separate explicit deletion gate.
+The legacy source-retirement operation is under Workflow v2 review and final
+verification; no source rollback junction remains.
 
 The immediate next action is defined in `NEXT.md`.
 

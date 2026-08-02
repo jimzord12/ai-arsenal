@@ -3,38 +3,45 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-07-31
 **Project:** AI Arsenal monorepo
-**State:** Workflow v2 review-barrier integration issue #19 is delivered and closed; its exact artifact is CI-green.
-**Current phase:** Await the next bounded request
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** The legacy Features CLI rollback junction is retired; the global private package and packed artifacts remain the stable and rollback routes.
+**Current phase:** Review and verify the legacy Features CLI junction retirement
+**Active work item:** `2026-08-01-retire-source-cli`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-No work item is active. Await the next bounded request; source-CLI deletion remains behind its separate explicit gate.
+Resolve the final formatting-gate failure without exceeding the four-cycle
+review limit, then complete verification and delivery for the verified legacy
+Features CLI junction retirement.
 
 ## Why This Is Next
 
-- Artifact commit `b7b095d27fb2750bfeaef670a384670e7fe30dda` passed two exact-SHA Quality runs and two exact-SHA Portability runs.
-- Issue #19 is closed; its integrated lifecycle matrix and live-authority alignment are delivered.
-- The blocked predecessor and delivered one-attempt successor preserve the full review audit without evidence replacement.
+- The user completed the approved external removal and current read-only checks
+  confirm that only the junction is absent.
+- The global pnpm environment still exposes `@jz/ai-arsenal-features-cli@0.3.0`
+  through the generated `features-cli` shim; both consumer status checks pass.
 
 ## Requirements
 
-- Define any new monorepo change through Workflow v2 before implementation.
-- Do not delete the original source CLI without its separate explicit deletion approval and fresh execution-time confirmation.
+- Preserve the packaged-artifact rollback route; do not recreate a legacy source
+  junction or change consumer `.scratch` data, the monorepo package, or the
+  global installation.
 
 ## Blockers / Escalation
 
-- No active blocker.
+- `pnpm format:check` reports mechanical formatting issues in the canonical
+  plan and active work item after the fourth review cycle; the current review
+  limit prevents an unreviewed repair.
 
 ## Done When
 
-- The next bounded request is separately defined with a valid compact Workflow v2 contract.
+- Current-truth records describe the retired junction and packaged rollback.
+- Review, final verification, delivery, and exact-SHA CI evidence are complete.
 
 ## Source of Truth
 
 - `AGENTS.md`
-- `docs/work-items/2026-07-31-complete-review-barrier-integration/work-item.md`
-- `https://github.com/jimzord12/ai-arsenal/issues/19`
+- `docs/work-items/2026-08-01-retire-source-cli/work-item.md`
+- `docs/operations/features-cli-cutover.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`

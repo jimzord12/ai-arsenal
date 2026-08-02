@@ -35,19 +35,20 @@ verification record identifies the worktrees checked for this cutover.
 
 ## Rollback
 
-The legacy source CLI remains intact and is the rollback path until its
-separate deletion gate is approved. From an `ics-vcr` worktree root, use:
+The legacy `scripts/features-cli` junction has been retired and is not a
+rollback path. Roll back by installing a previously verified packed private
+artifact into the global pnpm environment:
 
 ```powershell
-bun scripts/features-cli/bin.ts status
+pnpm add --global <previously-verified-features-cli-tarball.tgz>
 ```
 
-Do not delete `scripts/features-cli`, its junction target, or user `.scratch`
-data during rollback. Reinstalling an earlier packed artifact is an additional
-recovery option; no registry publication is required.
+No registry publication is required. Invoke `features-cli --help` and a
+read-only `features-cli status` check from the consumer root after rollback.
 
 ## Source deletion gate
 
-The source CLI cannot be removed until behavior parity is approved, all
-consumers use the stable command, CI has passed, rollback remains documented,
-and the user explicitly authorizes deletion.
+Completed: the user-authorized dangling legacy junction was removed after
+behavior parity, consumer cutover, CI, and packaged-artifact rollback were
+verified. The global private package remains the stable command and the packed
+artifact route remains the only rollback route.

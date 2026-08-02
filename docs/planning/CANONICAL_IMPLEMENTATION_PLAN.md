@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 review-barrier integration, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered; no work item is active
+> **Status:** Workflow v2 review-barrier integration, Trello Flow CLI `0.5.1`, and repaired weekly-report CLI `0.1.1` are delivered; legacy Features CLI junction retirement is under final review
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-07-31
-> **Current phase:** Await the next bounded request
+> **Current phase:** Review and verify the legacy Features CLI junction retirement
 > **Operator view:** `NEXT.md`
 
 ---
@@ -40,7 +40,7 @@ Phase 1 directly inspected the CLI source, tests, local instructions, filesystem
 
 Remaining limitations:
 
-- The CLI is Git-ignored and junction-shared, so it has no intrinsic version identifier; the source rollback copy remains outside this repository's history.
+- The retired legacy CLI was Git-ignored and junction-shared, so it had no intrinsic version identifier; verified packed private artifacts are the rollback route.
 - Windows and Linux are verified through the public repository's GitHub Actions workflows. macOS remains out of scope until a consumer requires it.
 - The package's actual tarball and generated Windows Bun shim have been verified in a clean unrelated consumer; the current tarball is also installed in the Windows user's global pnpm environment.
 - npm ownership of `@jz` is not relevant to the selected private initial release and remains unverified.
@@ -73,8 +73,8 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Git is initialized at the monorepo root with public remote `https://github.com/jimzord12/ai-arsenal`; the public `master` branch contains the Phase 7 reconciliation.
 - `[VERIFIED]` Root formatting, linting, typechecking, testing, commitlint, Husky/lint-staged, Changesets, and publint tooling are pinned and configured.
 - `[VERIFIED]` `packages/features-cli` is a private, self-contained source package boundary for `@jz/ai-arsenal-features-cli` with nine production modules, five migrated source suites, one command-characterization suite, strict TypeScript, Jest 29, linting, coverage, and package documentation.
-- `[VERIFIED]` Phase 3 recorded byte sizes and SHA-256 hashes for every top-level non-archive source file immediately before copying; the source still matches all 14 recorded hashes.
-- `[VERIFIED]` `archives/v1/` was excluded, production imports depend only on Node built-ins and sibling modules, and the source checkout remains available for rollback.
+- `[VERIFIED]` Phase 3 recorded byte sizes and SHA-256 hashes for every top-level non-archive source file immediately before copying; that inventory remains migration evidence.
+- `[VERIFIED]` `archives/v1/` was excluded, production imports depend only on Node built-ins and sibling modules, and verified packed private artifacts provide rollback.
 - `[VERIFIED]` Representative source/migrated workflows match for exit codes, output, normalized schema-v2 state, derived issue JSON, and canonical issue bytes.
 - `[VERIFIED]` The migrated suite passes 144 tests across seven suites. Package formatting, linting, strict typechecking, testing, and strict package validation pass for the verified maintenance selector update; public Windows/Linux CI remains the integration gate after merge.
 - `[VERIFIED]` `.gitattributes` enforces LF checkout for tracked text files on Windows and Linux, preventing clean-checkout formatter drift and byte-sensitive fixture drift.
@@ -86,21 +86,20 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Automated black-box process coverage invokes the real Bun entrypoint in isolated temporary workspaces. It covers Bun version/help/parser behavior, feature and issue lifecycles, invalid or corrupt state, strict nested `cwd` behavior through paths with spaces and Unicode, idempotency, recovery journals, stale locks, direct issue-write partial failure, and fail-fast feature, issue, and milestone writer contention.
 - `[VERIFIED]` Automated distribution coverage packs the actual tarball, installs it into an unrelated temporary pnpm consumer, invokes its generated `features-cli` shim, and verifies schema version `"2"`. The package boundary remains exactly 10 files.
 - `[VERIFIED]` No import exports, bundling, standalone binary, runtime dependency, registry publication, or user-state mutation was introduced.
-- `[VERIFIED]` The source CLI is `C:\Users\jimzord12\Documents\ICS\github\ics-vcr.worktrees\remote-logging-system\scripts\features-cli`.
-- `[VERIFIED]` The surrounding source worktree is at commit `ef977fe70663329f91c7145006eba93a92a161c3` on branch `remote-logging-system`.
-- `[VERIFIED]` The CLI and `.scratch` are Git-ignored junctions into the primary `ics-vcr` checkout; the worktree commit is not a CLI revision.
-- `[VERIFIED]` The source worktree had unrelated uncommitted application changes and remained read-only throughout discovery.
+- `[VERIFIED]` The legacy source junction at `C:\Users\jimzord12\Documents\ICS\github\ics-vcr.worktrees\remote-logging-system\scripts\features-cli` has been retired; its former target was already absent.
+- `[VERIFIED]` The surrounding source worktree remains consumer context at commit `ef977fe70663329f91c7145006eba93a92a161c3` on branch `remote-logging-system`; it is not a CLI revision.
+- `[VERIFIED]` The shared `.scratch` junction remains intact, and the legacy source junction removal did not traverse a target.
 - `[VERIFIED]` Phase 1 inspected the implementation and observed real and disposable workflows without modifying source repositories.
 - `[VERIFIED]` The documented focused Jest suite passes: 5 suites and 109 tests.
 - `[VERIFIED]` Phase 2 verification passed; the source CLI retained matching hashes across 14 top-level files and its focused suite still passes 109 tests.
 - `[VERIFIED]` The public repository's separate GitHub Actions quality and portability workflows use frozen pnpm installation, the pinned Node, pnpm, and Bun toolchain, package validation, and a Windows/Linux E2E matrix. Quality run `29206475468` and Portability run `29206475467` passed on the Phase 7 reconciliation.
 - `[VERIFIED]` Latest `master` CI also passes on commit `c87a1451742d0fd434bdf104b9e008cfa0c612d5`: Quality run `29206548378` and Portability run `29206548382`.
-- `[VERIFIED]` The primary `ics-vcr` checkout and its `remote-logging-system` worktree mount the shared `.scratch` state. The globally installed stable executable and the legacy rollback command both completed read-only `status` checks in those consumers. The three other registered worktrees have neither junction and are not CLI consumers.
+- `[VERIFIED]` The primary `ics-vcr` checkout and its `remote-logging-system` worktree mount the shared `.scratch` state. The globally installed stable executable completed read-only `status` checks in both consumers after legacy junction retirement. The three other registered worktrees have no `.scratch` state and are not CLI consumers.
 - `[VERIFIED]` Phase 8 clean-checkout validation passes with frozen install, formatting, linting, strict typechecking, 139 tests, strict package validation, and workflow validation.
 - `[VERIFIED]` Phase 8 clean-consumer validation installs the actual packed tarball into an unrelated temporary consumer, runs help plus a disposable feature lifecycle, verifies schema version `"2"`, and confirms the 10-file package boundary.
 - `[VERIFIED]` Hooks and Changesets are operational: lint-staged, commitlint over recent commits, and Changesets status pass.
-- `[VERIFIED]` No mixed lockfiles or unabsorbed input plans are present. Stale source-path references are limited to current-truth provenance, documented rollback, and the frozen legacy usage string.
-- `[VERIFIED]` The user accepted Phase 8 final validation and operating documentation on 2026-07-12. Source CLI deletion remains explicitly not approved.
+- `[VERIFIED]` No mixed lockfiles or unabsorbed input plans are present. Legacy source-path references are limited to retired-path provenance and historical migration evidence.
+- `[VERIFIED]` The user accepted Phase 8 final validation and operating documentation on 2026-07-12, then approved and completed retirement of the dangling legacy source junction.
 - `[VERIFIED]` The user approved public `--feature` selector compatibility on 2026-07-13. Every command accepting `--feature` now accepts an exact slug, a plain or zero-padded positive feature ID, or a matching `ID-slug` directory name; exact slug matching takes precedence, including numeric-only slugs.
 - `[VERIFIED]` Changesets generated private package version `0.1.0` and `packages/features-cli/CHANGELOG.md` for flexible feature selectors. The actual 10-file `0.1.0` tarball passes strict publint, installs into a clean unrelated pnpm consumer, and is installed in the Windows user's global pnpm environment. The global command resolves both index and full-name feature selectors in the active `ics-vcr` consumer.
 - `[VERIFIED]` `packages/features-cli/AGENTS.md` establishes a self-hosting boundary: use the monorepo living-plan workflow to maintain this package and reserve `features-cli` for consumer-project feature workflows.
@@ -125,7 +124,7 @@ Reconciliation must update classifications as evidence improves.
 ## 4.2 Product context supplied by the user
 
 - `[USER-LOCKED]` The existing CLI is written in TypeScript and uses Bun.
-- `[VERIFIED]` It currently lives at `C:\Users\jimzord12\Documents\ICS\github\ics-vcr.worktrees\remote-logging-system\scripts\features-cli`.
+- `[VERIFIED]` Its former junction at `C:\Users\jimzord12\Documents\ICS\github\ics-vcr.worktrees\remote-logging-system\scripts\features-cli` is retired; the private package and packed artifacts are the active distribution and rollback routes.
 - `[USER-LOCKED]` Its high-level feature artifact structure uses:
 
 ```text
@@ -202,7 +201,7 @@ The project is complete when all approved requirements have been reconciled and 
 - It no longer imports private files from the source repository.
 - User project paths, package paths, assets, and configuration paths are correctly separated.
 - Current consumers have an approved cutover path.
-- The source copy is removed only after parity, rollback verification, and explicit deletion approval.
+- The legacy source junction was retired after parity, packaged-artifact rollback verification, and explicit user approval.
 
 ## Package and distribution
 
@@ -460,8 +459,8 @@ Preserve Jest initially because the existing 109-test suite uses Jest-specific s
 - Registry: private package; no npm publication or publication automation.
 - Packed boundary: package metadata, README, and the nine production TypeScript modules only.
 - Validation: strict publint packs with pnpm; Are the Types Wrong remains inapplicable because there is no import surface.
-- Verified consumption: install the tarball into a clean unrelated pnpm consumer and run `features-cli` through the generated Bun-aware command shim. The current artifact is also installed globally on the Windows consumer machine; the stable executable and legacy rollback command pass read-only smoke checks in the two worktrees that mount the shared `.scratch` state.
-- Source CLI and junction remain available for rollback until consumer cutover and explicit deletion approval.
+- Verified consumption: install the tarball into a clean unrelated pnpm consumer and run `features-cli` through the generated Bun-aware command shim. The current artifact is also installed globally on the Windows consumer machine; the stable executable passes read-only smoke checks in the two worktrees that mount the shared `.scratch` state.
+- The legacy source junction is retired; prior verified packed private artifacts provide rollback.
 
 ### Weekly-report CLI
 
@@ -629,22 +628,22 @@ repair or delivery edits.
 
 # 9. Phase Map
 
-| Phase | Name                                                     | Current status | Main output                                          | Approval gate        |
-| ----- | -------------------------------------------------------- | -------------- | ---------------------------------------------------- | -------------------- |
-| 0     | Workflow Bootstrap and Repository Orientation            | **Complete**   | Valid workflow state and organized inputs            | Satisfied            |
-| 1     | CLI Discovery, Workflow Observation, and Plan Grounding  | **Complete**   | Evidence-grounded canonical plan                     | Satisfied            |
-| 2     | Monorepo Foundation and Developer Workflow               | **Complete**   | pnpm/Turbo root and quality workflow                 | Satisfied            |
-| 3     | CLI Characterization and Migration Boundary              | **Complete**   | Behavior baseline and migrated package boundary      | Satisfied            |
-| 4     | Build, Packaging, and Distribution                       | **Complete**   | Verified distribution artifact                       | Satisfied            |
-| 5     | Domain and Filesystem Test Foundation                    | **Complete**   | Unit/integration confidence and data-safety contract | Satisfied            |
-| 6     | CLI E2E and Distribution Testing                         | **Complete**   | Real process and clean-consumer confidence           | Satisfied            |
-| 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**   | Verified CI and safe consumer cutover                | Source deletion gate |
-| 8     | Final Validation and Operating Documentation             | **Complete**   | Release-ready verified repository                    | Final acceptance     |
-| M1    | Flexible Feature Selector Compatibility                  | **Merged**     | Compatible public `--feature` selection              | CI confirmation      |
-| M2    | Monorepo Work-Item Pipeline                              | **Complete**   | Verified compact Tier 2 maintenance workflow         | Satisfied            |
-| M3    | Trello Agent Development Workflow Protocol               | **Complete**   | Verified package-owned cross-harness protocol        | Satisfied            |
-| M4    | Open-Standard Trello Agent Skills                        | **Complete**   | Four verified canonical Agent Skills + adapter guide | Satisfied            |
-| M5    | Autonomous Work-Item Governance                          | **Complete**   | Five-stage autonomy + narrow escalation-only stops   | Satisfied            |
+| Phase | Name                                                     | Current status | Main output                                          | Approval gate    |
+| ----- | -------------------------------------------------------- | -------------- | ---------------------------------------------------- | ---------------- |
+| 0     | Workflow Bootstrap and Repository Orientation            | **Complete**   | Valid workflow state and organized inputs            | Satisfied        |
+| 1     | CLI Discovery, Workflow Observation, and Plan Grounding  | **Complete**   | Evidence-grounded canonical plan                     | Satisfied        |
+| 2     | Monorepo Foundation and Developer Workflow               | **Complete**   | pnpm/Turbo root and quality workflow                 | Satisfied        |
+| 3     | CLI Characterization and Migration Boundary              | **Complete**   | Behavior baseline and migrated package boundary      | Satisfied        |
+| 4     | Build, Packaging, and Distribution                       | **Complete**   | Verified distribution artifact                       | Satisfied        |
+| 5     | Domain and Filesystem Test Foundation                    | **Complete**   | Unit/integration confidence and data-safety contract | Satisfied        |
+| 6     | CLI E2E and Distribution Testing                         | **Complete**   | Real process and clean-consumer confidence           | Satisfied        |
+| 7     | CI, Portability, Consumer Cutover, and Source Retirement | **Complete**   | Verified CI, consumer cutover, and retired junction  | Satisfied        |
+| 8     | Final Validation and Operating Documentation             | **Complete**   | Release-ready verified repository                    | Final acceptance |
+| M1    | Flexible Feature Selector Compatibility                  | **Merged**     | Compatible public `--feature` selection              | CI confirmation  |
+| M2    | Monorepo Work-Item Pipeline                              | **Complete**   | Verified compact Tier 2 maintenance workflow         | Satisfied        |
+| M3    | Trello Agent Development Workflow Protocol               | **Complete**   | Verified package-owned cross-harness protocol        | Satisfied        |
+| M4    | Open-Standard Trello Agent Skills                        | **Complete**   | Four verified canonical Agent Skills + adapter guide | Satisfied        |
+| M5    | Autonomous Work-Item Governance                          | **Complete**   | Five-stage autonomy + narrow escalation-only stops   | Satisfied        |
 
 ---
 
@@ -663,7 +662,7 @@ repair or delivery edits.
 ## Ongoing invariants
 
 - Keep source inspection read-only outside an approved migration/cutover phase because the worktree contains unrelated changes.
-- Preserve the source CLI in place until migration parity, consumer cutover, rollback verification, and explicit deletion approval.
+- Preserve the packaged-artifact rollback route; do not recreate the retired source junction.
 - Store new discovery evidence under `docs/evidence/phase-01-discovery/`.
 
 ## Verification evidence
@@ -729,7 +728,7 @@ The generic starter plan is now grounded in the actual CLI, workflows, consumers
 - Root JavaScript remains compiler-checked without imposing strict `checkJs` on the existing workflow validator; the CLI package has its own strict TypeScript configuration.
 - Turbo test outputs remain empty until the migrated suite produces real coverage artifacts.
 - The initial repository commit now exists, so root Changesets status is no longer blocked by unborn history.
-- The source CLI remains read-only and unchanged.
+- The historical source inventory remains unchanged; the legacy source junction is retired.
 
 ## Verification evidence
 
@@ -748,13 +747,13 @@ The generic starter plan is now grounded in the actual CLI, workflows, consumers
 - Nine new command-characterization tests cover help, status/progress JSON, feature and issue lifecycles, invalid input, recovery-required state, strict `cwd` rooting, BOM/CRLF preservation, and held-lock failure.
 - The migrated package retains strict typechecking, linting, formatting, repository-wide checks, and the expanded test suite summarized in Current Verified State.
 - Representative source and migrated workflows match in exit behavior, output, normalized persisted state, derived state, and canonical user-authored bytes.
-- `archives/v1/` is absent from the package; the original CLI, archive, and source hashes remain available for rollback.
+- `archives/v1/` is absent from the package; the historical source inventory remains evidence and packed private artifacts remain the rollback route.
 - Production imports have no source-checkout dependency. The legacy secondary-entrypoint usage string remains frozen public output, not a runtime path dependency.
 
 ## Ongoing invariants
 
 - Preserve commands, output meaning, exit behavior, parser behavior, lifecycle rules, schema version `"2"`, canonical Markdown, derived JSON, exact user-authored bytes, fail-fast locking, recovery behavior, and strict invocation-`cwd` semantics.
-- Keep the source copy read-only and available until consumer cutover, rollback verification, and explicit deletion approval.
+- Keep the packaged-artifact rollback route available after source-junction retirement.
 - Retain `status-scanner.ts` until later coverage and obsolete-module review justify removal.
 - Keep tests isolated from real `.scratch` data and retain Jest 29 until an approved change proves a safer replacement.
 
@@ -782,7 +781,7 @@ The generic starter plan is now grounded in the actual CLI, workflows, consumers
 - Keep the artifact as TypeScript source executed by Bun; bundling, standalone binaries, import exports, automated publication, and new runtime dependencies require evidence and approval.
 - Keep the explicit packed boundary synchronized with production modules and verify the actual tarball, not a workspace link.
 - Use `pnpm run pack` when invoking the root Turbo script; bare root `pnpm pack` is pnpm's built-in root-package command.
-- Preserve the original source and archive until consumer cutover, rollback verification, and explicit deletion approval.
+- Preserve the historical source inventory and packaged rollback artifacts; do not recreate the retired source junction.
 
 ## Verification evidence
 
@@ -833,7 +832,7 @@ The generic starter plan is now grounded in the actual CLI, workflows, consumers
 - Preserve public CLI behavior, schema version `"2"`, exact user-authored bytes outside intended metadata edits, strict invocation-`cwd` semantics, fail-fast locking, recovery hard stops, and the private Bun source distribution.
 - Keep process and distribution tests isolated from user state and workspace links.
 - Do not add stale-lock auto-recovery or broaden issue mutation transactions without evidence and approval.
-- Phase 7 now verifies Windows/Linux CI and consumer cutover. Preserve the source rollback copy until its separate deletion gate.
+- Phase 7 verifies Windows/Linux CI and consumer cutover. The legacy source junction is retired; preserve the packaged-artifact rollback route.
 
 ## Verification evidence
 
@@ -850,25 +849,22 @@ The generic starter plan is now grounded in the actual CLI, workflows, consumers
 - `.github/workflows/portability.yml` defines a non-fail-fast Windows/Linux matrix that executes the real-process E2E suite. That suite includes the actual packed-artifact install/invocation, path, and writer-contention cases.
 - Both workflows use the pinned Node, pnpm, and Bun versions and have read-only repository permissions. Quality run `29206253391` passed on Linux; Portability run `29206253402` passed on Ubuntu and Windows.
 - The first CI run exposed a Linux-only Corepack path assumption in the E2E harness. The harness now uses the setup-provided `pnpm` command on Linux, retains the Windows Corepack invocation workaround, and suppresses only Corepack's first-download prompt. No CLI behavior or persisted schema changed.
-- The current packed artifact is installed globally through pnpm, exposing the stable `features-cli` command. The primary `ics-vcr` checkout and the `remote-logging-system` worktree pass read-only stable-command and legacy-roll-back-command smoke checks against their shared `.scratch` state.
+- The current packed artifact is installed globally through pnpm, exposing the stable `features-cli` command. The primary `ics-vcr` checkout and the `remote-logging-system` worktree pass read-only stable-command smoke checks against their shared `.scratch` state after the legacy junction retirement.
 - The Spec-to-Ship workflow documentation and the five personal `jz-*` consumers use the stable executable; no personal consumer retains a direct `scripts/features-cli` or `npx tsx` invocation. The three other registered `ics-vcr` worktrees have no `.scratch` or source-CLI junction, so they are not CLI consumers.
-- `docs/operations/features-cli-cutover.md` records global installation, read-only smoke verification, rollback, and the source-deletion gate. The source still matches all 14 recorded SHA-256 hashes.
+- `docs/operations/features-cli-cutover.md` records global installation, read-only smoke verification, and packaged-artifact rollback. The historical 14-file inventory remains migration evidence.
 
 Windows is required. Linux is the portability target. macOS is out of scope until a consumer requires it.
 
-## Source deletion gate
+## Source retirement
 
-Do not remove the old `scripts/features-cli` until:
-
-- Behavior parity is approved.
-- Consumers are migrated.
-- CI passes.
-- Rollback is documented.
-- The user explicitly approves deletion.
+The user-authorized dangling `scripts/features-cli` junction has been removed
+after behavior parity, consumer cutover, CI, and packaged-artifact rollback
+were verified. Do not recreate a legacy source rollback junction.
 
 ## Reconciliation gate
 
-Complete on 2026-07-12. Phase 8 is the next approved-plan gate; source deletion remains separately approval-controlled.
+Complete. The legacy source junction is retired; packaged artifacts remain the
+rollback route.
 
 ---
 
@@ -881,13 +877,13 @@ Complete on 2026-07-12. Phase 8 is the next approved-plan gate; source deletion 
 - The actual packed source artifact installs into an unrelated temporary consumer, exposes the `features-cli` command, completes a disposable schema-v2 feature lifecycle, and retains the exact 10-file package boundary.
 - Hook and release workflow checks pass: lint-staged, commitlint, and Changesets status.
 - `pnpm-lock.yaml` remains the only repository lockfile, and no unabsorbed input plans are pending.
-- Active source-path references are limited to source provenance, rollback documentation, and the frozen legacy usage string.
+- Retired source-path references are limited to provenance and historical migration evidence; rollback documentation uses packed artifacts.
 - Root and package documentation describe installation, architecture, development commands, package validation, consumer invocation, Changesets usage, private release policy, constraints, and approval gates.
 - Latest public Quality and Portability workflow runs pass on `master`.
 
 ## Final acceptance
 
-The user accepted the completed migration and operating documentation on 2026-07-12. Source CLI deletion remains a separate approval gate and is not approved.
+The user accepted the completed migration and operating documentation on 2026-07-12, then approved and completed retirement of the dangling legacy source junction.
 
 ## Reconciliation gate
 
@@ -954,7 +950,7 @@ Routine bounded implementation, review, verification, delivery, commit, and push
 
 ### Resulting operation state
 
-Commit `2e33014cecfd481993a799e1b7b4b7bb674d2d68` is present on `master` and `origin/master`; Quality run `30400791878` and Portability run `30400791849` passed for that exact SHA. The exact private `0.2.0` package is globally registered, its native Windows `jz-trello-flow --help` succeeds without credentials, and the separately authorized onboarding workbook passed all 14 checks only on TestingBoard `6a16bbf1fea5389eb39636b7`. Publication, production-board access, and source deletion remain unapproved.
+Commit `2e33014cecfd481993a799e1b7b4b7bb674d2d68` is present on `master` and `origin/master`; Quality run `30400791878` and Portability run `30400791849` passed for that exact SHA. The exact private `0.2.0` package is globally registered, its native Windows `jz-trello-flow --help` succeeds without credentials, and the separately authorized onboarding workbook passed all 14 checks only on TestingBoard `6a16bbf1fea5389eb39636b7`. Publication and production-board access remain unapproved.
 
 ---
 
@@ -998,12 +994,12 @@ The protocol, canonical skill sources, package payload, self-contained offline i
 
 | Risk                                                                                                               | Current status                      | Required resolution                                                                                                              |
 | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Source rollback copy can drift after its captured baseline                                                         | Controlled                          | The 14-file inventory matched during cutover; preserve the source copy through its explicit deletion gate                        |
+| Legacy source junction is mistakenly recreated                                                                     | Controlled                          | The junction is retired; retain only packaged-artifact rollback and do not recreate the source path                              |
 | Direct issue mutations can leave issue Markdown ahead of derived JSON and feature timestamps after a write failure | Characterized open risk             | Real-process boundary is verified; broaden transaction hardening through a bounded evidenced work item                           |
 | Stale locks require manual recovery                                                                                | Accepted, test-backed constraint    | Preserve fail-fast behavior; automate only through a bounded evidenced work item                                                 |
-| Skills depend on paths, output, and schemas                                                                        | Controlled for cut-over consumers   | Stable-command instructions and two read-only worktree smoke checks are verified; preserve the rollback command                  |
+| Skills depend on paths, output, and schemas                                                                        | Controlled for cut-over consumers   | Stable-command instructions and two read-only worktree smoke checks are verified; preserve packaged-artifact rollback            |
 | Wrong `cwd` targets the wrong `.scratch`                                                                           | Controlled by E2E                   | Preserve documented root invocation; no upward discovery                                                                         |
-| Windows junction/path behavior may regress                                                                         | Controlled by CI and smoke checks   | Preserve the stable `cwd` contract and shared-junction rollback path                                                             |
+| Windows junction/path behavior may regress                                                                         | Controlled by CI and smoke checks   | Preserve the stable `cwd` contract and packaged-artifact rollback route                                                          |
 | Linux portability regression                                                                                       | Resolved by CI                      | Keep the public Ubuntu matrix as the portability regression gate                                                                 |
 | Windows line-ending drift may break formatting or byte-sensitive fixtures                                          | Controlled                          | Preserve `.gitattributes` LF policy                                                                                              |
 | User-authored Markdown may be damaged by hardening                                                                 | Controlled by tests                 | Preserve byte-level milestone tests and extend before any broader mutation hardening                                             |
@@ -1028,11 +1024,11 @@ Reconciliation must remove resolved risks and add newly material risks.
 
 # 20. Current Open Decisions
 
-Phase 8 final validation is complete and accepted. Source deletion remains a dangerous-operation boundary requiring direct confirmation immediately before execution.
+Phase 8 final validation is complete and accepted. The user-authorized dangling legacy source junction has been retired; the packaged-artifact rollback route remains documented.
 
 Broad transaction hardening for issue Markdown, derived issue state, and feature registry timestamp coupling remains a separate bounded work item. Phase 6 confirms the existing partial-write boundary without showing a distribution or process failure that requires it now.
 
-Public behavior/schema, material tooling, and distribution changes require bounded contract/verification artifacts but proceed autonomously. Source deletion retains the narrow direct-confirmation gate.
+Public behavior/schema, material tooling, and distribution changes require bounded contract/verification artifacts but proceed autonomously. No legacy source-junction deletion remains pending.
 
 The dedicated TestingBoard identifier, process-environment credential source, and recovery-aware procedure are verified. Archived-list canonical resolution passed offline review, exact-SHA CI, exact-package installation, and revised seven-list dual-intake live validation on TestingBoard. Production-board use, migration of the noncanonical Greek Essence board, and a production atomic allocation backend remain separate bounded work items; dedicated-board validation does not prove a Trello-backed concurrency mechanism. Git Bash global-shim compatibility is likewise a separate compatibility work item because native Windows invocation passes while Git Bash path resolution does not.
 
@@ -1102,6 +1098,6 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-No work item is active. Review-barrier integration issue `#19` is delivered and
-closed; await the next bounded request. The original source CLI remains
-available for rollback and still requires its separate explicit deletion gate.
+The active `2026-08-01-retire-source-cli` work item is reconciling and
+verifying the completed legacy junction retirement. Packaged private artifacts
+remain the rollback route; the next bounded request follows delivery.
