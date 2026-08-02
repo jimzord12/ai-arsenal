@@ -3,17 +3,17 @@
 Work item: 2026-08-02-trello-cli-version-flags
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-02T16:07:40.8451521+03:00
 Max time: 3 hours
 Last time check: 2026-08-02T16:07:40.8451521+03:00
 Turns since time check: 3
-Review cycles: 2
+Review cycles: 4
 Review status: passed
-Review snapshot: sha256:f98aeb79989cbbe83b161f96fc48ca3ac7e19db6007c379cad3209d4d9d0b223
-Review batch: review-20260802-version-flags-03
+Review snapshot: sha256:ee55c2648b0843ff0c31fc22c2eb8d3d1500913245b67c9feef3eb22d6e8154c
+Review batch: review-20260802-version-flags-04
 Review expected: ["contract","quality"]
-Review received: [{"reviewer":"contract","outcome":"passed","batchId":"review-20260802-version-flags-03","snapshot":"sha256:f98aeb79989cbbe83b161f96fc48ca3ac7e19db6007c379cad3209d4d9d0b223"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260802-version-flags-03","snapshot":"sha256:f98aeb79989cbbe83b161f96fc48ca3ac7e19db6007c379cad3209d4d9d0b223"}]
+Review received: [{"reviewer":"contract","outcome":"passed","batchId":"review-20260802-version-flags-04","snapshot":"sha256:ee55c2648b0843ff0c31fc22c2eb8d3d1500913245b67c9feef3eb22d6e8154c"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260802-version-flags-04","snapshot":"sha256:ee55c2648b0843ff0c31fc22c2eb8d3d1500913245b67c9feef3eb22d6e8154c"}]
 Dangerous deletion or irreversible data loss: no
 Hard prerequisites: resolved
 Approval: not-required
@@ -80,7 +80,10 @@ reset for a fresh final-snapshot batch. Both reviewers failed batch
 plan's opening operator state still named the already delivered legacy-junction
 work as current. The repair updated only that stale canonical status. Both
 reviewers passed repaired batch `review-20260802-version-flags-03` with no
-remaining required findings.
+remaining required findings. Exact-artifact global-install reconciliation then
+updated the canonical plan, so review evidence was reset for the closure
+candidate. Both reviewers passed closure batch
+`review-20260802-version-flags-04` with no required findings.
 
 ## Final verification
 
@@ -107,3 +110,22 @@ scripts/validate-monorepo-work-item.mjs --work-item
 NEXT.md docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md
 docs/work-items/2026-08-02-trello-cli-version-flags/work-item.md`, both
   workflow validators, and `git diff --check` each exited 0.
+
+## Delivery evidence
+
+- Artifact commit and matching remote SHA:
+  `343e240cf3232600ad2704c400d585bd09146796`.
+- CI passed: [Quality 30750430697](https://github.com/jimzord12/ai-arsenal/actions/runs/30750430697)
+  and [Portability 30750430747](https://github.com/jimzord12/ai-arsenal/actions/runs/30750430747).
+- Exact `0.6.0` tarball: `jz-ai-arsenal-trello-work-cli-0.6.0.tgz`, SHA-256
+  `c842e57ad900c717b572d6f117b99c8bb49f7b1faa00841995ff8b96232329b4`.
+- Global replacement used `pnpm add -g <exact 0.6.0 tarball>` after confirming
+  the prior global `0.5.1` package. The installed package is
+  `@jz/ai-arsenal-trello-work-cli@0.6.0`; its generated Windows shim returned
+  `0.6.0` with exit 0 for both aliases, and its help plus `docs --list` smoke
+  checks passed from outside the repository. Installed and source `src/cli.ts`
+  SHA-256 values match: `24b1905080836d820ed4874d7f496e50fde84845a89a3ea78934523b3ec7abfb`.
+- Rollback artifact: the documented exact `0.5.1` tarball from commit
+  `f4d756cd634898804850cfc20596b7f145ef7515`, SHA-256
+  `ee8671d777865cf1d9ff8de1d21c84d8e08dff70ca49602b0a172b4d90ebee66`;
+  restore with `pnpm add -g <that verified tarball>`.

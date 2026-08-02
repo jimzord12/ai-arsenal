@@ -3,34 +3,32 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-02
 **Project:** AI Arsenal monorepo
-**State:** The legacy Features CLI rollback junction is retired and delivered; `jz-trello-flow` version flags are the active bounded change.
-**Current phase:** Add Trello Flow CLI version flags
-**Active work item:** `2026-08-02-trello-cli-version-flags`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** The legacy Features CLI rollback junction is retired and delivered; `jz-trello-flow` `0.6.0` version flags are delivered and globally installed.
+**Current phase:** No active bounded work item
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Implement and release top-level `jz-trello-flow -v` and `--version` support.
+No bounded work item is active.
 
 ## Why This Is Next
 
-- The package currently treats both requested flags as unknown commands.
-- This is a public CLI behavior change and requires the complete private
-  package version, packed-artifact, global-install, and CI delivery chain.
+- The released `0.6.0` package implements both public version aliases through
+  the exact globally installed private artifact.
 
 ## Requirements
 
-- Preserve all existing command behavior and command-specific `--if-version`
-  semantics; version flags must be credential-free and offline.
+- No active blocker.
 
 ## Blockers / Escalation
 
-- No active blocker.
+- Select or define the next bounded change through the Workflow v2 router.
 
 ## Done When
 
-- Both public flags are released and independently verified from the exact
-  globally installed private artifact.
+- A new bounded work item is defined only after a direct request or router
+  selection.
 
 ## Source of Truth
 
