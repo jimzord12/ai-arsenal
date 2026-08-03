@@ -3,30 +3,30 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-03
 **Project:** AI Arsenal monorepo
-**State:** The global `jz-trello-flow` installation is repaired; a bounded agent-instruction update is recording its mandatory post-install repair rule.
-**Current phase:** Deliver persistent global-shim reminder
-**Active work item:** `2026-08-03-remind-global-trello-shim-repair`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** The global `jz-trello-flow` installation and the mandatory agent lifecycle rule for repairing its regenerated pnpm/Bun shim are verified and delivered.
+**Current phase:** No active work item
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Commit and push the verified root-agent reminder, then clear active work-item registration.
+No active work item. Route any new request through `orchestrate-monorepo-work`.
 
 ## Why This Is Next
 
-- The corrected candidate passed both required reviews and final repository validation.
+- Work item `2026-08-03-remind-global-trello-shim-repair` is delivered and agents are now bound to the post-install repair procedure.
 
 ## Requirements
 
-- The addition must remain scoped to `jz-trello-flow` lifecycle operations and preserve the maintained operations document as its procedure source.
+- After any global `jz-trello-flow` lifecycle operation, agents must use `pnpm --dir <AI-Arsenal-repository-root> run repair:global-trello-shim` and complete the documented cross-shell smoke checks.
 
 ## Blockers / Escalation
 
-- No current blocker. Live Trello mutation remains out of scope.
+- No active blocker. Live Trello mutation remains out of scope.
 
 ## Done When
 
-- Root agent instructions contain a clear mandatory post-install repair and smoke-check rule, then the work item completes normal review, verification, and delivery.
+- A new bounded work item is registered when new repository work is requested.
 
 ## Source of Truth
 

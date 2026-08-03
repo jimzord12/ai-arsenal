@@ -3,7 +3,7 @@
 Work item: 2026-08-03-remind-global-trello-shim-repair
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-03T14:35:15+03:00
 Max time: 30 minutes
 Last time check: 2026-08-03T14:44:38+03:00
@@ -51,3 +51,8 @@ Result: passed
 
 - `pnpm run check` passed: formatting, lint, typecheck, package tests, workflow tests (118 passed, 2 expected skips), and workflow validation.
 - Targeted Prettier checks, `git diff --check`, `node scripts/validate-living-workflow.mjs`, and the active work-item validator passed.
+
+## Delivery evidence
+
+- Artifact commit and matching remote SHA: `2245a8f8513551c49d237aece91d6389ec3f3f69`.
+- The root `AGENTS.md` lifecycle rule now binds future agents to the repair command and documented cross-shell smoke checks without changing package or Trello state.
