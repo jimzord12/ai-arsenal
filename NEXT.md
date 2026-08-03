@@ -3,7 +3,7 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-03
 **Project:** AI Arsenal monorepo
-**State:** The global `jz-trello-flow` installation and the mandatory agent lifecycle rule for repairing its regenerated pnpm/Bun shim are verified and delivered.
+**State:** The Trello Work CLI documentation now recommends restrained bold emphasis for scannable card descriptions; the change is verified and delivered.
 **Current phase:** No active work item
 **Active work item:** `none`
 **Pipeline step:** `none`
@@ -14,7 +14,7 @@ No active work item. Route any new request through `orchestrate-monorepo-work`.
 
 ## Why This Is Next
 
-- Work item `2026-08-03-clarify-trello-assets` delivered the optional Superpowers wording and intentional packed protocol-copy boundary.
+- Work item `2026-08-03-add-card-description-emphasis-guidance` delivered the restrained bold-emphasis guidance across canonical and packaged Trello documentation.
 
 ## Requirements
 
@@ -22,11 +22,11 @@ No active work item. Route any new request through `orchestrate-monorepo-work`.
 
 ## Blockers / Escalation
 
-- No active blocker. Live Trello mutation remains out of scope.
+- No active blocker. Live Trello mutation and package release remain out of scope.
 
 ## Done When
 
-- A new bounded work item is registered when new repository work is requested.
+- Shared and bundled Trello documentation explicitly recommends restrained bold emphasis for important terms and remains validated.
 
 ## Source of Truth
 

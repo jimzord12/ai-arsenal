@@ -79,6 +79,8 @@ Detailed designs, plans, test logs, review reports, source changes, and CI evide
 
 The CLI can read attachment metadata and download uploaded attachments. This protocol does not require or imply attachment upload support.
 
+Use Markdown structure to make descriptions easy to scan. Use `**bold**` sparingly for high-value terms such as a material decision, blocker, status, or verification outcome. Prefer headings and bullets to create the structure, keep ordinary prose plain, and do not bold whole paragraphs, repeated labels, or system-managed metadata.
+
 Evidence must be proportionate. Normal progress does not require an append-only journal. Record information that another agent or the human needs to understand current state, verify a gate, or recover from an exceptional outcome.
 
 ## 4. Canonical lifecycle

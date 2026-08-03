@@ -56,6 +56,8 @@ For every mutation:
 
 Before writing a description or metadata, inspect the exact final-payload preflight. `DESCRIPTION_BUDGET_EXCEEDED` is a confirmed no-write result: preserve the operation ID and content, shorten deliberately, and never delete recovery markers or retry blindly. A dry-run wrapper/rendering error does not imply a mutation; read back before classifying any uncertain result.
 
+When recording description evidence, use Markdown structure to support scanning. Use `**bold**` sparingly for material decisions, blockers, status, or verification outcomes; prefer headings and bullets for structure, keep ordinary prose plain, and do not bold whole paragraphs or repeated labels.
+
 ## Claim Ready work
 
 Claiming has two required postconditions: expected stable owner and `in_progress` status. Current Trello operations do not make these atomic.

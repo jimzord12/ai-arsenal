@@ -60,6 +60,8 @@ Use a dry run when target, policy, operation, or consequences are not already es
 
 Before writing a description, inspect the exact final-payload preflight. `DESCRIPTION_BUDGET_EXCEEDED` is a confirmed no-write result: preserve the operation ID and content, shorten deliberately, and never delete recovery markers or retry blindly. A dry-run wrapper/rendering error does not imply a mutation; read back before classifying any uncertain result.
 
+When drafting description content, use Markdown structure to support scanning. Use `**bold**` sparingly for material decisions, blockers, status, or other high-value terms; prefer headings and bullets for structure, keep ordinary prose plain, and do not bold whole paragraphs or repeated labels.
+
 ## Workflow A — ordinary Inbox card
 
 1. **Read the card.** Confirm explicit board, Inbox state, identity, attachments/comments, and latest version. Completion: the same-card target is unambiguous.
