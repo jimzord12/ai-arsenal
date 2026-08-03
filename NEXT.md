@@ -4,17 +4,17 @@
 **Last reconciled:** 2026-08-03
 **Project:** AI Arsenal monorepo
 **State:** The global `jz-trello-flow` installation and the mandatory agent lifecycle rule for repairing its regenerated pnpm/Bun shim are verified and delivered.
-**Current phase:** Implement Trello asset documentation clarification
-**Active work item:** `2026-08-03-clarify-trello-assets`
-**Pipeline step:** `deliver-monorepo-change`
+**Current phase:** No active work item
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Implement the bounded Trello asset documentation clarification, then route through review and verification.
+No active work item. Route any new request through `orchestrate-monorepo-work`.
 
 ## Why This Is Next
 
-- Work item `2026-08-03-clarify-trello-assets` records the optional Superpowers wording and intentional packed protocol-copy boundary.
+- Work item `2026-08-03-clarify-trello-assets` delivered the optional Superpowers wording and intentional packed protocol-copy boundary.
 
 ## Requirements
 
@@ -22,11 +22,11 @@ Implement the bounded Trello asset documentation clarification, then route throu
 
 ## Blockers / Escalation
 
-- No active blocker. Live Trello mutation and package publication remain out of scope.
+- No active blocker. Live Trello mutation remains out of scope.
 
 ## Done When
 
-- Asset wording is corrected, protocol-copy purpose is documented, and focused/package gates pass.
+- A new bounded work item is registered when new repository work is requested.
 
 ## Source of Truth
 

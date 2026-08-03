@@ -3,7 +3,7 @@
 Work item: 2026-08-03-clarify-trello-assets
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-03T00:00:00Z
 Max time: 90 minutes
 Last time check: 2026-08-03T00:00:00Z
@@ -62,3 +62,10 @@ Result: passed
 - `node scripts/validate-monorepo-work-item.mjs --work-item 2026-08-03-clarify-trello-assets --json` — exit 0; valid verify state.
 - `git diff --check` — exit 0.
 - The top-level and nested protocol assets have identical SHA-256 `85eb64a409d39bfd482d056337f028e71e829af67136c4e5235626fadc80c2a9`.
+
+## Delivery evidence
+
+- Commit: `3024318` (`docs(trello-work-cli): clarify optional engineering framework`).
+- Remote `origin/master` equals `3024318` after push.
+- No CI workflow was scheduled for this documentation-only path (`gh run list --commit 3024318` returned no runs).
+- Closure edits require only workflow validation and `git diff --check` before the closure commit.
