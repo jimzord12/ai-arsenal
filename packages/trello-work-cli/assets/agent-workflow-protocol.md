@@ -14,7 +14,7 @@ Use this precedence when instructions conflict:
 2. The current canonical Work Unit and its acceptance criteria.
 3. Trello state as read and mutated through `jz-trello-flow`.
 4. Repository-local instructions and workflow rules.
-5. Superpowers or another engineering-practice system.
+5. Optional Superpowers or another available engineering-practice system.
 6. Harness defaults and agent conventions.
 
 ### Trello and `jz-trello-flow` own
@@ -28,9 +28,9 @@ Use this precedence when instructions conflict:
 
 Trello state is authoritative for task coordination. A Superpowers phase, local todo, chat statement, Git branch, or agent belief cannot independently advance a Work Unit.
 
-### Superpowers owns
+### Optional engineering-practice support
 
-When installed and applicable, Superpowers owns software-engineering practice, including:
+Superpowers is a recommended, optional engineering-practice framework—not a dependency. When it is installed and applicable, it may own software-engineering practice, including:
 
 - Design exploration and brainstorming.
 - Implementation planning.
@@ -42,7 +42,7 @@ When installed and applicable, Superpowers owns software-engineering practice, i
 
 Superpowers may produce designs, plans, reviews, test results, and other repository artifacts. Agents summarize relevant outcomes and link durable artifacts from the Work Unit. This protocol does not prescribe Superpowers artifact filenames, internal phases, hidden hooks, or tool names.
 
-When Superpowers is unavailable, the harness may use equivalent engineering practices. That does not change Trello lifecycle authority or weaken the Work Unit acceptance criteria.
+When Superpowers is unavailable, the harness should use equivalent repository-compatible engineering practices. Users and agents remain free to work without Superpowers; its absence does not change Trello lifecycle authority or weaken the Work Unit acceptance criteria.
 
 ### Human users own
 
@@ -155,7 +155,7 @@ A dry run cannot predict `WU-N`. The server-assigned card identity is accepted o
 
 In Design is intentionally resumable. Unresolved material content is marked explicitly with `Pending:` and, where useful, `Open Questions`.
 
-Software-design exploration belongs to Superpowers when available. The Trello design skill owns only durable lifecycle coordination and canonical Work Unit completeness.
+Software-design exploration may use Superpowers when available and otherwise uses equivalent engineering practice. The Trello design skill owns only durable lifecycle coordination and canonical Work Unit completeness.
 
 Before `In Design → Ready`, the agent confirms:
 
@@ -193,7 +193,7 @@ This protocol reduces duplicate work but does not claim a globally atomic lock. 
 
 ## 8. Work execution and updates
 
-After a confirmed claim, engineering design, planning, implementation, tests, debugging, and review practice belong to Superpowers or equivalent harness practice.
+After a confirmed claim, engineering design, planning, implementation, tests, debugging, and review practice may use Superpowers or equivalent harness practice; Superpowers is not required.
 
 Update the Work Unit when one of these materially changes:
 
@@ -321,10 +321,10 @@ All harnesses must preserve the same normative core:
 - Read-before-write and read-back verification.
 - Version and operation identity discipline.
 - Minimal recovery behavior.
-- Superpowers responsibility boundary.
+- Optional engineering-practice responsibility boundary.
 - Human archival ownership.
 
-Harness adapters may differ only in installation, skill discovery, tool invocation syntax, environment loading, and optional Superpowers integration.
+Harness adapters may differ only in installation, skill discovery, tool invocation syntax, environment loading, and optional integration with Superpowers or equivalent practice.
 
 ### Claude Code
 
@@ -389,22 +389,22 @@ No separate archival skill is proposed.
 
 Future skill implementation should verify:
 
-| Area                 | Minimum evidence                                                                                                                                      |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Skill structure      | Valid frontmatter, bounded triggers, required inputs, permitted mutations, outputs, and non-responsibilities.                                         |
-| Shared authority     | Every adapter preserves Trello authority and the Superpowers boundary.                                                                                |
-| Command accuracy     | Examples match the versioned CLI catalog and use explicit board, JSON output, current version, operation ID, and read-back where applicable.          |
-| Offline lifecycle    | Disposable fixtures cover ordinary Inbox and Draft intake, In Design completeness, Ready claim, progress, Blocked/resume, Review, and Done.           |
-| Claim safety         | Owner update plus transition is treated as multi-step; work starts only after both postconditions are read back.                                      |
-| Concurrency          | Stale-version rejection and competing claim observations never imply an atomic lock.                                                                  |
-| Idempotency          | Same-operation replay is recognized; changed intent cannot reuse the operation ID.                                                                    |
-| Recovery             | Already-satisfied, unchanged, stale, replayed, ambiguous, partial, and conflicting outcomes follow the minimal recovery rule.                         |
-| Evidence             | Cards contain concise summaries and repository links without requiring attachment upload or full logs.                                                |
-| Completion           | Agent judgment is bounded by acceptance, applicable verification, known blockers, and concise evidence.                                               |
-| Archival             | Done terminates agent mutation; no skill archives cards or closes Done as a substitute.                                                               |
-| Harness adapters     | Claude Code, Codex, Pi, and Hermes load or adapt the same normative core without hidden-behavior dependency.                                          |
-| Superpowers boundary | Trello skills coordinate state and evidence but do not reimplement brainstorming, planning, TDD, debugging, code review, or verification methodology. |
-| Safety               | Default verification performs no production-board mutation and contains no credentials or secret values.                                              |
+| Area                          | Minimum evidence                                                                                                                                                                                            |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Skill structure               | Valid frontmatter, bounded triggers, required inputs, permitted mutations, outputs, and non-responsibilities.                                                                                               |
+| Shared authority              | Every adapter preserves Trello authority and the Superpowers boundary.                                                                                                                                      |
+| Command accuracy              | Examples match the versioned CLI catalog and use explicit board, JSON output, current version, operation ID, and read-back where applicable.                                                                |
+| Offline lifecycle             | Disposable fixtures cover ordinary Inbox and Draft intake, In Design completeness, Ready claim, progress, Blocked/resume, Review, and Done.                                                                 |
+| Claim safety                  | Owner update plus transition is treated as multi-step; work starts only after both postconditions are read back.                                                                                            |
+| Concurrency                   | Stale-version rejection and competing claim observations never imply an atomic lock.                                                                                                                        |
+| Idempotency                   | Same-operation replay is recognized; changed intent cannot reuse the operation ID.                                                                                                                          |
+| Recovery                      | Already-satisfied, unchanged, stale, replayed, ambiguous, partial, and conflicting outcomes follow the minimal recovery rule.                                                                               |
+| Evidence                      | Cards contain concise summaries and repository links without requiring attachment upload or full logs.                                                                                                      |
+| Completion                    | Agent judgment is bounded by acceptance, applicable verification, known blockers, and concise evidence.                                                                                                     |
+| Archival                      | Done terminates agent mutation; no skill archives cards or closes Done as a substitute.                                                                                                                     |
+| Harness adapters              | Claude Code, Codex, Pi, and Hermes load or adapt the same normative core without hidden-behavior dependency.                                                                                                |
+| Engineering-practice boundary | Trello skills coordinate state and evidence but do not reimplement brainstorming, planning, TDD, debugging, code review, or verification methodology; users may use Superpowers or any equivalent approach. |
+| Safety                        | Default verification performs no production-board mutation and contains no credentials or secret values.                                                                                                    |
 
 Use offline or disposable test state by default. Any live test must be authorized
 by the current bounded Work Unit or repository plan, explicitly allowlisted to a

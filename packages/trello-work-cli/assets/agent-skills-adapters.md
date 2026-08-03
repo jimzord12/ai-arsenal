@@ -1,5 +1,7 @@
 # Adapting the Trello Agent Skills
 
+Superpowers is an optional, recommended engineering-practice framework. It is not required to use these skills or the CLI; clients may use any equivalent development process.
+
 ## Canonical sources
 
 AI Arsenal's canonical portable skills are:
@@ -9,7 +11,7 @@ AI Arsenal's canonical portable skills are:
 - `.agents/skills/trello-work-deliver/`
 - `.agents/skills/trello-work-recover/`
 
-Each directory follows the open [Agent Skills specification](https://agentskills.io/specification) and contains `SKILL.md` as its instruction source. The lifecycle and responsibility authority is [`agent-workflow-protocol.md`](./agent-workflow-protocol.md).
+Each directory follows the open [Agent Skills specification](https://agentskills.io/specification) and contains `SKILL.md` as its instruction source. The lifecycle and responsibility authority is [`agent-workflow-protocol.md`](./agent-workflow-protocol.md). The identical `assets/agent-skills/agent-workflow-protocol.md` file is the self-contained copy included beside the bundled skills in the package artifact. The installer reads the protocol from that bundled directory, while the top-level file is the repository development source; keep the two copies byte-identical.
 
 A harness-specific copy, link, bundle, plugin, installer, or generated representation is an **adapter**. It is downstream from these sources and must not become a competing workflow authority.
 
@@ -49,7 +51,7 @@ Adapters may change only client integration mechanics:
 - Mapping generic file, shell, web, or prompt capabilities to client tool names.
 - Rewriting repository-relative authority links to the same immutable bundled or installed sources when an adapter changes directory layout.
 - Optional hooks that improve discovery or ergonomics.
-- Optional integration with installed Superpowers capabilities.
+- Optional integration with installed Superpowers capabilities; equivalent engineering practice remains valid without it.
 - Presentation formatting of status and evidence.
 
 Optional hooks must not be required for lifecycle correctness. Every mutation still uses explicit state reads and postcondition verification.
@@ -85,15 +87,15 @@ If a client requires one of these changes, it is a protocol revision—not an ad
 
 ### Claude Code
 
-Use project Agent Skills discovery when available, or map/copy the canonical directories into the supported project skill location. Native Superpowers skills may provide engineering practice. Claude-specific hooks may improve activation but cannot replace explicit Trello reads, guards, and read-back.
+Use project Agent Skills discovery when available, or map/copy the canonical directories into the supported project skill location. Native Superpowers skills may provide recommended engineering practice, but are not required. Claude-specific hooks may improve activation but cannot replace explicit Trello reads, guards, and read-back.
 
 ### Codex
 
-Expose each canonical directory through Codex's supported skill discovery or adapter mechanism. Map tool invocations mechanically and retain generic capability wording. Do not depend on Claude hook behavior. Use available Superpowers integration only when actually installed and verified.
+Expose each canonical directory through Codex's supported skill discovery or adapter mechanism. Map tool invocations mechanically and retain generic capability wording. Do not depend on Claude hook behavior. Use Superpowers integration only when it is actually installed and verified; otherwise use equivalent engineering practice.
 
 ### Pi
 
-Package, link, or register the same skill directories through Pi's skill/package mechanism. The Superpowers bootstrap extension and optional task/subagent packages may improve engineering execution, but they do not alter the four Trello responsibilities.
+Package, link, or register the same skill directories through Pi's skill/package mechanism. The optional Superpowers bootstrap extension and task/subagent packages may improve engineering execution, but they do not alter the four Trello responsibilities and are not required.
 
 ### Hermes Agent
 

@@ -46,10 +46,10 @@ Use this order when facts conflict:
 2. Current canonical Work Unit and acceptance criteria.
 3. Current Trello state read through `jz-trello-flow`.
 4. Repository-local instructions.
-5. Superpowers or equivalent engineering-practice guidance.
+5. Optional Superpowers or equivalent engineering-practice guidance, when available.
 6. Harness defaults.
 
-Git, CI, repository artifacts, and Superpowers outputs are authoritative for their own details, but none independently advances Trello status.
+Git, CI, repository artifacts, and any Superpowers or equivalent-practice outputs are authoritative for their own details, but none independently advances Trello status.
 
 Treat `DESCRIPTION_BUDGET_EXCEEDED` as a confirmed local no-write and route it to `trello-work-recover` with its non-secret size evidence. A remote deterministic description size/value rejection or dry-run wrapper/rendering failure must be read back before classification; never infer a mutation from the error alone or recommend a blind retry/content deletion.
 
@@ -102,7 +102,7 @@ Use concise repository links for detailed evidence. Do not duplicate full logs o
 - Equating local implementation progress with a Trello transition.
 - Routing a partial claim to delivery instead of recovery.
 - Treating Done as permission for agent archival.
-- Requiring Superpowers when equivalent engineering practice is available; methodology availability does not change lifecycle authority.
+- Requiring Superpowers when equivalent engineering practice is available; Superpowers is optional and methodology availability does not change lifecycle authority.
 
 ## Verification checklist
 

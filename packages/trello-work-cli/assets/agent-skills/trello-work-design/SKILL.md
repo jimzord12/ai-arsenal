@@ -41,7 +41,7 @@ Stop when target identity or board selection is ambiguous. Never create a replac
 
 Trello and `jz-trello-flow` own durable identity, canonical Work Unit content, lifecycle status, version/operation identity, read-back, and recovery diagnostics.
 
-When installed, Superpowers owns engineering design exploration and planning. Otherwise use equivalent repository-compatible practice. Summarize durable conclusions in the Work Unit and link repository artifacts; do not copy methodology internals or full documents into Trello.
+Superpowers is optional recommended support for engineering design exploration and planning when installed. Otherwise, or by preference, use equivalent repository-compatible practice. Summarize durable conclusions in the Work Unit and link repository artifacts; do not copy methodology internals or full documents into Trello.
 
 ## Universal mutation discipline
 

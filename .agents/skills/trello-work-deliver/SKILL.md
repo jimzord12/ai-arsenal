@@ -7,7 +7,7 @@ description: Claim and deliver Ready, In Progress, Blocked, or Review Trello Wor
 
 ## Overview
 
-Own the normal delivery lifecycle from Ready through read-back-confirmed Done. This skill coordinates durable Trello state and concise evidence; Superpowers or equivalent harness practice owns software design, implementation, TDD, debugging, review, and verification methodology.
+Own the normal delivery lifecycle from Ready through read-back-confirmed Done. This skill coordinates durable Trello state and concise evidence; Superpowers is optional recommended support, while Superpowers or equivalent harness practice may handle software design, implementation, TDD, debugging, review, and verification methodology.
 
 The normative contract is [`packages/trello-work-cli/assets/agent-workflow-protocol.md`](../../../packages/trello-work-cli/assets/agent-workflow-protocol.md). Use installed `jz-trello-flow` docs for exact command syntax and effective configured transitions.
 
@@ -73,7 +73,7 @@ This reduces duplicate work but is not an atomic or globally exclusive lock. Str
 
 After a confirmed claim:
 
-1. Load applicable Superpowers capabilities when installed; otherwise use equivalent repository engineering practice.
+1. Load applicable Superpowers capabilities when installed and desired; otherwise use equivalent repository engineering practice.
 2. Follow repository design, plan, testing, review, and approval rules.
 3. Keep detailed designs, source, logs, and CI evidence in their authoritative systems.
 4. Update Trello only when scope/acceptance, owner/resumability, blockers, implementation frontier, review frontier, or recovery-relevant state materially changes.
