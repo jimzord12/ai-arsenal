@@ -3,37 +3,37 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-02
 **Project:** AI Arsenal monorepo
-**State:** The legacy Features CLI rollback junction is retired and delivered; `jz-trello-flow` `0.6.0` version flags are delivered and globally installed.
-**Current phase:** No active bounded work item
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** The global `jz-trello-flow` installation is repaired; its durable-repair work item passed final verification and awaits routine delivery.
+**Current phase:** Deliver durable global-shim repair
+**Active work item:** `2026-08-03-investigate-global-trello-cli`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-No bounded work item is active.
+Reconcile durable work-item state, commit the bounded repair, and push after final repository-state validation.
 
 ## Why This Is Next
 
-- The released `0.6.0` package implements both public version aliases through
-  the exact globally installed private artifact.
+- Review and final repository/installed-command verification have passed.
 
 ## Requirements
 
-- No active blocker.
+- Confirm clean delivery prerequisites, then commit and push only the bounded
+  repair work item and repository changes.
 
 ## Blockers / Escalation
 
-- Select or define the next bounded change through the Workflow v2 router.
+- No current blocker. Live Trello mutation remains out of scope.
 
 ## Done When
 
-- A new bounded work item is defined only after a direct request or router
-  selection.
+- The work item is delivered, active registration is cleared, and delivery
+  evidence records commit, remote, and CI status.
 
 ## Source of Truth
 
 - `AGENTS.md`
-- `docs/work-items/2026-08-02-trello-cli-version-flags/work-item.md`
+- `docs/work-items/2026-08-03-investigate-global-trello-cli/work-item.md`
 - `docs/operations/features-cli-cutover.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`
