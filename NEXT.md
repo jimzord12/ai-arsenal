@@ -1,34 +1,34 @@
 # NEXT
 
 **Workflow version:** 2.0
-**Last reconciled:** 2026-08-02
+**Last reconciled:** 2026-08-03
 **Project:** AI Arsenal monorepo
-**State:** The global `jz-trello-flow` installation is repaired; its durable-repair work item passed final verification and awaits routine delivery.
-**Current phase:** Deliver durable global-shim repair
-**Active work item:** `2026-08-03-investigate-global-trello-cli`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** The global `jz-trello-flow` installation and its durable, fail-closed pnpm/Bun shim repair are verified and delivered.
+**Current phase:** No active work item
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Reconcile durable work-item state, commit the bounded repair, and push after final repository-state validation.
+No active work item. Route any new request through `orchestrate-monorepo-work`.
 
 ## Why This Is Next
 
-- Review and final repository/installed-command verification have passed.
+- Work item `2026-08-03-investigate-global-trello-cli` is delivered with an exact pushed artifact commit and green Quality and Portability CI.
 
 ## Requirements
 
-- Confirm clean delivery prerequisites, then commit and push only the bounded
-  repair work item and repository changes.
+- Reinstalling the global package can regenerate the platform shim; use
+  `pnpm run repair:global-trello-shim` from this repository afterward, then run
+  the documented Git Bash, CMD, and PowerShell smoke checks.
 
 ## Blockers / Escalation
 
-- No current blocker. Live Trello mutation remains out of scope.
+- No active blocker. Live Trello mutation remains out of scope.
 
 ## Done When
 
-- The work item is delivered, active registration is cleared, and delivery
-  evidence records commit, remote, and CI status.
+- A new bounded work item is registered when new repository work is requested.
 
 ## Source of Truth
 

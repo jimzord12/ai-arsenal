@@ -3,7 +3,7 @@
 Work item: 2026-08-03-investigate-global-trello-cli
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-03T12:59:01+03:00
 Max time: 2 hours
 Last time check: 2026-08-03T14:03:38+03:00
@@ -76,3 +76,9 @@ Result: passed
 - From `/tmp`, Git Bash `--version`, `--help`, and `docs --list` exited 0 with empty stderr; Git Bash version returned `0.6.0`.
 - CMD and PowerShell `--version` probes exited 0 with empty stderr and returned `0.6.0`.
 - `git diff --check` and `node scripts/validate-monorepo-work-item.mjs --work-item 2026-08-03-investigate-global-trello-cli --json` passed after the final evidence update.
+
+## Delivery evidence
+
+- Artifact commit and matching remote SHA: `421753c2ccbf0d1022c2b85aca7a9f983e236f76`.
+- CI passed: [Quality 30809301278](https://github.com/jimzord12/ai-arsenal/actions/runs/30809301278) and [Portability 30809301224](https://github.com/jimzord12/ai-arsenal/actions/runs/30809301224).
+- The exact global `@jz/ai-arsenal-trello-work-cli@0.6.0` installation remains in place; the generated `jz-trello-flow` shim is repaired through the durable command and returns `0.6.0` through Git Bash, CMD, and PowerShell.
