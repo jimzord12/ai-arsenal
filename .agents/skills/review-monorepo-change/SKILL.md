@@ -5,8 +5,9 @@ description: Use when a Workflow v2 implementation needs consolidated review, bo
 
 # Review Monorepo Change
 
-Validate the active compact item and confirm the checkout is on the exact
-`work/<work-item-id>` branch created at definition. Inspect its goal, non-goals,
+Validate the active compact item and confirm the checkout is the exact
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>` worktree on
+its `work/<work-item-id>` branch created at definition. Inspect its goal, non-goals,
 acceptance criteria, implementation summary, diff, and focused test evidence.
 A branch mismatch is an acceptance failure, not a reason to review another
 candidate. Consolidate findings by severity and acceptance impact. Ignore optional or out-of-scope
@@ -22,11 +23,16 @@ routing-only state. Set a new non-pending batch identifier, and record a JSON
 array of unique, deterministic required reviewer roles in `Review expected`
 plus an initially empty JSON array in `Review received` before or with
 dispatch. Dispatch every
-required reviewer against that exact batch and snapshot. A result record has
-exactly `reviewer`, `outcome`, `batchId`, and `snapshot`; outcome is `passed`,
-`failed`, `cancelled`, or `unknown`. Persist received results even when review
-delegation returns synchronously; later-arriving results use the same record
-shape and reconciliation path.
+required reviewer against that exact batch and snapshot. Independent review
+means another agent; it does not require a human reviewer. The reviewer must
+run in a separate agent session/process from the implementing agent; repeated
+passes in one agent session are self-review, not independent evidence. A
+separate read-only Pi reviewer may be invoked with `pi --no-session -p` and a
+read-only tool allowlist such as `--tools read,grep,find,ls`; record only its
+actual result. A result record has exactly `reviewer`, `outcome`, `batchId`, and
+`snapshot`; outcome is `passed`, `failed`, `cancelled`, or `unknown`. Persist
+received results even when review delegation returns synchronously;
+later-arriving results use the same record shape and reconciliation path.
 
 Use `scripts/reconcile-review-batch.mjs` to reconcile all currently available
 results. Dispatch, local test success, an incomplete set, or any duplicate,

@@ -18,8 +18,13 @@ define → implement → review/repair → verify → deliver
 The writing skills are `define-monorepo-change`, `implement-monorepo-change`,
 `review-monorepo-change`, `verify-monorepo-change`, and
 `deliver-monorepo-change`. Definition creates the clean-checkout branch
-`work/<work-item-id>`; every active stage stays on that exact branch, and
-delivery pushes but does not merge or delete it. The normative contract is
+`work/<work-item-id>` in the isolated sibling worktree
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>`; every active
+stage stays on that exact registered worktree and branch. Definition provisions
+it from a clean non-work base checkout, then writes its active route only there;
+the base stays `none` / `none`. Delivery pushes but does not merge, delete, or
+remove branches/worktrees. Removing a worktree is dangerous deletion and needs
+direct confirmation. The normative contract is
 [`MONOREPO_WORK_ITEM_PIPELINE.md`](MONOREPO_WORK_ITEM_PIPELINE.md).
 
 ## Resume, Stops, and Repair

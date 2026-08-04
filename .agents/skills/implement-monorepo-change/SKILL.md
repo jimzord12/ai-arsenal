@@ -6,7 +6,10 @@ description: Use when an active AI Arsenal Workflow v2 item is defined and needs
 # Workflow v2 (current)
 
 When the active directory contains `work-item.md`, validate it and require
-`Stage: implement`. Read its goal, non-goals, and acceptance criteria. For each
+`Stage: implement` from the exact registered
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>` worktree on
+its `work/<work-item-id>` branch. Read its goal, non-goals, and acceptance
+criteria. For each
 behavior change, add the focused failing test, observe failure, make the
 smallest conforming change, and observe the focused pass. Do not run broad
 final gates yet.
