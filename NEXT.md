@@ -3,18 +3,18 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-04
 **Project:** AI Arsenal monorepo
-**State:** Workflow v2 fail-closed CLI delivery evidence is delivered; isolated worktree-per-item development passed final verification and awaits delivery.
-**Current phase:** Workflow v2 isolated-worktree delivery
+**State:** Workflow v2 isolated worktree-per-item delivery is blocked by a required Quality CI finding after the fourth permitted review cycle.
+**Current phase:** Workflow v2 review blocker
 **Active work item:** `2026-08-04-create-isolated-worktrees`
-**Pipeline step:** `deliver-monorepo-change`
+**Pipeline step:** `review-monorepo-change`
 
 ## Next Action
 
-Commit and push the verified issue #29 work branch, require successful Quality and Portability CI, then deliver the work item.
+Obtain explicit authorization to reset the exhausted review-cycle budget before repairing Quality CI's in-use-branch failure.
 
 ## Why This Is Next
 
-- Final stable verification passed on the review-approved candidate. Delivery records the CI-green branch and reconciles active workflow state without merging or removing the branch/worktree.
+- Quality run `30900899541` failed because its active-worktree setup force-updates the branch already checked out by Actions. This is acceptance-critical, but a fifth review cycle requires a new user-authorized reset.
 
 ## Open Issue Queue
 
