@@ -3,31 +3,30 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-04
 **Project:** AI Arsenal monorepo
-**State:** Issue #12 is implementing fail-closed Workflow v2 delivery evidence after issue #13 authority alignment.
-**Current phase:** Enforce Workflow v2 delivery evidence before CLI closure
-**Active work item:** `2026-08-04-enforce-workflow-v2-delivery-evidence`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Workflow v2 branch-per-work-item development and fail-closed CLI delivery evidence are delivered.
+**Current phase:** No active work item
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Implement issue #12, "Enforce Workflow V2 delivery evidence before CLI closure."
+Define issue #21, "Improve `jz-trello-flow` CLI authoring and discovery UX."
 
 ## Why This Is Next
 
-- Issue #13 is delivered, and issue #12 is the next bounded item in the recorded dependency order.
+- Issues #13 and #12 are delivered; issue #21 is next in the recorded dependency order.
 
 ## Open Issue Queue
 
-1. #13 — Resolve Workflow V2 authority for routine global CLI replacement.
-2. #12 — Enforce Workflow V2 delivery evidence before CLI closure (after #13).
-3. #21 — Improve `jz-trello-flow` CLI authoring and discovery UX, with child issues #22 through #27; start with #22 unless definition finds a dependency overlap with the existing #6 documentation-discovery work.
-4. #6, then #7 through #10 — Existing Trello guidance and diagnostics track; #7 depends on #6, while #8 through #10 can be bundled when their shared seams justify it.
-5. #11 — Guided safe-mutation helper, after the guidance/diagnostic and delivery-authority tracks are stable.
-6. #5 — Parent closure after its child issues have accepted resolutions.
-7. #1 — Standalone README update for the `jz-skills` package; low-priority and independent.
+1. #21 — Improve `jz-trello-flow` CLI authoring and discovery UX, with child issues #22 through #27; start with #22 unless definition finds a dependency overlap with the existing #6 documentation-discovery work.
+2. #6, then #7 through #10 — Existing Trello guidance and diagnostics track; #7 depends on #6, while #8 through #10 can be bundled when their shared seams justify it.
+3. #11 — Guided safe-mutation helper, after the guidance/diagnostic and delivery-authority tracks are stable.
+4. #5 — Parent closure after its child issues have accepted resolutions.
+5. #1 — Standalone README update for the `jz-skills` package; low-priority and independent.
 
 ## Requirements
 
+- New Workflow v2 items use `work/<work-item-id>` branches, and active stages remain on the exact matching branch.
 - After any global `jz-trello-flow` lifecycle operation, agents must use `pnpm --dir <AI-Arsenal-repository-root> run repair:global-trello-shim` and complete the documented cross-shell smoke checks.
 
 ## Blockers / Escalation
@@ -36,7 +35,7 @@ Implement issue #12, "Enforce Workflow V2 delivery evidence before CLI closure."
 
 ## Done When
 
-- Required CLI delivery evidence is validated fail closed while ordinary non-CLI work remains exempt.
+- Define the next bounded work item through `orchestrate-monorepo-work`; the delivered Workflow v2 policy remains validated.
 
 ## Source of Truth
 

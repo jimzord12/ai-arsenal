@@ -3,7 +3,7 @@
 Work item: 2026-08-04-enforce-workflow-v2-delivery-evidence
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-04T10:23:00+03:00
 Max time: 4 hours
 Last time check: 2026-08-04T10:23:00+03:00
@@ -91,3 +91,7 @@ Result: passed
 - `node scripts/validate-living-workflow.mjs` — passed.
 - `git diff --check` — passed.
 - Current branch — `work/2026-08-04-enforce-workflow-v2-delivery-evidence`.
+- Exact artifact-bearing commit — `58abca6d96738678fb4819758a4f26a7e1f9e3eb`.
+- Remote branch equality — `origin/work/2026-08-04-enforce-workflow-v2-delivery-evidence` points to the exact commit.
+- Required CI — [Quality](https://github.com/jimzord12/ai-arsenal/actions/runs/30889498928) and [Portability](https://github.com/jimzord12/ai-arsenal/actions/runs/30889498850) both concluded successfully for that SHA.
+- CLI local-delivery evidence — not required for this workflow-policy item.

@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 review-barrier integration, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered; routine global CLI replacement authority is in progress
+> **Status:** Workflow v2 review-barrier integration, branch-per-work-item development, fail-closed CLI delivery evidence, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-08-04
-> **Current phase:** Complete issue #13, Workflow v2 authority for routine global CLI replacement
+> **Current phase:** Workflow v2 delivery evidence and branch-per-work-item policy delivered; no active item
 > **Operator view:** `NEXT.md`
 
 ---
@@ -591,6 +591,15 @@ Parent issue `#14` is closed after all required child issues `#15` through
 `#19` completed. Its current closure is supported by the delivered child work
 items and live GitHub issue readback; no parent-specific product or CLI change
 was required.
+
+Issue `#13` routine global CLI replacement authority and issue `#12`
+fail-closed CLI delivery evidence are delivered. Current v2 items declare
+whether CLI local-delivery evidence is required; required evidence remains
+active until artifact, remote, CI, package, tarball, installation, smoke,
+provenance, rollback, and clean-worktree results are complete and consistent.
+Ordinary non-CLI items remain exempt. Active items are developed only on their
+matching `work/<work-item-id>` branch, and delivery does not merge or delete
+that branch.
 
 ## 8.2 Reconciliation and current truth
 
