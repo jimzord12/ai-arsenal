@@ -72,9 +72,10 @@ Known:
 - The 14-source-file inventory is retained as migration evidence; `archives/v1/` was not copied, and the legacy source junction is retired.
 - Commit `332cff2` on `master` adds verified flexible `--feature` selectors. The approved private `0.1.0` release has a generated Changesets changelog, validated packed artifact, and verified global installation.
 - Workflow v2 review-barrier integration issue `#19` is delivered and closed. Artifact commit `b7b095d27fb2750bfeaef670a384670e7fe30dda` passed exact-SHA Quality runs `30652534854` and `30652535100` plus Portability runs `30652534982` and `30652535659`; the blocked four-cycle predecessor and user-authorized one-attempt successor preserve the complete audit.
+- Workflow v2 isolated worktree-per-item issue `#29` is delivered and closed. Artifact commit `e443c85cfb5ab0812b79057f217dc9f9d75c68e7` passed Quality run `30902781283` and Windows/Linux Portability run `30902781295`; its work branch and deterministic sibling worktree remain intact for external integration.
 
-The legacy source-retirement operation is under Workflow v2 review and final
-verification; no source rollback junction remains.
+Issue `#21`, improving `jz-trello-flow` authoring and discovery UX through
+bounded child issues, is the next product track.
 
 The immediate next action is defined in `NEXT.md`.
 

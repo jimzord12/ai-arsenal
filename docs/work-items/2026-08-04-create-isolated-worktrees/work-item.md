@@ -3,7 +3,7 @@
 Work item: 2026-08-04-create-isolated-worktrees
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-04T11:28:03+03:00
 Max time: 6 hours
 Last time check: 2026-08-04T13:50:14+03:00
@@ -243,3 +243,22 @@ Result: passed
   `node scripts/validate-monorepo-work-item.mjs --current --json`, and
   `git diff --check` each exited `0`; the validator confirmed the fresh passed
   review snapshot and exact isolated branch/worktree.
+
+## Delivery evidence
+
+- Delivery result: passed; issue
+  [`#29`](https://github.com/jimzord12/ai-arsenal/issues/29) is closed.
+- Artifact-bearing commit:
+  `e443c85cfb5ab0812b79057f217dc9f9d75c68e7`.
+- Remote ref equality: local `HEAD` and
+  `origin/work/2026-08-04-create-isolated-worktrees` both resolved to
+  `e443c85cfb5ab0812b79057f217dc9f9d75c68e7`.
+- Required CI: Quality
+  [`30902781283`](https://github.com/jimzord12/ai-arsenal/actions/runs/30902781283)
+  passed; Windows/Linux Portability
+  [`30902781295`](https://github.com/jimzord12/ai-arsenal/actions/runs/30902781295)
+  passed.
+- Package, global installation, and rollback evidence: not required; this item
+  changes no shipped CLI behavior.
+- Branch/worktree disposition: retained. Merge, branch deletion, and worktree
+  removal remain outside delivery.

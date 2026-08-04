@@ -3,18 +3,18 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-04
 **Project:** AI Arsenal monorepo
-**State:** Workflow v2 isolated worktree-per-item development passed final verification and awaits CI-backed delivery.
-**Current phase:** Workflow v2 isolated-worktree delivery
-**Active work item:** `2026-08-04-create-isolated-worktrees`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Workflow v2 isolated worktree-per-item development is delivered; Trello Flow authoring and discovery UX is next.
+**Current phase:** Trello Flow CLI authoring and discovery UX
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Commit and push the verified Quality CI repair, require successful Quality and Portability runs, then deliver issue #29.
+Define the first bounded child of issue #21, starting with issue #22 unless definition finds a dependency overlap with issue #6.
 
 ## Why This Is Next
 
-- Final stable verification passed on the fresh review-approved candidate. Required branch CI must now confirm the repaired Actions topology before closure.
+- Issue #29 is closed after its exact branch commit passed fresh independent review, final verification, Quality CI, and Windows/Linux Portability CI. Issue #21 is the next queued product track.
 
 ## Open Issue Queue
 
@@ -31,11 +31,11 @@ Commit and push the verified Quality CI repair, require successful Quality and P
 
 ## Blockers / Escalation
 
-- The user authorized a fresh review-cycle reset for the Quality CI in-use-branch repair.
+- None.
 
 ## Done When
 
-- Issue #29 passes fresh independent review, final verification, and both required CI workflows; then deliver it and route issue #21.
+- The next bounded issue under #21 is defined in its own deterministic isolated worktree.
 
 ## Source of Truth
 

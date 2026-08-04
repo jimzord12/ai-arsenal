@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 review-barrier integration, fail-closed CLI delivery evidence, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered; isolated worktree-per-item development is in final review and repair
+> **Status:** Workflow v2 review-barrier integration, fail-closed CLI delivery evidence, isolated worktree-per-item development, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-08-04
-> **Current phase:** Workflow v2 isolated-worktree policy review and repair active
+> **Current phase:** Trello Flow CLI authoring and discovery UX is next
 > **Operator view:** `NEXT.md`
 
 ---
@@ -104,6 +104,7 @@ Reconciliation must update classifications as evidence improves.
 - `[VERIFIED]` Changesets generated private package version `0.1.0` and `packages/features-cli/CHANGELOG.md` for flexible feature selectors. The actual 10-file `0.1.0` tarball passes strict publint, installs into a clean unrelated pnpm consumer, and is installed in the Windows user's global pnpm environment. The global command resolves both index and full-name feature selectors in the active `ics-vcr` consumer.
 - `[VERIFIED]` `packages/features-cli/AGENTS.md` establishes a self-hosting boundary: use the monorepo living-plan workflow to maintain this package and reserve `features-cli` for consumer-project feature workflows.
 - `[VERIFIED]` The monorepo work-item pipeline is fully implemented and independently verified. Its 30-test workflow suite covers strict active registration, direct-user revision requests, contract/plan archive-and-increment recovery, fresh approval binding, failed-verification recovery, skill structure, and disposable lifecycle routing; the full repository check passes.
+- `[VERIFIED]` Workflow v2 provisions each new item on `work/<work-item-id>` in its deterministic sibling worktree and fails closed outside that exact registered branch/worktree. Artifact commit `e443c85cfb5ab0812b79057f217dc9f9d75c68e7` passed fresh independent review, the full repository gate, Quality run `30902781283`, and Windows/Linux Portability run `30902781295`; delivery intentionally retains the branch and worktree.
 - `[VERIFIED]` `packages/trello-work-cli` is the private TypeScript package `@jz/ai-arsenal-trello-work-cli`. Its Work Unit V1 boundary implements deterministic parsing and schema enforcement, explicit stateless board selection, seven-list canonical workflow defaults with environment overrides, guarded workflow initialization, board-scoped list CRUD, dry-run plans, references, strict CLI parsing, version-guarded mutations, durable operation replay, partial-recovery signaling, secret redaction, API request construction, and built-in documentation.
 - `[VERIFIED]` Exact operation replay is resolved before ordinary stale-version rejection for update, transition, reconcile, and checklist mutations, while every new write remains version-guarded. Metadata/description replay re-verifies title, all request-managed metadata, and every section before returning `recovered`.
 - `[VERIFIED]` The Trello CLI supports ordinary Inbox cards and canonical Draft Work Units, `jz-trello-flow inbox list`, explicit `jz-trello-flow draft create`, the deprecated `jz-trello-flow create` alias, same-card `jz-trello-flow design start` promotion, canonical partial `in_design`, and strict In Design-to-Ready completeness gating. Malformed cards claiming Work Unit identity fail closed, and design operation IDs are checked board-wide before mutation.
