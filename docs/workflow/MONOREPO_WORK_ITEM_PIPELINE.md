@@ -38,17 +38,42 @@ define → implement → review/repair → verify → deliver
   active registration, and may commit/push unless the work item narrows Git
   delivery.
 
-## Branch-per-work-item development
+## Worktree-per-work-item development
 
-Every new v2 item uses the deterministic branch name
-`work/<work-item-id>`, such as
-`work/2026-08-04-enforce-workflow-v2-delivery-evidence`. Definition requires a
-clean checkout, creates that branch from the current base branch, and records
-it as the item's development branch by convention. Implementation, review,
-verification, and delivery must remain on that exact branch; the validator
-fails closed when an active item is checked out elsewhere. Delivery pushes the
-work branch after its required evidence is complete. Merging or deleting the
-branch is not part of the pipeline.
+Every new v2 item uses the deterministic branch
+`work/<work-item-id>` in the sibling worktree
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>`. Definition
+runs only from a clean, non-`work/*` base checkout. It preflights the exact
+branch and worktree path for collisions or redirection, then uses
+`scripts/provision-monorepo-worktree.mjs` to create the branch and worktree
+before writing any item state. The active validator rejects a missing or
+redirected item worktree. The compact record and active `NEXT.md`
+route are then created only inside that new worktree; the base checkout remains
+clean with `none` / `none` active state.
+
+New compact items and every active v2 record declare `Worktree: isolated`.
+Implementation, review, verification, and delivery must run from that exact
+registered worktree and its exact branch. Only immutable delivered historical
+records may omit the declaration. The validator fails closed from the base checkout, another
+worktree, a detached checkout, a missing or redirected worktree, or another
+branch. The deterministic handoff for a new session is:
+
+```text
+cd "<repository-parent>/<repository-name>.worktrees/<work-item-id>"
+node scripts/validate-monorepo-work-item.mjs --current --json
+```
+
+Two isolated worktrees can carry independent active routes and review
+candidates because their uncommitted `NEXT.md`, compact record, and candidate
+files are local to each worktree. Delivery pushes each work branch after its
+required evidence is complete but does not merge, delete, or remove anything.
+Before an external sequential merge, the integrator rebases or merges the
+already-delivered branch against the current target, resolves/reconciles any
+shared planning-file conflict, and reruns only checks invalidated by that
+resolution. Active-route changes clear back to `none` before delivery, so they
+are not cross-worktree routing state. Worktree removal, pruning, and branch
+deletion are outside routine delivery; removal is dangerous deletion requiring
+direct confirmation.
 
 ## Compact work-item contract
 
@@ -86,10 +111,13 @@ access or an unusable rollback path remains an honest blocked prerequisite.
 Registry publication, source deletion, destructive Git operations, and
 unrelated external mutations remain outside that routine authority.
 
-`NEXT.md` retains exactly one active work-item and pipeline-step pair. A
-delivered item clears both to `none`. Intentional blocked states have no next
-skill and remain registered at their current stage. Only malformed compact
-state routes to `initializing-living-plan-workflow`.
+Each checkout's `NEXT.md` retains exactly one active work-item and
+pipeline-step pair. A base checkout always retains `none` / `none`; each
+isolated item worktree owns only its own active pair. A delivered item clears
+its local pair to `none`. Intentional blocked states have no next skill and
+remain registered in their item worktree. Only malformed compact state routes
+to `initializing-living-plan-workflow`. Historical delivered records and
+pre-worktree records remain readable without retroactive metadata changes.
 
 ## Review barrier
 
@@ -108,7 +136,10 @@ non-pending batch identifier, a JSON array of unique deterministic reviewer
 roles, and an initially empty JSON received-results array. `NEXT.md` is
 excluded from that candidate because it is routing-only state; the active
 work-item identity, safety classification, goal, non-goals, acceptance
-criteria, and implementation description remain snapshot input.
+criteria, and implementation description remain snapshot input. Independent
+review means another agent; it does not require a human reviewer. The reviewer
+runs in a separate agent session/process from the implementing agent; repeated
+passes in one agent session are self-review, not independent evidence.
 
 Each received result has exactly `reviewer`, `outcome`, `batchId`, and
 `snapshot`. Immediate and later-arriving results use the same reconciliation

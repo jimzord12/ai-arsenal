@@ -12,8 +12,11 @@ and route only by its compact `Stage` through:
 define → implement → review/repair → verify → deliver
 ```
 
-With no active item and an explicit bounded request, route to
-`define-monorepo-change`. With no request, report `NEXT.md`. Pending direct
+With no active item and an explicit bounded request from a clean non-work base
+checkout, route to `define-monorepo-change`; definition provisions the new
+`work/<work-item-id>` at
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>`. With no
+request, report `NEXT.md`. Pending direct
 approval for dangerous work, a blocked hard prerequisite, or four exhausted
 review cycles is a valid stop with no next skill. Malformed state routes to
 `initializing-living-plan-workflow`. This router remains read-only.
@@ -59,9 +62,12 @@ from consumer state.
 ## Routing Rules
 
 Use validator JSON as the routing authority for an active work item. Its
-`nextSkill` selects the eligible v2 stage. Active items must also be checked out
-on the exact `work/<work-item-id>` branch; a branch mismatch is a validation
-stop. Valid intentional stops—pending direct
+`nextSkill` selects the eligible v2 stage. New isolated items must run from the
+exact registered `<repository-parent>/<repository-name>.worktrees/<work-item-id>`
+worktree on their exact `work/<work-item-id>` branch; the validator fails closed
+for the base checkout, another or redirected worktree, a detached checkout, or
+a branch mismatch. A base checkout with `none` / `none` is valid and never
+routes another worktree's active item. Valid intentional stops—pending direct
 approval for dangerous work, a blocked hard prerequisite, or four exhausted
 review cycles—have no next skill and must be reported without mutation.
 

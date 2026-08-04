@@ -944,6 +944,140 @@ function requireActiveWorkItemBranch(repositoryRoot, workItem) {
   }
 }
 
+function gitPath(repositoryRoot, arguments_) {
+  const result = spawnSync('git', arguments_, {
+    cwd: repositoryRoot,
+    encoding: 'utf8',
+    windowsHide: true,
+  });
+  if (result.error || result.status !== 0) {
+    throw new Error(
+      `Git ${arguments_.join(' ')} could not inspect the worktree`,
+    );
+  }
+  return result.stdout.trim();
+}
+
+function realPath(target) {
+  return fs.realpathSync.native(path.resolve(target));
+}
+
+function normalizePath(target) {
+  const resolved = path.normalize(path.resolve(target));
+  return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+}
+
+function sameRealPath(first, second) {
+  return normalizePath(realPath(first)) === normalizePath(realPath(second));
+}
+
+function isRedirectedPath(target) {
+  return (
+    normalizePath(target) !==
+    normalizePath(fs.realpathSync(path.resolve(target)))
+  );
+}
+
+function listRegisteredWorktrees(repositoryRoot) {
+  const output = gitPath(repositoryRoot, ['worktree', 'list', '--porcelain']);
+  const entries = [];
+  let current = null;
+  for (const line of output.split(/\r?\n/)) {
+    if (line.startsWith('worktree ')) {
+      if (current) entries.push(current);
+      current = { path: line.slice('worktree '.length), branch: null };
+    } else if (line.startsWith('branch ') && current) {
+      current.branch = line.slice('branch '.length);
+    }
+  }
+  if (current) entries.push(current);
+  return entries;
+}
+
+function requireActiveWorkItemWorktree(repositoryRoot, workItem) {
+  requireGitRepository(repositoryRoot);
+  const gitDirectory = path.resolve(
+    repositoryRoot,
+    gitPath(repositoryRoot, ['rev-parse', '--git-dir']),
+  );
+  const commonGitDirectory = path.resolve(
+    repositoryRoot,
+    gitPath(repositoryRoot, ['rev-parse', '--git-common-dir']),
+  );
+  if (sameRealPath(gitDirectory, commonGitDirectory)) {
+    throw new Error(
+      'An isolated active work item cannot run from the non-work base checkout',
+    );
+  }
+
+  const baseRoot = path.dirname(realPath(commonGitDirectory));
+  const worktreesRoot = path.join(
+    path.dirname(baseRoot),
+    `${path.basename(baseRoot)}.worktrees`,
+  );
+  const expectedWorktree = path.join(worktreesRoot, workItem);
+  let worktreesStatus;
+  try {
+    worktreesStatus = fs.lstatSync(worktreesRoot);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error(
+        `Active work item is missing its deterministic worktrees directory: ${worktreesRoot}`,
+        { cause: error },
+      );
+    }
+    throw error;
+  }
+  if (
+    !worktreesStatus.isDirectory() ||
+    worktreesStatus.isSymbolicLink() ||
+    isRedirectedPath(worktreesRoot)
+  ) {
+    throw new Error(
+      'Active work item deterministic worktrees directory must not be redirected',
+    );
+  }
+  let expectedStatus;
+  try {
+    expectedStatus = fs.lstatSync(expectedWorktree);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error(
+        `Active work item is missing its deterministic worktree: ${expectedWorktree}`,
+        { cause: error },
+      );
+    }
+    throw error;
+  }
+  if (
+    expectedStatus.isSymbolicLink() ||
+    isRedirectedPath(expectedWorktree) ||
+    isRedirectedPath(repositoryRoot)
+  ) {
+    throw new Error(
+      'Active work item deterministic worktree must not be redirected',
+    );
+  }
+  if (!sameRealPath(repositoryRoot, expectedWorktree)) {
+    throw new Error(
+      `Active work item must run from its deterministic worktree: ${expectedWorktree}`,
+    );
+  }
+
+  const expectedBranch = `refs/heads/work/${workItem}`;
+  const branchWorktrees = listRegisteredWorktrees(repositoryRoot).filter(
+    (entry) => entry.branch === expectedBranch,
+  );
+  if (
+    branchWorktrees.length !== 1 ||
+    !sameRealPath(branchWorktrees[0].path, expectedWorktree)
+  ) {
+    throw new Error(
+      `Active work item ${workItem} is not registered at its deterministic worktree`,
+    );
+  }
+}
+
 function isImmutablePreReviewBatchRecord(workItemPath, contents) {
   const workItem = path.basename(path.dirname(workItemPath));
   const expectedHash = immutablePreReviewBatchRecords.get(workItem);
@@ -1023,7 +1157,6 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     'Status',
     /^(active|blocked|delivered)$/,
   );
-  if (status === 'active') requireActiveWorkItemBranch(root, workItem);
   const startedAt = readSingleField(contents, 'Started at', /^\S+$/);
   readSingleField(contents, 'Max time', /^[1-9]\d* (?:minutes?|hours?)$/);
   const lastTimeCheck = readSingleField(contents, 'Last time check', /^\S+$/);
@@ -1106,6 +1239,32 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     reviewSnapshot = null;
     reviewBarrier = { historical: true, blocker: null };
   }
+  const worktreeMatches = [...contents.matchAll(/^Worktree: (.+)\r?$/gm)];
+  if (worktreeMatches.length > 1) {
+    throw new Error('work-item.md must contain at most one Worktree field');
+  }
+  const worktreeMode = worktreeMatches[0]?.[1] ?? null;
+  if (worktreeMode !== null && worktreeMode !== 'isolated') {
+    throw new Error('Worktree must be isolated when declared');
+  }
+  if (
+    worktreeMode === null &&
+    !isImmutablePreReviewBatchRecord(workItemPath, contents)
+  ) {
+    throw new Error(
+      'Worktree: isolated is required except for immutable delivered historical records',
+    );
+  }
+  if (status === 'active') {
+    if (worktreeMode !== 'isolated') {
+      throw new Error(
+        'Active Workflow v2 work items must declare Worktree: isolated',
+      );
+    }
+    requireActiveWorkItemBranch(root, workItem);
+    requireActiveWorkItemWorktree(root, workItem);
+  }
+
   const dangerous = readSingleField(
     contents,
     'Dangerous deletion or irreversible data loss',
