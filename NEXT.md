@@ -19,7 +19,7 @@ Define issue #24, "Make design start input requirements actionable."
 
 ## Open Issue Queue
 
-1. #21 — Improve `jz-trello-flow` CLI authoring and discovery UX, with child issues #22 through #27; start with #22 unless definition finds a dependency overlap with the existing #6 documentation-discovery work.
+1. #21 — Improve `jz-trello-flow` CLI authoring and discovery UX, with child issues #22 through #27; continue with #24 unless definition finds a dependency overlap with the existing #6 documentation-discovery work.
 2. #6, then #7 through #10 — Existing Trello guidance and diagnostics track; #7 depends on #6, while #8 through #10 can be bundled when their shared seams justify it.
 3. #11 — Guided safe-mutation helper, after the guidance/diagnostic and delivery-authority tracks are stable.
 4. #5 — Parent closure after its child issues have accepted resolutions.
