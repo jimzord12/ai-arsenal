@@ -44,6 +44,7 @@ Review lifecycle:
 - An unsuccessful required review for a concrete candidate uses Review status: failed and Review snapshot: sha256:<64 lowercase hexadecimal characters>.
 - Complete required review evidence for a concrete candidate uses Review status: passed and Review snapshot: sha256:<64 lowercase hexadecimal characters>.
 - Before dispatch, a concrete review records a non-pending batch identifier, a JSON array of unique deterministic reviewer roles, and an initially empty JSON received-results array.
+- Independent review means another agent; it does not require a human reviewer. The reviewer runs in a separate agent session/process; repeated passes in one agent session are self-review, not independent evidence.
 - Reconciliation preserves every received result and permits passed only when every expected role has exactly one matching successful result and no mismatched or unexpected evidence exists.
 - Any repair that changes candidate bytes resets status, snapshot, batch, expected, and received fields to pending before re-review.
 - Review snapshot is the digest returned by scripts/calculate-review-snapshot.mjs; NEXT.md is excluded as routing-only state.

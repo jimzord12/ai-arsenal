@@ -960,12 +960,20 @@ function realPath(target) {
   return fs.realpathSync.native(path.resolve(target));
 }
 
+function normalizePath(target) {
+  const resolved = path.normalize(path.resolve(target));
+  return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+}
+
 function sameRealPath(first, second) {
-  const normalize = (target) => {
-    const resolved = realPath(target);
-    return process.platform === 'win32' ? resolved.toLowerCase() : resolved;
-  };
-  return normalize(first) === normalize(second);
+  return normalizePath(realPath(first)) === normalizePath(realPath(second));
+}
+
+function isRedirectedPath(target) {
+  return (
+    normalizePath(target) !==
+    normalizePath(fs.realpathSync(path.resolve(target)))
+  );
 }
 
 function listRegisteredWorktrees(repositoryRoot) {
@@ -1018,7 +1026,11 @@ function requireActiveWorkItemWorktree(repositoryRoot, workItem) {
     }
     throw error;
   }
-  if (!worktreesStatus.isDirectory() || worktreesStatus.isSymbolicLink()) {
+  if (
+    !worktreesStatus.isDirectory() ||
+    worktreesStatus.isSymbolicLink() ||
+    isRedirectedPath(worktreesRoot)
+  ) {
     throw new Error(
       'Active work item deterministic worktrees directory must not be redirected',
     );
@@ -1035,7 +1047,11 @@ function requireActiveWorkItemWorktree(repositoryRoot, workItem) {
     }
     throw error;
   }
-  if (expectedStatus.isSymbolicLink()) {
+  if (
+    expectedStatus.isSymbolicLink() ||
+    isRedirectedPath(expectedWorktree) ||
+    isRedirectedPath(repositoryRoot)
+  ) {
     throw new Error(
       'Active work item deterministic worktree must not be redirected',
     );
@@ -1229,11 +1245,22 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
   if (worktreeMode !== null && worktreeMode !== 'isolated') {
     throw new Error('Worktree must be isolated when declared');
   }
+  if (
+    worktreeMode === null &&
+    !isImmutablePreReviewBatchRecord(workItemPath, contents)
+  ) {
+    throw new Error(
+      'Worktree: isolated is required except for immutable delivered historical records',
+    );
+  }
   if (status === 'active') {
-    requireActiveWorkItemBranch(root, workItem);
-    if (worktreeMode === 'isolated') {
-      requireActiveWorkItemWorktree(root, workItem);
+    if (worktreeMode !== 'isolated') {
+      throw new Error(
+        'Active Workflow v2 work items must declare Worktree: isolated',
+      );
     }
+    requireActiveWorkItemBranch(root, workItem);
+    requireActiveWorkItemWorktree(root, workItem);
   }
 
   const dangerous = readSingleField(

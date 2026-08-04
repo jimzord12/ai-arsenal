@@ -3,18 +3,18 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-04
 **Project:** AI Arsenal monorepo
-**State:** Workflow v2 isolated worktree-per-item development and fail-closed CLI delivery evidence are delivered.
-**Current phase:** Workflow v2 delivery reconciliation review
+**State:** Workflow v2 fail-closed CLI delivery evidence is delivered; isolated worktree-per-item development passed final verification and awaits delivery.
+**Current phase:** Workflow v2 isolated-worktree delivery
 **Active work item:** `2026-08-04-create-isolated-worktrees`
 **Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Define issue #21, "Improve `jz-trello-flow` CLI authoring and discovery UX."
+Commit and push the verified issue #29 work branch, require successful Quality and Portability CI, then deliver the work item.
 
 ## Why This Is Next
 
-- Issue #29 delivered isolated worktree-per-item development; issue #21 is next in the recorded dependency order.
+- Final stable verification passed on the review-approved candidate. Delivery records the CI-green branch and reconciles active workflow state without merging or removing the branch/worktree.
 
 ## Open Issue Queue
 
@@ -31,11 +31,11 @@ Define issue #21, "Improve `jz-trello-flow` CLI authoring and discovery UX."
 
 ## Blockers / Escalation
 
-- No active blocker. Issue #29 was workflow policy only: no release, global replacement, live Trello mutation, worktree removal, or branch deletion occurred.
+- The user authorized a review-cycle reset and the inline Pi independent-agent review method. Repair the Quality CI shell quoting, then obtain fresh separate-agent evidence.
 
 ## Done When
 
-- Define issue #21 through `orchestrate-monorepo-work`; the delivered isolated-worktree policy remains validated.
+- Issue #29 passes fresh independent review, final verification, and both required CI workflows; then deliver it and route issue #21.
 
 ## Source of Truth
 

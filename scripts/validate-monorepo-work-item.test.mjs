@@ -129,6 +129,43 @@ function matchingReviewResults(snapshot = reviewDigest, batchId = reviewBatch) {
   }));
 }
 
+function qualityWorktreeSetupScript() {
+  const workflow = fs.readFileSync(qualityWorkflowPath, 'utf8');
+  const step = '      - name: Enter isolated active worktree\n';
+  const run = '        run: |\n';
+  const stepStart = workflow.indexOf(step);
+  const runStart = workflow.indexOf(run, stepStart);
+  const nextStep = workflow.indexOf('\n      - name:', runStart);
+  assert.ok(
+    stepStart >= 0 && runStart >= 0 && nextStep >= 0,
+    'Quality workflow must contain the active-worktree setup',
+  );
+  return workflow
+    .slice(runStart + run.length, nextStep)
+    .replace(/^ {10}/gm, '');
+}
+
+function resolveBashForSyntaxCheck() {
+  if (process.platform !== 'win32') {
+    return 'bash';
+  }
+
+  const gitExecPath = spawnSync('git', ['--exec-path'], {
+    encoding: 'utf8',
+  });
+  assert.equal(gitExecPath.status, 0, gitExecPath.stderr);
+  const bashPath = path.resolve(
+    gitExecPath.stdout.trim(),
+    '..',
+    '..',
+    '..',
+    'bin',
+    'bash.exe',
+  );
+  assert.ok(fs.existsSync(bashPath), `Git Bash is missing at ${bashPath}`);
+  return bashPath;
+}
+
 test('quality CI fetches delivery history and enters the active isolated worktree', () => {
   const workflow = fs.readFileSync(qualityWorkflowPath, 'utf8');
   assert.match(workflow, /uses: actions\/checkout@v6\s+with:\s+fetch-depth: 2/);
@@ -137,19 +174,31 @@ test('quality CI fetches delivery history and enters the active isolated worktre
   assert.match(workflow, /cd "\$QUALITY_WORKDIR"/);
 });
 
+test('Quality active-worktree setup is valid Bash', () => {
+  const result = spawnSync(resolveBashForSyntaxCheck(), ['-n'], {
+    input: qualityWorktreeSetupScript(),
+    encoding: 'utf8',
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+});
+
 function createFixture(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-arsenal-work-item-'));
-  const workItemDirectory = path.join(root, 'docs', 'work-items', workItemId);
-  fs.mkdirSync(workItemDirectory, { recursive: true });
-  t.after(() => fs.rmSync(root, { force: true, recursive: true }));
-  return { root, workItemDirectory };
+  return createNamedFixture(t, workItemId);
 }
 
 function createNamedFixture(t, id) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ai-arsenal-work-item-'));
+  const baseRoot = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'ai-arsenal-work-item-base-'),
+  );
+  const worktreesRoot = `${baseRoot}.worktrees`;
+  const root = path.join(worktreesRoot, id);
   const workItemDirectory = path.join(root, 'docs', 'work-items', id);
   fs.mkdirSync(workItemDirectory, { recursive: true });
-  t.after(() => fs.rmSync(root, { force: true, recursive: true }));
+  t.after(() => {
+    fs.rmSync(baseRoot, { force: true, recursive: true });
+    fs.rmSync(worktreesRoot, { force: true, recursive: true });
+  });
   return { root, workItemDirectory };
 }
 
@@ -294,13 +343,35 @@ function runGit(root, arguments_) {
   return result.stdout.trim();
 }
 
-function initializeGitFixture(root) {
-  runGit(root, ['init', '--quiet']);
-  runGit(root, ['config', 'user.name', 'Workflow Tests']);
-  runGit(root, ['config', 'user.email', 'workflow-tests@example.invalid']);
-  runGit(root, ['add', '.']);
-  runGit(root, ['commit', '--quiet', '-m', 'fixture baseline']);
-  runGit(root, ['switch', '--quiet', '-c', `work/${workItemId}`]);
+function initializeGitFixture(root, workItem = workItemId) {
+  if (fs.existsSync(path.join(root, '.git'))) return;
+  const worktreesRoot = path.dirname(root);
+  const baseRoot = path.join(
+    path.dirname(worktreesRoot),
+    path.basename(worktreesRoot, '.worktrees'),
+  );
+  for (const entry of fs.readdirSync(root)) {
+    fs.cpSync(path.join(root, entry), path.join(baseRoot, entry), {
+      recursive: true,
+    });
+  }
+  fs.rmSync(root, { force: true, recursive: true });
+
+  runGit(baseRoot, ['init', '--quiet']);
+  runGit(baseRoot, ['config', 'user.name', 'Workflow Tests']);
+  runGit(baseRoot, ['config', 'user.email', 'workflow-tests@example.invalid']);
+  runGit(baseRoot, ['config', 'core.autocrlf', 'false']);
+  runGit(baseRoot, ['add', '.']);
+  runGit(baseRoot, ['commit', '--quiet', '-m', 'fixture baseline']);
+  runGit(baseRoot, [
+    'worktree',
+    'add',
+    '--quiet',
+    '-b',
+    `work/${workItem}`,
+    root,
+    'HEAD',
+  ]);
 }
 
 function createCleanBaseFixture(t) {
@@ -472,6 +543,8 @@ function addV2WorkItem(
     prerequisites = 'resolved',
     approval = 'not-required',
     approvalSource = 'none',
+    worktreeMode = 'isolated',
+    withGit = true,
     finalVerificationResult = stage === 'deliver' ? 'passed' : 'pending',
     deliveryMode = 'not-required',
     deliveryEvidence = {},
@@ -513,7 +586,7 @@ Dangerous deletion or irreversible data loss: ${dangerous}
 Hard prerequisites: ${prerequisites}
 Approval: ${approval}
 Approval source: ${approvalSource}
-CLI local-delivery evidence: ${deliveryMode}
+${worktreeMode === null ? '' : `Worktree: ${worktreeMode}\n`}CLI local-delivery evidence: ${deliveryMode}
 
 ## Goal
 
@@ -540,23 +613,20 @@ ${stage === 'verify' || stage === 'deliver' ? 'No required findings.' : 'Pending
 Result: ${finalVerificationResult}
 ${deliveryEvidenceSection(deliveryMode, deliveryEvidence)}`,
   );
+  const repositoryRoot = path.resolve(workItemDirectory, '..', '..', '..');
+  if (
+    status === 'active' &&
+    withGit &&
+    !fs.existsSync(path.join(repositoryRoot, '.git'))
+  ) {
+    initializeGitFixture(repositoryRoot, workItem);
+  }
 }
 
 function addActiveIsolatedV2WorkItem(root, workItem = workItemId) {
   const workItemDirectory = path.join(root, 'docs', 'work-items', workItem);
   fs.mkdirSync(workItemDirectory, { recursive: true });
   addV2WorkItem(workItemDirectory, { workItem });
-  const workItemPath = path.join(workItemDirectory, 'work-item.md');
-  fs.writeFileSync(
-    workItemPath,
-    fs
-      .readFileSync(workItemPath, 'utf8')
-      .replace(
-        'CLI local-delivery evidence: not-required',
-        'Worktree: isolated\nCLI local-delivery evidence: not-required',
-      ),
-    'utf8',
-  );
   writeActiveState(root, workItem, 'implement-monorepo-change');
   return workItemDirectory;
 }
@@ -678,17 +748,6 @@ test('isolated active items require their exact deterministic worktree', (t) => 
   );
   fs.mkdirSync(matchingDirectory, { recursive: true });
   addV2WorkItem(matchingDirectory);
-  const matchingItemPath = path.join(matchingDirectory, 'work-item.md');
-  fs.writeFileSync(
-    matchingItemPath,
-    fs
-      .readFileSync(matchingItemPath, 'utf8')
-      .replace(
-        'CLI local-delivery evidence: not-required',
-        'Worktree: isolated\nCLI local-delivery evidence: not-required',
-      ),
-    'utf8',
-  );
   writeActiveState(
     matchingProvision.json.worktree,
     workItemId,
@@ -719,22 +778,61 @@ test('isolated active items require their exact deterministic worktree', (t) => 
   );
   fs.mkdirSync(redirectedDirectory, { recursive: true });
   addV2WorkItem(redirectedDirectory);
-  const redirectedItemPath = path.join(redirectedDirectory, 'work-item.md');
-  fs.writeFileSync(
-    redirectedItemPath,
-    fs
-      .readFileSync(redirectedItemPath, 'utf8')
-      .replace(
-        'CLI local-delivery evidence: not-required',
-        'Worktree: isolated\nCLI local-delivery evidence: not-required',
-      ),
-    'utf8',
-  );
   writeActiveState(redirectedRoot, workItemId, 'implement-monorepo-change');
 
   const redirected = runValidator(redirectedRoot);
   assert.equal(redirected.status, 1);
   assert.match(redirected.json.blocker, /deterministic worktree|worktree/i);
+});
+
+test('active v2 items reject omitted Worktree isolation', (t) => {
+  const fixture = createCleanBaseFixture(t);
+  const provisioned = runProvisioner(fixture.root);
+  assert.equal(provisioned.status, 0, provisioned.json.blocker);
+  const workItemDirectory = path.join(
+    provisioned.json.worktree,
+    'docs',
+    'work-items',
+    workItemId,
+  );
+  fs.mkdirSync(workItemDirectory, { recursive: true });
+  addV2WorkItem(workItemDirectory, { worktreeMode: null });
+  writeActiveState(
+    provisioned.json.worktree,
+    workItemId,
+    'implement-monorepo-change',
+  );
+
+  const result = runValidator(provisioned.json.worktree);
+
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /Worktree: isolated/i);
+});
+
+test('only immutable delivered historical records may omit Worktree isolation', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    status: 'delivered',
+    worktreeMode: null,
+  });
+  writeActiveState(fixture.root, 'none', 'none');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /Worktree: isolated.*immutable delivered/i);
+});
+
+test('active isolated items require Git metadata for exact worktree validation', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, { withGit: false });
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /requires Git repository metadata/i);
 });
 
 test('two isolated active items route and snapshot independently', (t) => {
@@ -888,6 +986,11 @@ test('live Workflow v2 authorities define one review-barrier contract', () => {
     ]) {
       assert.match(contents, new RegExp(field), `${name}: ${field}`);
     }
+    assert.match(
+      contents,
+      /another agent;\s*it\s*does not require a human reviewer/i,
+      `${name}: independent-agent review policy`,
+    );
   }
 
   for (const name of [
@@ -1488,7 +1591,10 @@ test('active deliver rejects dirty submodules even when repository config ignore
 
 test('freshness-required stages fail closed without Git metadata', (t) => {
   const fixture = createFixture(t);
-  addV2WorkItem(fixture.workItemDirectory, { stage: 'verify' });
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'verify',
+    withGit: false,
+  });
   writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
 
   const result = runValidator(fixture.root);

@@ -33,7 +33,7 @@ jobs:
       - name: Enter isolated active worktree
         shell: bash
         run: |
-          active_work_item="$(node -e "const fs=require('fs');const next=fs.readFileSync('NEXT.md','utf8');const match=next.match(/^\*\*Active work item:\*\* `([^`]+)`$/m);if(!match)process.exit(1);process.stdout.write(match[1])")"
+          active_work_item="$(node -e 'const fs = require("fs"); const next = fs.readFileSync("NEXT.md", "utf8"); const match = next.match(/^\*\*Active work item:\*\* `([^`]+)`$/m); if (!match) process.exit(1); process.stdout.write(match[1]);')"
           if [ "$active_work_item" = "none" ]; then
             echo "QUALITY_WORKDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
             exit 0

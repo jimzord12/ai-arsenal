@@ -51,9 +51,10 @@ redirected item worktree. The compact record and active `NEXT.md`
 route are then created only inside that new worktree; the base checkout remains
 clean with `none` / `none` active state.
 
-New compact items declare `Worktree: isolated`. Implementation, review,
-verification, and delivery must run from that exact registered worktree and its
-exact branch. The validator fails closed from the base checkout, another
+New compact items and every active v2 record declare `Worktree: isolated`.
+Implementation, review, verification, and delivery must run from that exact
+registered worktree and its exact branch. Only immutable delivered historical
+records may omit the declaration. The validator fails closed from the base checkout, another
 worktree, a detached checkout, a missing or redirected worktree, or another
 branch. The deterministic handoff for a new session is:
 
@@ -135,7 +136,10 @@ non-pending batch identifier, a JSON array of unique deterministic reviewer
 roles, and an initially empty JSON received-results array. `NEXT.md` is
 excluded from that candidate because it is routing-only state; the active
 work-item identity, safety classification, goal, non-goals, acceptance
-criteria, and implementation description remain snapshot input.
+criteria, and implementation description remain snapshot input. Independent
+review means another agent; it does not require a human reviewer. The reviewer
+runs in a separate agent session/process from the implementing agent; repeated
+passes in one agent session are self-review, not independent evidence.
 
 Each received result has exactly `reviewer`, `outcome`, `batchId`, and
 `snapshot`. Immediate and later-arriving results use the same reconciliation

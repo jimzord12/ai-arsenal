@@ -114,6 +114,21 @@ if (!/remov(?:e|al).*dangerous deletion/is.test(deliverSkill)) {
   );
 }
 
+for (const [file, contents] of [
+  ['AGENTS.md', agents],
+  ['docs/workflow/templates/work-item/work-item.md', compactTemplate],
+  ['.agents/skills/review-monorepo-change/SKILL.md', reviewSkill],
+  ['docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md', pipeline],
+]) {
+  if (
+    !/another agent;\s*it\s*does not require a human reviewer/i.test(contents)
+  ) {
+    errors.push(
+      `${file} must state that independent review means another agent; it does not require a human reviewer.`,
+    );
+  }
+}
+
 for (const [file, contents, requirements] of [
   [
     'AGENTS.md',

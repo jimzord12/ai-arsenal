@@ -34,6 +34,7 @@ Every expected role has exactly one matching successful result.
 A candidate-changing repair resets all five fields to pending; a repair that changes candidate bytes resets them to pending.
 Verify and deliver fail closed.
 Immutable historical compatibility requires an exact hash; immutable delivered records require an exact matching hash.
+Independent review means another agent; it does not require a human reviewer.
 `;
 const isolatedWorktreeFixture = `
 New items use work/<work-item-id> at <repository-parent>/<repository-name>.worktrees/<work-item-id>.

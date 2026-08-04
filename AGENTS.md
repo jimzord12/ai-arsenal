@@ -137,7 +137,10 @@ snapshot. Candidate-changing repair resets all five fields to pending; verify
 and deliver fail closed until a fresh complete batch passes. Historical
 compatibility is limited to validator-recognized immutable delivered records.
 The snapshot comes only from `scripts/calculate-review-snapshot.mjs`; `NEXT.md`
-is excluded as routing-only state.
+is excluded as routing-only state. Independent review means another agent; it
+does not require a human reviewer. The reviewer must run in a separate agent
+session/process from the implementing agent; repeated passes in one agent
+session are self-review, not independent evidence.
 
 ### Worktree-per-work-item development
 
@@ -147,8 +150,10 @@ Every new Workflow v2 item gets the dedicated branch
 `ai-arsenal.worktrees/2026-08-04-enforce-workflow-v2-delivery-evidence`.
 Definition runs from a clean, non-`work/*` base checkout, provisions that path,
 and writes the compact record and active `NEXT.md` route only in the new
-worktree. The base remains clean with no active item. Active validation requires
-both that exact registered worktree and branch through implementation, review,
+worktree. The base remains clean with no active item. Every active v2 compact
+record must declare `Worktree: isolated`; only immutable delivered historical
+records may omit that metadata. Active validation requires both that exact
+registered worktree and branch through implementation, review,
 verification, and delivery; agents must not resume from the base, another
 worktree, a detached checkout, or another branch. Delivery commits and pushes
 the same work branch but does not merge, delete, or remove branches/worktrees.

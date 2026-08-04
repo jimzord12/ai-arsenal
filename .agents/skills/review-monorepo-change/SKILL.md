@@ -23,11 +23,16 @@ routing-only state. Set a new non-pending batch identifier, and record a JSON
 array of unique, deterministic required reviewer roles in `Review expected`
 plus an initially empty JSON array in `Review received` before or with
 dispatch. Dispatch every
-required reviewer against that exact batch and snapshot. A result record has
-exactly `reviewer`, `outcome`, `batchId`, and `snapshot`; outcome is `passed`,
-`failed`, `cancelled`, or `unknown`. Persist received results even when review
-delegation returns synchronously; later-arriving results use the same record
-shape and reconciliation path.
+required reviewer against that exact batch and snapshot. Independent review
+means another agent; it does not require a human reviewer. The reviewer must
+run in a separate agent session/process from the implementing agent; repeated
+passes in one agent session are self-review, not independent evidence. A
+separate read-only Pi reviewer may be invoked with `pi --no-session -p` and a
+read-only tool allowlist such as `--tools read,grep,find,ls`; record only its
+actual result. A result record has exactly `reviewer`, `outcome`, `batchId`, and
+`snapshot`; outcome is `passed`, `failed`, `cancelled`, or `unknown`. Persist
+received results even when review delegation returns synchronously;
+later-arriving results use the same record shape and reconciliation path.
 
 Use `scripts/reconcile-review-batch.mjs` to reconcile all currently available
 results. Dispatch, local test success, an incomplete set, or any duplicate,

@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 review-barrier integration, isolated worktree-per-item development, fail-closed CLI delivery evidence, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered
+> **Status:** Workflow v2 review-barrier integration, fail-closed CLI delivery evidence, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered; isolated worktree-per-item development is in final review and repair
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-08-04
-> **Current phase:** Workflow v2 isolated-worktree policy delivered; no active item
+> **Current phase:** Workflow v2 isolated-worktree policy review and repair active
 > **Operator view:** `NEXT.md`
 
 ---
