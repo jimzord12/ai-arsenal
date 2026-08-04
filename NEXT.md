@@ -3,18 +3,18 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-04
 **Project:** AI Arsenal monorepo
-**State:** Workflow v2 branch-per-work-item development and fail-closed CLI delivery evidence are delivered.
-**Current phase:** No active work item
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** Workflow v2 item #22 is active on its dedicated work branch.
+**Current phase:** Per-command Trello CLI help
+**Active work item:** `2026-08-04-add-trello-command-help`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Define issue #21, "Improve `jz-trello-flow` CLI authoring and discovery UX."
+Implement issue #22, "Support per-command help for `jz-trello-flow`."
 
 ## Why This Is Next
 
-- Issues #13 and #12 are delivered; issue #21 is next in the recorded dependency order.
+- Issue #22 is the first independently reviewable child of issue #21. Its command-specific help is distinct from issue #6's offline documentation lookup convention, so it can proceed without a dependency overlap.
 
 ## Open Issue Queue
 
@@ -31,11 +31,12 @@ Define issue #21, "Improve `jz-trello-flow` CLI authoring and discovery UX."
 
 ## Blockers / Escalation
 
-- No active blocker. This workflow-policy item does not perform a release, global replacement, or live Trello mutation.
+- No active blocker. This CLI behavior item requires the complete private-release, exact-artifact, CI, global-replacement, and cross-shell installed-shim evidence chain before delivery.
 
 ## Done When
 
-- Define the next bounded work item through `orchestrate-monorepo-work`; the delivered Workflow v2 policy remains validated.
+- `jz-trello-flow` provides concise conventional `--help` output for every public command and subcommand, including required arguments, options, and a safe example.
+- Focused coverage preserves normal parser behavior, and the exact private release is packed, CI-validated, clean-consumer tested, globally installed, shim-repaired, independently smoked, and durably evidenced.
 
 ## Source of Truth
 

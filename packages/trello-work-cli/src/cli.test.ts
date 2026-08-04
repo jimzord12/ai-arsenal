@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 import { mutationCliResult, runWorkCli } from './cli';
+import { COMMAND_CATALOG } from './command-catalog';
 import type { WorkConfig } from './config';
 import { WorkCliError } from './errors';
 import { parseWorkUnit, renderWorkUnit } from './work-unit';
@@ -142,6 +143,69 @@ describe('jz-trello-flow process command contract', () => {
     ]) {
       expect(result.stdout).toContain(syntax);
     }
+  });
+
+  it.each(
+    COMMAND_CATALOG.map((command) => ({
+      args: command.syntax
+        .slice('jz-trello-flow '.length)
+        .split(' ')
+        .filter(
+          (token) =>
+            !token.startsWith('--') && !token.startsWith('<') && token !== '|',
+        ),
+      command,
+    })),
+  )(
+    'renders offline help for $command.id without configuration or mutation',
+    async ({ args, command }) => {
+      const result = await runWorkCli([...args, '--help']);
+
+      expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+      expect(result.stdout).toContain(command.syntax);
+      expect(result.stdout).toContain(`Options: ${command.options.join(', ')}`);
+      expect(result.stdout).toContain(`Example: ${command.example}`);
+      expect(command.example).not.toContain('|');
+      if (command.mutating) expect(command.example).toContain('--dry-run');
+      if (command.options.includes('--board')) {
+        expect(command.example).toContain('--board <id-or-exact-name>');
+      }
+    },
+  );
+
+  it.each([
+    ['draft', 'create'],
+    ['design', 'start'],
+    ['checklist', 'item', 'set'],
+  ])('renders process help for %s', async (...args) => {
+    const result = await runCli([...args, '--help']);
+
+    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(result.stdout).toContain(`jz-trello-flow ${args.join(' ')}`);
+    expect(result.stdout).toContain('Example:');
+  });
+
+  it.each([
+    [
+      ['draft', 'create'],
+      'jz-trello-flow draft create --file <work-unit.md> --dry-run --board <id-or-exact-name>',
+    ],
+    [
+      ['metadata', 'update'],
+      'jz-trello-flow metadata update <reference> --json <merge-patch> --dry-run --board <id-or-exact-name>',
+    ],
+    [
+      ['checklist', 'item', 'set'],
+      'jz-trello-flow checklist item set <reference> <checklist-id> <item-id> --checked --dry-run --board <id-or-exact-name>',
+    ],
+  ])('renders an executable dry-run example for %s', async (args, example) => {
+    const result = await runWorkCli([...args, '--help']);
+    const exampleLine = result.stdout
+      .split('\n')
+      .find((line) => line.startsWith('Example:'));
+
+    expect(exampleLine).toBe(`Example: ${example}`);
+    expect(exampleLine).not.toContain('|');
   });
 
   it.each(['-v', '--version'])(

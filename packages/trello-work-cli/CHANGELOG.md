@@ -1,5 +1,11 @@
 # @jz/ai-arsenal-trello-work-cli
 
+## 0.7.0
+
+### Minor Changes
+
+- Add offline per-command `--help` with complete options and safe dry-run examples.
+
 ## 0.6.0
 
 ### Minor Changes

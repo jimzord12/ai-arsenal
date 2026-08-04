@@ -3,12 +3,58 @@ export type CommandDefinition = {
   syntax: string;
   summary: string;
   options: string[];
+  example: string;
   mutating: boolean;
 };
 
+type BaseCommandDefinition = Omit<CommandDefinition, 'example'>;
+
 const MUTATION_SAFETY = ['--dry-run', '--if-version', '--operation-id'];
 
-const BASE_COMMAND_CATALOG: CommandDefinition[] = [
+const COMMAND_EXAMPLES: Record<string, string> = {
+  'skills-install': 'jz-trello-flow skills install --dry-run',
+  'boards-list': 'jz-trello-flow boards list',
+  'workflow-init': 'jz-trello-flow workflow init --dry-run',
+  'lists-list': 'jz-trello-flow lists list',
+  'lists-create': 'jz-trello-flow lists create --name Planning --dry-run',
+  'lists-update':
+    'jz-trello-flow lists update <list-id> --name Planning --dry-run',
+  'lists-close': 'jz-trello-flow lists close <list-id> --dry-run',
+  get: 'jz-trello-flow get <reference>',
+  list: 'jz-trello-flow list',
+  'inbox-list': 'jz-trello-flow inbox list',
+  'draft-create': 'jz-trello-flow draft create --file <work-unit.md> --dry-run',
+  'design-start':
+    'jz-trello-flow design start <card-reference> --file <work-unit.md> --dry-run',
+  create: 'jz-trello-flow create --file <work-unit.md> --dry-run',
+  'metadata-update':
+    'jz-trello-flow metadata update <reference> --json <merge-patch> --dry-run',
+  'description-replace':
+    'jz-trello-flow description replace <reference> --file <description.md> --dry-run',
+  'description-patch':
+    'jz-trello-flow description patch <reference> --section <section> --file <content.md> --dry-run',
+  transition: 'jz-trello-flow transition <reference> <target-status> --dry-run',
+  reconcile: 'jz-trello-flow reconcile <reference> --dry-run',
+  'validate-file': 'jz-trello-flow validate --file <work-unit.md>',
+  'validate-remote': 'jz-trello-flow validate <reference>',
+  'checklist-list': 'jz-trello-flow checklist list <reference>',
+  'checklist-create':
+    'jz-trello-flow checklist create <reference> --name Planning --dry-run',
+  'checklist-update':
+    'jz-trello-flow checklist update <reference> <checklist-id> --name Planning --dry-run',
+  'checklist-item-set':
+    'jz-trello-flow checklist item set <reference> <checklist-id> <item-id> --checked --dry-run',
+  doctor: 'jz-trello-flow doctor',
+  docs: 'jz-trello-flow docs --list',
+};
+
+function requiredExample(command: BaseCommandDefinition): string {
+  const example = COMMAND_EXAMPLES[command.id];
+  if (!example) throw new Error(`Missing help example for ${command.id}.`);
+  return example;
+}
+
+const BASE_COMMAND_CATALOG: BaseCommandDefinition[] = [
   {
     id: 'skills-install',
     syntax: 'jz-trello-flow skills install',
@@ -212,21 +258,25 @@ const BASE_COMMAND_CATALOG: CommandDefinition[] = [
 ];
 
 export const COMMAND_CATALOG: CommandDefinition[] = BASE_COMMAND_CATALOG.map(
-  (command) =>
-    command.id === 'docs' ||
-    command.id === 'validate-file' ||
-    command.id === 'boards-list' ||
-    command.id === 'skills-install'
-      ? command
-      : {
-          ...command,
-          syntax: `${command.syntax} --board <id-or-exact-name>`,
-          options: [
-            ...command.options,
-            ...(command.options.includes('--hermes-env')
-              ? []
-              : ['--hermes-env']),
-            '--board',
-          ],
-        },
+  (command) => {
+    const example = requiredExample(command);
+    if (
+      command.id === 'docs' ||
+      command.id === 'validate-file' ||
+      command.id === 'boards-list' ||
+      command.id === 'skills-install'
+    ) {
+      return { ...command, example };
+    }
+    return {
+      ...command,
+      syntax: `${command.syntax} --board <id-or-exact-name>`,
+      options: [
+        ...command.options,
+        ...(command.options.includes('--hermes-env') ? [] : ['--hermes-env']),
+        '--board',
+      ],
+      example: `${example} --board <id-or-exact-name>`,
+    };
+  },
 );

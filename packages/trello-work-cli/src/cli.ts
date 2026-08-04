@@ -21,7 +21,7 @@ import {
 } from './config';
 import { createWorkUnit } from './create';
 import { startDesign } from './design';
-import { renderDocs, renderShortHelp } from './docs';
+import { renderCommandHelp, renderDocs, renderShortHelp } from './docs';
 import { asWorkCliError, formatWorkError, WorkCliError } from './errors';
 import {
   closeBoardList,
@@ -516,6 +516,11 @@ export async function runWorkCli(
 ): Promise<CliResult> {
   if (args.length === 0 || args[0] === '--help' || args[0] === 'help') {
     return { exitCode: 0, stderr: '', stdout: WORK_HELP };
+  }
+  const helpIndex = args.indexOf('--help');
+  if (helpIndex > 0) {
+    const commandHelp = renderCommandHelp(args.slice(0, helpIndex));
+    if (commandHelp) return { exitCode: 0, stderr: '', stdout: commandHelp };
   }
   if (args.length === 1 && (args[0] === '-v' || args[0] === '--version')) {
     const version =

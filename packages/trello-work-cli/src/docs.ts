@@ -100,6 +100,40 @@ export function renderShortHelp(): string {
   ].join('\n');
 }
 
+function commandPath(command: CommandDefinition): string[] {
+  const tokens = command.syntax.slice('jz-trello-flow '.length).split(' ');
+  const argumentIndex = tokens.findIndex(
+    (token) => token.startsWith('--') || token.startsWith('<') || token === '|',
+  );
+  return argumentIndex === -1 ? tokens : tokens.slice(0, argumentIndex);
+}
+
+export function renderCommandHelp(
+  requestedPath: readonly string[],
+): string | undefined {
+  const matches = COMMAND_CATALOG.filter((command) => {
+    const path = commandPath(command);
+    return (
+      requestedPath.length > 0 &&
+      requestedPath.length <= path.length &&
+      requestedPath.every((token, index) => token === path[index])
+    );
+  });
+  if (matches.length === 0) return undefined;
+
+  return [
+    'jz-trello-flow command help:',
+    '',
+    ...matches.flatMap((command) => [
+      command.syntax,
+      command.summary,
+      `Options: ${command.options.join(', ') || 'none'}`,
+      `Example: ${command.example}`,
+      '',
+    ]),
+  ].join('\n');
+}
+
 function commandText(command: CommandDefinition): string {
   return [
     `### ${command.syntax}`,
