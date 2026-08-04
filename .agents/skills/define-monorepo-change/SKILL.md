@@ -41,6 +41,9 @@ define state. These are valid stops, not structural corruption.
 Every newly defined compact item declares `Worktree: isolated` and starts with
 `Review status: pending` and `Review snapshot: pending`; absence of findings is
 never initial review evidence.
+Classify `CLI local-delivery evidence` during definition. Required CLI behavior
+work starts with `CLI release preparation: pending`; all other work uses
+`CLI release preparation: not-required`.
 For either stop, keep `NEXT.md` registered at `define-monorepo-change`; valid
 validator output has no next skill and names the blocker.
 

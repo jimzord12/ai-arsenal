@@ -21,12 +21,30 @@ counter to zero before continuing. The validator can check only this recorded
 value, not unrecorded conversational turns.
 
 Update the compact implementation summary with changed paths, decisions, and
-focused command results. Dangerous actions also require fresh confirmation
-immediately before execution. Before entering review, reset
-`Review status: pending`, `Review snapshot: pending`, `Review batch: pending`,
-`Review expected: pending`, and `Review received: pending`; this full reset is
-also required after any implementation repair that changes candidate bytes.
-Then set `Stage: review` and route `NEXT.md` to `review-monorepo-change`.
+focused command results.
+For required CLI behavior work, complete release preparation during
+implementation before entering review. Choose the SemVer bump, preflight
+`.changeset/*.md`, and block on an unrelated pending Changeset rather than
+consuming it. Create exactly one Changeset for the declared package and run
+`pnpm version-packages`. Require that Changeset to be consumed and inspect the
+versioning diff: only the declared package manifest and sibling changelog plus
+Changesets' expected removal may change. Unexpected package or version output
+remains in implementation for correction. After focused package checks pass,
+record the canonical single-line object:
+`CLI release preparation: {"status":"complete","package":"<package-name>","version":"<semver>","manifest":"<relative-package.json-path>","changelog":"<relative-sibling-CHANGELOG.md-path>"}`.
+The generated manifest and changelog are candidate bytes for review; the
+consumed Changeset is not part of the final candidate.
+Required CLI release preparation therefore completes before review. Delivery
+must not create or apply Changesets or edit package source, manifest, or
+changelog.
+
+Dangerous actions also require fresh confirmation immediately before execution.
+Before entering review, require complete CLI release preparation when applicable,
+then reset `Review status: pending`, `Review snapshot: pending`,
+`Review batch: pending`, `Review expected: pending`, and
+`Review received: pending`; this full reset is also required after any
+implementation repair that changes candidate bytes. Then set `Stage: review`
+and route `NEXT.md` to `review-monorepo-change`.
 
 The v1 artifact instructions below apply only to historical directories
 without `work-item.md`.

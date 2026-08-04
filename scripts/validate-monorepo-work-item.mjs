@@ -71,6 +71,7 @@ const artifactByKey = new Map(
   ]),
 );
 const workItemPattern = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const semverPattern = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
 const immutablePreReviewBatchRecords = new Map([
   [
     '2026-07-29-workflow-v2',
@@ -712,8 +713,183 @@ function parseDeliveryJson(value, label) {
 function deliveryEvidenceFailure(message) {
   throw new Error(`Delivery evidence ${message}`);
 }
+function validateCliReleasePreparation({
+  contents,
+  deliveryMode,
+  stage,
+  status,
+  repositoryRoot,
+}) {
+  const matches = [
+    ...contents.matchAll(/^CLI release preparation: (.+)\r?$/gm),
+  ];
+  const usesCurrentIsolatedSchema = /^Worktree: isolated\r?$/m.test(contents);
+  if (matches.length === 0) {
+    if (status === 'delivered' && !usesCurrentIsolatedSchema) return null;
+    throw new Error(
+      'work-item.md must contain one valid CLI release preparation field',
+    );
+  }
+  if (matches.length !== 1) {
+    throw new Error(
+      'work-item.md must contain one valid CLI release preparation field',
+    );
+  }
 
-function validateRequiredDeliveryEvidence(contents, status) {
+  const value = matches[0][1];
+  if (deliveryMode === 'not-required') {
+    if (value !== 'not-required') {
+      throw new Error(
+        'CLI release preparation must be not-required when CLI local-delivery evidence is not-required',
+      );
+    }
+    return null;
+  }
+  if (value === 'not-required') {
+    throw new Error(
+      'Required CLI work must declare pending or complete CLI release preparation',
+    );
+  }
+  if (value === 'pending') {
+    if (stage !== 'define' && stage !== 'implement') {
+      throw new Error(
+        'Required CLI release preparation must complete before review',
+      );
+    }
+    return null;
+  }
+
+  let preparation;
+  try {
+    preparation = JSON.parse(value);
+  } catch {
+    throw new Error('CLI release preparation must contain valid JSON');
+  }
+  if (
+    !preparation ||
+    Array.isArray(preparation) ||
+    typeof preparation !== 'object'
+  ) {
+    throw new Error('CLI release preparation must contain a JSON object');
+  }
+  const expectedKeys = [
+    'status',
+    'package',
+    'version',
+    'manifest',
+    'changelog',
+  ];
+  const actualKeys = Object.keys(preparation);
+  if (
+    actualKeys.length !== expectedKeys.length ||
+    expectedKeys.some((key) => !actualKeys.includes(key))
+  ) {
+    throw new Error(
+      'CLI release preparation must contain exactly status, package, version, manifest, and changelog',
+    );
+  }
+  if (preparation.status !== 'complete') {
+    throw new Error('CLI release preparation status must be complete');
+  }
+  if (
+    typeof preparation.package !== 'string' ||
+    preparation.package.length === 0 ||
+    typeof preparation.version !== 'string' ||
+    !semverPattern.test(preparation.version)
+  ) {
+    throw new Error(
+      'CLI release preparation requires a package name and SemVer version',
+    );
+  }
+
+  const normalizeReleasePath = (value_, label) => {
+    if (
+      typeof value_ !== 'string' ||
+      value_.length === 0 ||
+      path.isAbsolute(value_) ||
+      path.win32.isAbsolute(value_)
+    ) {
+      throw new Error(
+        `CLI release preparation ${label} must be a safe repository-relative path`,
+      );
+    }
+    const normalized = value_.replaceAll('\\', '/');
+    if (normalized.split('/').includes('..')) {
+      throw new Error(
+        `CLI release preparation ${label} must be a safe repository-relative path`,
+      );
+    }
+    return normalized;
+  };
+  const manifest = normalizeReleasePath(preparation.manifest, 'manifest');
+  const changelog = normalizeReleasePath(preparation.changelog, 'changelog');
+  if (path.posix.basename(manifest) !== 'package.json') {
+    throw new Error('CLI release preparation manifest must be package.json');
+  }
+  if (
+    path.posix.basename(changelog) !== 'CHANGELOG.md' ||
+    path.posix.dirname(changelog) !== path.posix.dirname(manifest)
+  ) {
+    throw new Error(
+      'CLI release preparation changelog must be CHANGELOG.md beside the manifest',
+    );
+  }
+
+  const manifestPath = path.resolve(repositoryRoot, manifest);
+  const changelogPath = path.resolve(repositoryRoot, changelog);
+  for (const [label, artifactPath] of [
+    ['manifest', manifestPath],
+    ['changelog', changelogPath],
+  ]) {
+    let artifact;
+    try {
+      artifact = fs.statSync(artifactPath);
+    } catch {
+      throw new Error(
+        `CLI release preparation ${label} must reference an existing regular file`,
+      );
+    }
+    if (!artifact.isFile()) {
+      throw new Error(
+        `CLI release preparation ${label} must reference an existing regular file`,
+      );
+    }
+  }
+
+  let packageManifest;
+  try {
+    packageManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  } catch {
+    throw new Error(
+      'CLI release preparation manifest must contain valid package JSON',
+    );
+  }
+  if (
+    packageManifest.name !== preparation.package ||
+    packageManifest.version !== preparation.version
+  ) {
+    throw new Error(
+      'CLI release preparation package and version must match the manifest',
+    );
+  }
+  const changelogContents = fs.readFileSync(changelogPath, 'utf8');
+  const escapedVersion = preparation.version.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&',
+  );
+  if (!new RegExp(`^## ${escapedVersion}\\r?$`, 'm').test(changelogContents)) {
+    throw new Error(
+      'CLI release preparation changelog must contain the exact version heading',
+    );
+  }
+  return preparation;
+}
+
+function validateRequiredDeliveryEvidence(
+  contents,
+  status,
+  releasePreparation,
+) {
   const fields = parseDeliveryEvidence(contents);
   if (!fields) {
     if (status === 'delivered') {
@@ -792,10 +968,18 @@ function validateRequiredDeliveryEvidence(contents, status) {
     !packageEvidence ||
     typeof packageEvidence.name !== 'string' ||
     packageEvidence.name.length === 0 ||
-    typeof packageEvidence.version !== 'string' ||
-    !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(packageEvidence.version)
+    !semverPattern.test(packageEvidence.version)
   ) {
     deliveryEvidenceFailure('package name and SemVer are required');
+  }
+  if (
+    releasePreparation &&
+    (packageEvidence.name !== releasePreparation.package ||
+      packageEvidence.version !== releasePreparation.version)
+  ) {
+    deliveryEvidenceFailure(
+      'package name/version must match CLI release preparation',
+    );
   }
 
   const tarball = parseDeliveryJson(fields.Tarball, 'Tarball');
@@ -1292,6 +1476,13 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     );
   }
   const deliveryMode = deliveryModeMatches[0]?.[1] ?? 'not-required';
+  const releasePreparation = validateCliReleasePreparation({
+    contents,
+    deliveryMode,
+    stage,
+    status,
+    repositoryRoot: root,
+  });
   if (
     !deliveryModeMatches.length &&
     status !== 'delivered' &&
@@ -1305,7 +1496,7 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     deliveryMode === 'required' &&
     (stage === 'deliver' || status === 'delivered')
   ) {
-    validateRequiredDeliveryEvidence(contents, status);
+    validateRequiredDeliveryEvidence(contents, status, releasePreparation);
   }
 
   for (const timestamp of [startedAt, lastTimeCheck]) {

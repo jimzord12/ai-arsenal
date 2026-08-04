@@ -41,6 +41,10 @@ New items use work/<work-item-id> at <repository-parent>/<repository-name>.workt
 Worktree: isolated.
 Worktree removal is dangerous deletion.
 `;
+const cliReleasePolicyFixture = `
+CLI release preparation completes before review.
+Delivery must not create or apply Changesets or edit package source, manifest, or changelog.
+`;
 
 function write(relativePath, content) {
   const absolutePath = path.join(root, relativePath);
@@ -53,7 +57,7 @@ function createFixture() {
 
   write(
     'AGENTS.md',
-    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${normalSkills.join('\n')}\n${reviewBarrierFixture}${isolatedWorktreeFixture}`,
+    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${normalSkills.join('\n')}\n${reviewBarrierFixture}${isolatedWorktreeFixture}${cliReleasePolicyFixture}`,
   );
   write(
     'NEXT.md',
@@ -74,7 +78,7 @@ function createFixture() {
   );
   write(
     'docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md',
-    `# Pipeline\n${reviewBarrierFixture}${isolatedWorktreeFixture}`,
+    `# Pipeline\n${reviewBarrierFixture}${isolatedWorktreeFixture}${cliReleasePolicyFixture}`,
   );
   write(
     'docs/workflow/WORKFLOW_OVERVIEW.md',
@@ -86,7 +90,7 @@ function createFixture() {
   );
   write(
     'docs/workflow/templates/work-item/work-item.md',
-    `## Goal\n## Non-goals\n## Acceptance criteria\nStarted at:\nMax time:\nWorktree: isolated\n## Implementation summary\n## Review findings and repairs\n## Final verification\n${reviewBarrierFixture}${isolatedWorktreeFixture}`,
+    `## Goal\n## Non-goals\n## Acceptance criteria\nStarted at:\nMax time:\nWorktree: isolated\n## Implementation summary\n## Review findings and repairs\n## Final verification\n${reviewBarrierFixture}${isolatedWorktreeFixture}${cliReleasePolicyFixture}`,
   );
   write(
     'package.json',
@@ -111,6 +115,13 @@ function createFixture() {
       skill === 'review-monorepo-change' ? reviewBarrierFixture : '',
       skill === 'define-monorepo-change'
         ? 'provision-monorepo-worktree.mjs\n'
+        : '',
+      [
+        'implement-monorepo-change',
+        'review-monorepo-change',
+        'deliver-monorepo-change',
+      ].includes(skill)
+        ? cliReleasePolicyFixture
         : '',
       isolatedWorktreeFixture,
     ].join('');
@@ -161,6 +172,23 @@ test('accepts a complete routed-workflow fixture', () => {
   const result = validate(fixture);
 
   assert.equal(result.status, 0, result.stderr);
+});
+
+test('rejects live authority without CLI release preparation policy', () => {
+  const fixture = createFixture();
+  const skillPath = path.join(
+    fixture,
+    '.agents/skills/implement-monorepo-change/SKILL.md',
+  );
+  fs.writeFileSync(
+    skillPath,
+    fs.readFileSync(skillPath, 'utf8').replace(cliReleasePolicyFixture, ''),
+  );
+
+  const result = validate(fixture);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /pre-review release preparation/i);
+  assert.match(result.stderr, /delivery package-byte prohibition/i);
 });
 
 test('rejects a fixture missing a normal pipeline skill', () => {

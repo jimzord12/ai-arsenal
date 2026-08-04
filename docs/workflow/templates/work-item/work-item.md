@@ -20,6 +20,7 @@ Approval: <not-required|required|approved>
 Approval source: <none|verbatim direct user approval>
 Worktree: isolated
 CLI local-delivery evidence: <required|not-required>
+CLI release preparation: <pending|not-required|{"status":"complete","package":"<package-name>","version":"<semver>","manifest":"<relative-package.json-path>","changelog":"<relative-sibling-CHANGELOG.md-path>"}>
 
 <!--
 Worktree policy: definition runs only from a clean, non-`work/*` base checkout
@@ -38,6 +39,13 @@ one line for each of: Delivery result, Artifact-bearing commit, Remote ref
 equality, Required CI, Package, Tarball, Global replacement, Installed-shim
 smoke, Installed artifact provenance, Rollback, and Clean worktree. Delivery
 cannot close until every category is successful and mutually consistent.
+Required CLI work uses `CLI release preparation: pending` through definition and
+implementation, then records the complete package/version/manifest/changelog
+object after Changesets has generated the final package bytes and before review.
+Non-CLI work uses `CLI release preparation: not-required`. Delivery must not
+create or apply Changesets or edit package source, manifest, or changelog bytes;
+package-byte defects return to implementation and a fresh bounded review.
+
 
 Review lifecycle:
 - Definition and entry into review use Review status: pending and Review snapshot: pending.

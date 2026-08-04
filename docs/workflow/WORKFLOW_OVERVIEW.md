@@ -27,6 +27,13 @@ remove branches/worktrees. Removing a worktree is dangerous deletion and needs
 direct confirmation. The normative contract is
 [`MONOREPO_WORK_ITEM_PIPELINE.md`](MONOREPO_WORK_ITEM_PIPELINE.md).
 
+Required CLI behavior work completes its Changeset, package version, and
+generated changelog during implementation, then reviews those final package
+bytes. Delivery commits/pushes, observes exact-SHA CI, packs/installs/smokes,
+and records evidence without changing package source, manifest, or changelog.
+Any candidate repair resets the full review batch; an unsuccessful fourth
+cycle blocks.
+
 ## Resume, Stops, and Repair
 
 `NEXT.md` records one active work item and its current pipeline step. Awaiting

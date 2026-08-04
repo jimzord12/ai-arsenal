@@ -18,10 +18,18 @@ Remote ref equality, Required CI, Package, Tarball, Global replacement,
 Installed-shim smoke, Installed artifact provenance, Rollback, and Clean
 worktree; pending, failed, missing, or inconsistent evidence cannot close it.
 Ordinary non-CLI work remains exempt.
+Required CLI release preparation completed before review and must remain
+unchanged.
+Delivery must preserve the exact reviewed package candidate. Never create or
+apply a Changeset or edit package source, package manifest, package changelog,
+or the `CLI release preparation` declaration during delivery. A package-byte
+defect returns to implementation and a fresh review when the four-cycle budget
+remains. After an unsuccessful fourth cycle, block the item and require a
+successor; never exempt release bytes or add another review cycle.
 
 For ordinary source work, commit and push the exact verified attributable
 snapshot to the matching work branch and observe required CI. For CLI behavior work governed by the root
-versioned local-delivery rules, use this bounded two-step sequence:
+versioned local-delivery rules, use this bounded sequence:
 
 1. Commit and push the reviewed implementation snapshot, then require its
    applicable CI to pass.

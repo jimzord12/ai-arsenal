@@ -25,8 +25,9 @@ define → implement → review/repair → verify → deliver
 
 - `orchestrate-monorepo-work` is the read-only entry point.
 - `define-monorepo-change` creates one compact `work-item.md` and registers it.
-- `implement-monorepo-change` uses focused test-first changes and records the
-  implementation summary.
+- `implement-monorepo-change` uses focused test-first changes, completes required
+  CLI release preparation through Changesets, and records the implementation
+  summary before review.
 - `review-monorepo-change` consolidates findings, repairs all Critical, High,
   Medium, and acceptance-related Minor findings, and ignores optional or
   out-of-scope polish. It permits at most four repair/re-review cycles.
@@ -34,9 +35,10 @@ define → implement → review/repair → verify → deliver
   required gates once on the final stable snapshot. After a repair, rerun only
   invalidated checks.
 - `deliver-monorepo-change` records the verified result, reconciles current
-  planning truth, reruns only checks invalidated by its delivery edits, clears
-  active registration, and may commit/push unless the work item narrows Git
-  delivery.
+  planning truth, reruns only checks invalidated by its delivery-record edits,
+  clears active registration, and may commit/push unless the work item narrows
+  Git delivery. It cannot mutate reviewed package source, manifest, or changelog
+  bytes.
 
 ## Worktree-per-work-item development
 
@@ -94,6 +96,14 @@ category is successful and mutually consistent with the artifact SHA and
 package version. Ordinary non-CLI work remains exempt; delivered historical
 records without the new field remain readable without fabricated evidence.
 
+Every current isolated-schema item also declares `CLI release preparation`.
+Non-CLI work uses `not-required`. Required CLI work uses `pending` only during
+define/implement, then records the complete package name, SemVer, manifest, and
+sibling changelog after `pnpm version-packages` and before review. The validator
+checks those files against the declaration. Delivery evidence must match that
+prepared package and version. Older immutable delivered records remain readable
+without retroactive fields.
+
 Routine work requires no approval artifact or digest. Direct user approval is
 required only for dangerous deletion or irreversible data loss. Until it is
 recorded, `Approval: required` with blocked status is an intentional valid stop;
@@ -148,10 +158,13 @@ remains pending. A complete matching batch with any unsuccessful required
 result is failed. Passed means every expected reviewer appears exactly once
 with a matching successful result and no invalid extra evidence.
 
-A candidate-changing repair resets all five review fields to pending before a
-new snapshot and batch. Verify and deliver fail closed unless review is passed,
-the complete batch matches the recorded snapshot, and that snapshot still
-matches the current candidate. Newly delivered records retain that evidence
+A candidate-changing repair resets all five review fields to pending; this
+includes any source, manifest, changelog, or release-preparation change. Record
+one new snapshot and dispatch one consolidated replacement batch.
+Verify and deliver fail closed unless review is passed, the complete batch
+matches the recorded snapshot, and
+that snapshot still matches the current candidate. Newly delivered records
+retain that evidence
 and require a clean candidate. Immutable historical compatibility is limited
 to the validator's pre-batch delivered-record allowlist, where each exact hash
 must match; newly fabricated or modified records cannot claim it.
@@ -428,9 +441,11 @@ Stages 1–5 write planning artifacts only, except that definition creates the
 required `work/<work-item-id>` branch from a clean base checkout. Implementation
 is the only stage that may change product, test, or product documentation files.
 Verification records
-evidence and may create only isolated disposable test output. Delivery updates planning records and may commit and push the exact verified,
-attributable snapshot when the contract does not forbid Git delivery. For
-Workflow v2 CLI behavior work, root package policy may additionally require
+evidence and may create only isolated disposable test output. Delivery updates
+planning/evidence records and may commit and push the exact verified,
+attributable snapshot when the contract does not forbid Git delivery. It must
+not create/apply Changesets or edit package source, manifest, or changelog.
+For Workflow v2 CLI behavior work, root package policy may additionally require
 post-CI packing and versioned local installation before the item is marked
 delivered; `deliver-monorepo-change` owns that bounded operation and its
 evidence. Registry publication, destructive history rewriting, and source

@@ -545,6 +545,13 @@ pending before re-review. The four-cycle limit remains unchanged. Delivered
 compact records using the retired `Required findings remaining: no` field stay
 readable without rewriting their historical bytes.
 
+Required CLI items declare release preparation separately from post-CI local-
+delivery evidence. Definition starts it pending; implementation preflights
+Changesets, selects SemVer, applies one package Changeset, verifies the generated
+manifest/changelog, and records their package/version/paths before review.
+Non-CLI items use `not-required`. The declaration and generated package bytes
+remain ordinary snapshot inputs.
+
 Workflow v2 now has one reusable deterministic review-candidate calculation at
 `scripts/calculate-review-snapshot.mjs`. It binds tracked changes from `HEAD`
 and non-ignored additions through normalized repository-relative paths,
@@ -606,6 +613,12 @@ fail-closed CLI delivery evidence are delivered. Current v2 items declare
 whether CLI local-delivery evidence is required; required evidence remains
 active until artifact, remote, CI, package, tarball, installation, smoke,
 provenance, rollback, and clean-worktree results are complete and consistent.
+Delivery evidence must match the prepared package name and version. Delivery
+cannot create/apply Changesets or edit reviewed package source, manifest, or
+changelog bytes; it only commits and pushes that candidate, observes exact-SHA
+CI, packs/installs/smokes the artifact, and records excluded evidence. Any
+package-byte repair returns to implementation and resets the complete review
+batch. An unsuccessful fourth cycle blocks without an exemption or extra cycle.
 Ordinary non-CLI items remain exempt. Active items are developed only in their
 matching isolated `work/<work-item-id>` worktree, and delivery does not merge,
 delete, prune, or remove that branch/worktree.

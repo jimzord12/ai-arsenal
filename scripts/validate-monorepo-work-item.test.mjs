@@ -549,6 +549,49 @@ function completeDeliveryEvidence(overrides = {}) {
   return { ...evidence, ...overrides };
 }
 
+function completeCliReleasePreparation(overrides = {}) {
+  return {
+    status: 'complete',
+    package: '@jz/ai-arsenal-example',
+    version: '1.2.3',
+    manifest: 'packages/example/package.json',
+    changelog: 'packages/example/CHANGELOG.md',
+    ...overrides,
+  };
+}
+
+function writeCliReleasePreparationArtifacts(root, preparation) {
+  if (!preparation || typeof preparation !== 'object') return;
+  const manifestPath = path.resolve(root, preparation.manifest ?? '');
+  const changelogPath = path.resolve(root, preparation.changelog ?? '');
+  const relativeManifest = path.relative(root, manifestPath);
+  const relativeChangelog = path.relative(root, changelogPath);
+  if (
+    relativeManifest.startsWith('..') ||
+    path.isAbsolute(relativeManifest) ||
+    relativeChangelog.startsWith('..') ||
+    path.isAbsolute(relativeChangelog)
+  ) {
+    return;
+  }
+  fs.mkdirSync(path.dirname(manifestPath), { recursive: true });
+  fs.mkdirSync(path.dirname(changelogPath), { recursive: true });
+  fs.writeFileSync(
+    manifestPath,
+    `${JSON.stringify(
+      { name: preparation.package, version: preparation.version },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+  fs.writeFileSync(
+    changelogPath,
+    `# Changelog\n\n## ${preparation.version}\n\n- Fixture release.\n`,
+    'utf8',
+  );
+}
+
 function addV2WorkItem(
   workItemDirectory,
   {
@@ -584,6 +627,11 @@ function addV2WorkItem(
     withGit = true,
     finalVerificationResult = stage === 'deliver' ? 'passed' : 'pending',
     deliveryMode = 'not-required',
+    releasePreparation = deliveryMode === 'not-required'
+      ? 'not-required'
+      : ['define', 'implement'].includes(stage)
+        ? 'pending'
+        : completeCliReleasePreparation(),
     deliveryEvidence = {},
     workItem = workItemId,
   } = {},
@@ -624,6 +672,11 @@ Hard prerequisites: ${prerequisites}
 Approval: ${approval}
 Approval source: ${approvalSource}
 ${worktreeMode === null ? '' : `Worktree: ${worktreeMode}\n`}CLI local-delivery evidence: ${deliveryMode}
+CLI release preparation: ${
+      typeof releasePreparation === 'string'
+        ? releasePreparation
+        : JSON.stringify(releasePreparation)
+    }
 
 ## Goal
 
@@ -651,6 +704,8 @@ Result: ${finalVerificationResult}
 ${deliveryEvidenceSection(deliveryMode, deliveryEvidence)}`,
   );
   const repositoryRoot = path.resolve(workItemDirectory, '..', '..', '..');
+  writeCliReleasePreparationArtifacts(repositoryRoot, releasePreparation);
+
   if (
     status === 'active' &&
     withGit &&
@@ -1108,8 +1163,36 @@ test('live Workflow v2 authorities define one review-barrier contract', () => {
     'repair reset',
     'fail-closed advancement',
     'historical compatibility',
+    'pre-review release preparation',
+    'delivery package-byte prohibition',
   ]) {
     assert.match(livingAssertions, new RegExp(label), label);
+  }
+
+  const releaseAuthorities = new Map([
+    ['root operating guidance', fs.readFileSync(agentsPath, 'utf8')],
+    ['compact template', fs.readFileSync(compactTemplatePath, 'utf8')],
+    ['implementation skill', fs.readFileSync(implementSkillPath, 'utf8')],
+    ['review skill', fs.readFileSync(reviewSkillPath, 'utf8')],
+    ['delivery skill', fs.readFileSync(deliverSkillPath, 'utf8')],
+    ['normative pipeline', fs.readFileSync(pipelinePath, 'utf8')],
+  ]);
+  for (const [name, contents] of releaseAuthorities) {
+    assert.match(
+      contents,
+      /release preparation[\s\S]{0,500}before review/i,
+      `${name}: pre-review release preparation`,
+    );
+    assert.match(
+      contents,
+      /(?:must[\s\S]{0,20}not|cannot|never)[\s\S]{0,100}(?:create(?: or|\/) apply|apply)[^\n]*Changeset/i,
+      `${name}: Changeset prohibition`,
+    );
+    assert.match(
+      contents,
+      /(?:must[\s\S]{0,20}not|cannot|never)[\s\S]{0,200}package source[\s\S]{0,100}manifest[\s\S]{0,100}changelog/i,
+      `${name}: package-byte prohibition`,
+    );
   }
 });
 
@@ -1712,6 +1795,245 @@ test('v2 rejects malformed or contradictory explicit review states', (t) => {
     const result = runValidator(fixture.root);
     assert.equal(result.status, 1, name);
     assert.match(result.json.blocker, blocker, name);
+  }
+});
+
+test('required CLI release preparation must complete before review', (t) => {
+  const implement = createFixture(t);
+  addV2WorkItem(implement.workItemDirectory, {
+    stage: 'implement',
+    deliveryMode: 'required',
+  });
+  writeActiveState(implement.root, workItemId, 'implement-monorepo-change');
+  const implementResult = runValidator(implement.root);
+  assert.equal(implementResult.status, 0, implementResult.json.blocker);
+
+  for (const stage of ['review', 'verify', 'deliver']) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      stage,
+      deliveryMode: 'required',
+      releasePreparation: 'pending',
+    });
+    writeActiveState(fixture.root, workItemId, `${stage}-monorepo-change`);
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 1, stage);
+    assert.match(result.json.blocker, /must complete before review/i, stage);
+  }
+
+  const review = createFixture(t);
+  addV2WorkItem(review.workItemDirectory, {
+    stage: 'review',
+    deliveryMode: 'required',
+    releasePreparation: completeCliReleasePreparation(),
+  });
+  writeActiveState(review.root, workItemId, 'review-monorepo-change');
+  const reviewResult = runValidator(review.root);
+  assert.equal(reviewResult.status, 0, reviewResult.json.blocker);
+});
+
+test('required CLI release preparation validates package artifacts', (t) => {
+  const cases = [
+    ['malformed JSON', '{"status":', /valid JSON/i],
+    [
+      'extra key',
+      completeCliReleasePreparation({ extra: true }),
+      /contain exactly/i,
+    ],
+    [
+      'unsafe manifest path',
+      completeCliReleasePreparation({ manifest: '../package.json' }),
+      /safe repository-relative path/i,
+    ],
+    [
+      'wrong changelog location',
+      completeCliReleasePreparation({
+        changelog: 'packages/other/CHANGELOG.md',
+      }),
+      /beside the manifest/i,
+    ],
+  ];
+  for (const [name, releasePreparation, blocker] of cases) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      stage: 'review',
+      deliveryMode: 'required',
+      releasePreparation,
+    });
+    writeActiveState(fixture.root, workItemId, 'review-monorepo-change');
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 1, name);
+    assert.match(result.json.blocker, blocker, name);
+  }
+
+  const missing = createFixture(t);
+  addV2WorkItem(missing.workItemDirectory, {
+    stage: 'review',
+    deliveryMode: 'required',
+  });
+  fs.rmSync(path.join(missing.root, 'packages/example/package.json'));
+  writeActiveState(missing.root, workItemId, 'review-monorepo-change');
+  const missingResult = runValidator(missing.root);
+  assert.equal(missingResult.status, 1);
+  assert.match(missingResult.json.blocker, /existing regular file/i);
+
+  const wrongType = createFixture(t);
+  addV2WorkItem(wrongType.workItemDirectory, {
+    stage: 'review',
+    deliveryMode: 'required',
+  });
+  const wrongTypeManifest = path.join(
+    wrongType.root,
+    'packages/example/package.json',
+  );
+  fs.rmSync(wrongTypeManifest);
+  fs.mkdirSync(wrongTypeManifest);
+  writeActiveState(wrongType.root, workItemId, 'review-monorepo-change');
+  const wrongTypeResult = runValidator(wrongType.root);
+  assert.equal(wrongTypeResult.status, 1);
+  assert.match(wrongTypeResult.json.blocker, /existing regular file/i);
+
+  const mismatch = createFixture(t);
+  addV2WorkItem(mismatch.workItemDirectory, {
+    stage: 'review',
+    deliveryMode: 'required',
+  });
+  fs.writeFileSync(
+    path.join(mismatch.root, 'packages/example/package.json'),
+    `${JSON.stringify(
+      { name: '@jz/ai-arsenal-other', version: '1.2.3' },
+      null,
+      2,
+    )}\n`,
+  );
+  writeActiveState(mismatch.root, workItemId, 'review-monorepo-change');
+  const mismatchResult = runValidator(mismatch.root);
+  assert.equal(mismatchResult.status, 1);
+  assert.match(mismatchResult.json.blocker, /must match the manifest/i);
+
+  const heading = createFixture(t);
+  addV2WorkItem(heading.workItemDirectory, {
+    stage: 'review',
+    deliveryMode: 'required',
+  });
+  fs.writeFileSync(
+    path.join(heading.root, 'packages/example/CHANGELOG.md'),
+    '# Changelog\n\n## 1.2.2\n',
+  );
+  writeActiveState(heading.root, workItemId, 'review-monorepo-change');
+  const headingResult = runValidator(heading.root);
+  assert.equal(headingResult.status, 1);
+  assert.match(headingResult.json.blocker, /exact version heading/i);
+});
+
+test('reviewed CLI release candidate remains fresh through committed delivery', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    deliveryMode: 'required',
+  });
+  writeActiveState(fixture.root, workItemId, 'deliver-monorepo-change');
+  const manifestPath = path.join(fixture.root, 'packages/example/package.json');
+  const changelogPath = path.join(
+    fixture.root,
+    'packages/example/CHANGELOG.md',
+  );
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.description = 'Reviewed package bytes';
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  fs.appendFileSync(changelogPath, '\nReviewed release notes.\n');
+
+  const workItemPath = path.join(fixture.workItemDirectory, 'work-item.md');
+  const snapshot = calculateReviewSnapshot({
+    repositoryRoot: fixture.root,
+    workItemPath,
+  });
+  fs.writeFileSync(
+    workItemPath,
+    fs.readFileSync(workItemPath, 'utf8').replaceAll(reviewDigest, snapshot),
+  );
+  runGit(fixture.root, ['add', '.']);
+  runGit(fixture.root, [
+    'commit',
+    '--quiet',
+    '-m',
+    'reviewed CLI release candidate',
+  ]);
+
+  const result = runValidator(fixture.root);
+  assert.equal(result.status, 0, result.json.blocker);
+  assert.equal(result.json.nextSkill, 'deliver-monorepo-change');
+});
+
+test('post-review CLI release mutation is stale', (t) => {
+  for (const target of ['manifest', 'changelog', 'declaration']) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      stage: 'verify',
+      deliveryMode: 'required',
+    });
+    writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+    makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+    const workItemPath = path.join(fixture.workItemDirectory, 'work-item.md');
+
+    if (target === 'manifest') {
+      const manifestPath = path.join(
+        fixture.root,
+        'packages/example/package.json',
+      );
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      manifest.description = 'Post-review mutation';
+      fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+    } else if (target === 'changelog') {
+      fs.appendFileSync(
+        path.join(fixture.root, 'packages/example/CHANGELOG.md'),
+        '\nPost-review mutation.\n',
+      );
+    } else {
+      const contents = fs.readFileSync(workItemPath, 'utf8');
+      const preparation = completeCliReleasePreparation();
+      const reordered = {
+        package: preparation.package,
+        status: preparation.status,
+        version: preparation.version,
+        manifest: preparation.manifest,
+        changelog: preparation.changelog,
+      };
+      fs.writeFileSync(
+        workItemPath,
+        contents.replace(
+          /^CLI release preparation: .+$/m,
+          `CLI release preparation: ${JSON.stringify(reordered)}`,
+        ),
+      );
+    }
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 1, target);
+    assert.match(result.json.blocker, /Review snapshot is stale/i, target);
+  }
+});
+
+test('required CLI delivery evidence matches release preparation', (t) => {
+  for (const packageEvidence of [
+    { name: '@jz/ai-arsenal-other', version: '1.2.3' },
+    { name: '@jz/ai-arsenal-example', version: '2.0.0' },
+  ]) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      stage: 'deliver',
+      status: 'delivered',
+      deliveryMode: 'required',
+      deliveryEvidence: completeDeliveryEvidence({
+        package: JSON.stringify(packageEvidence),
+      }),
+    });
+    writeActiveState(fixture.root, 'none', 'none');
+
+    const result = runValidator(fixture.root);
+    assert.equal(result.status, 1);
+    assert.match(result.json.blocker, /must match CLI release preparation/i);
   }
 });
 

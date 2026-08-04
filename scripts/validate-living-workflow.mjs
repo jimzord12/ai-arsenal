@@ -61,6 +61,9 @@ const orchestrateSkill = read(
   '.agents/skills/orchestrate-monorepo-work/SKILL.md',
 );
 const defineSkill = read('.agents/skills/define-monorepo-change/SKILL.md');
+const implementSkill = read(
+  '.agents/skills/implement-monorepo-change/SKILL.md',
+);
 const deliverSkill = read('.agents/skills/deliver-monorepo-change/SKILL.md');
 const compactTemplate = read('docs/workflow/templates/work-item/work-item.md');
 const agentsTemplate = read(
@@ -112,6 +115,29 @@ if (!/remov(?:e|al).*dangerous deletion/is.test(deliverSkill)) {
   errors.push(
     'Delivery skill must retain dangerous-deletion worktree-removal boundary.',
   );
+}
+
+for (const [file, contents] of [
+  ['AGENTS.md', agents],
+  ['docs/workflow/templates/work-item/work-item.md', compactTemplate],
+  ['.agents/skills/implement-monorepo-change/SKILL.md', implementSkill],
+  ['.agents/skills/review-monorepo-change/SKILL.md', reviewSkill],
+  ['.agents/skills/deliver-monorepo-change/SKILL.md', deliverSkill],
+  ['docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md', pipeline],
+]) {
+  if (!/release preparation[\s\S]{0,500}before review/i.test(contents)) {
+    errors.push(`${file} is missing pre-review release preparation.`);
+  }
+  if (
+    !/(?:must[\s\S]{0,20}not|cannot|never)[\s\S]{0,100}(?:create(?: or|\/) apply|apply)[^\n]*Changeset/i.test(
+      contents,
+    ) ||
+    !/(?:must[\s\S]{0,20}not|cannot|never)[\s\S]{0,200}package source[\s\S]{0,100}manifest[\s\S]{0,100}changelog/i.test(
+      contents,
+    )
+  ) {
+    errors.push(`${file} is missing delivery package-byte prohibition.`);
+  }
 }
 
 for (const [file, contents] of [

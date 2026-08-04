@@ -16,6 +16,10 @@ finding, rerun only checks invalidated by each repair, and record findings and
 repairs in `work-item.md`. Entry into review requires all five fields to be
 `pending`, in this order: `Review status`, `Review snapshot`, `Review batch`,
 `Review expected`, and `Review received`.
+Required CLI release preparation must already be complete before review.
+Delivery must not create or apply Changesets or edit package source, manifest,
+or changelog; discovering that defect triggers the same candidate-changing
+repair path.
 
 For each concrete review attempt, compute and record the candidate snapshot
 with `scripts/calculate-review-snapshot.mjs`; `NEXT.md` is excluded as
@@ -53,8 +57,10 @@ Each completed review attempt increments `Review cycles`. Record an
 unsuccessful required review for its concrete candidate as
 `Review status: failed` with `Review snapshot: sha256:<64 lowercase hexadecimal
 characters>`. A repair that changes candidate bytes resets review status,
-snapshot, batch, expected membership, and received results to `pending` before
-the fresh snapshot and batch are recorded. Stop after four cycles. If a required
+snapshot, batch, expected membership, and received results to `pending`; this
+includes source, manifest, changelog, or release-preparation declaration
+changes. Dispatch one consolidated replacement batch against the fresh snapshot.
+Stop after four cycles. If a required
 finding remains then, keep the concrete failed snapshot, set blocked status,
 preserve the consolidated blockers, and report them. When complete required
 review evidence exists for the recorded concrete candidate, retain its concrete

@@ -20,6 +20,11 @@ request, report `NEXT.md`. Pending direct
 approval for dangerous work, a blocked hard prerequisite, or four exhausted
 review cycles is a valid stop with no next skill. Malformed state routes to
 `initializing-living-plan-workflow`. This router remains read-only.
+Required CLI work remains in define/implement while release preparation is
+pending; review, verify, and deliver require its package/version/manifest/
+changelog declaration to be complete and valid. Delivery cannot mutate those
+package bytes. Such a defect returns through implementation and a fresh review,
+or blocks after the unsuccessful fourth cycle.
 
 Return the existing eight-label routing brief. The v1 instructions below apply
 only to historical directories without `work-item.md`; never start v1 work.
