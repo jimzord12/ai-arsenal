@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 review-barrier integration, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered; documentation-only closure reconciliation is in progress
+> **Status:** Workflow v2 review-barrier integration, branch-per-work-item development, fail-closed CLI delivery evidence, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered
 > **Living-plan schema:** 1.0
-> **Last reconciled:** 2026-08-02
-> **Current phase:** Deliver Trello Flow CLI `0.6.0` closure reconciliation
+> **Last reconciled:** 2026-08-04
+> **Current phase:** Workflow v2 delivery evidence and branch-per-work-item policy delivered; no active item
 > **Operator view:** `NEXT.md`
 
 ---
@@ -158,7 +158,7 @@ Reconciliation must update classifications as evidence improves.
 - `[USER-LOCKED]` Include Husky and lint-staged for fast local feedback.
 - `[USER-LOCKED]` Use Conventional Commits and commitlint.
 - `[USER-LOCKED]` Use Changesets for package versions and changelogs.
-- `[USER-LOCKED]` For every user-declared release, including a private locally distributed tarball, choose a SemVer bump with Changesets and run `pnpm version-packages` to produce the package version and changelog. Ask before changing the user's global pnpm installation; never update it automatically.
+- `[USER-LOCKED]` For every user-declared release, including a private locally distributed tarball, choose a SemVer bump with Changesets and run `pnpm version-packages` to produce the package version and changelog. For an in-scope CLI behavior change whose bounded work item includes the complete release chain, preflight, rollback, and verification, global pnpm replacement is a routine recoverable delivery operation: proceed with `Approval: not-required` only after the exact reviewed artifact-bearing commit is pushed and its required CI succeeds. Dangerous deletion or irreversible data loss still requires fresh confirmation; registry publication, source deletion, destructive Git operations, and unrelated external mutations require separate authority.
 - `[USER-LOCKED]` Do not automate npm publication in the initial setup.
 - `[RECOMMENDED]` Use publint for packable packages.
 - `[RECOMMENDED]` Use Are the Types Wrong only when a package exposes TypeScript declarations/imports.
@@ -508,6 +508,13 @@ self-hosting.
 
 ## 8.1 Normal routing and durable evidence
 
+Every new Workflow v2 item uses the deterministic branch
+`work/<work-item-id>`. Definition creates it from a clean current base branch;
+implementation, review, verification, and delivery remain on that exact branch.
+Delivery pushes the work branch but does not merge or delete it. Active branch
+mismatch is a fail-closed validation error, while delivered historical records
+remain readable without retroactive branch metadata.
+
 The router selects the stage from one validated compact work item:
 
 ```text
@@ -579,6 +586,20 @@ and exact-hash historical boundary. The exhausted four-cycle predecessor
 remains blocked as audit evidence; the user's one-attempt successor passed
 contract and quality review, final verification, and exact-SHA CI before
 delivery.
+
+Parent issue `#14` is closed after all required child issues `#15` through
+`#19` completed. Its current closure is supported by the delivered child work
+items and live GitHub issue readback; no parent-specific product or CLI change
+was required.
+
+Issue `#13` routine global CLI replacement authority and issue `#12`
+fail-closed CLI delivery evidence are delivered. Current v2 items declare
+whether CLI local-delivery evidence is required; required evidence remains
+active until artifact, remote, CI, package, tarball, installation, smoke,
+provenance, rollback, and clean-worktree results are complete and consistent.
+Ordinary non-CLI items remain exempt. Active items are developed only on their
+matching `work/<work-item-id>` branch, and delivery does not merge or delete
+that branch.
 
 ## 8.2 Reconciliation and current truth
 
@@ -934,7 +955,7 @@ The user approved versioning, changelog generation, release verification, commit
 
 ### Approval gate
 
-Routine bounded implementation, review, verification, delivery, commit, and push are autonomous. Publication, release, global installation, and source deletion retain their applicable boundaries; dangerous deletion requires direct approval.
+Routine bounded implementation, review, verification, delivery, commit, and push are autonomous. A complete in-scope CLI delivery may replace the global package after exact artifact CI succeeds without a separate prompt; publication, source deletion, destructive Git operations, and unrelated external mutations remain separately authorized, and dangerous deletion requires direct approval.
 
 ---
 

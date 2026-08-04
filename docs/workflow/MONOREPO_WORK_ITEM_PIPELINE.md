@@ -38,6 +38,18 @@ define → implement → review/repair → verify → deliver
   active registration, and may commit/push unless the work item narrows Git
   delivery.
 
+## Branch-per-work-item development
+
+Every new v2 item uses the deterministic branch name
+`work/<work-item-id>`, such as
+`work/2026-08-04-enforce-workflow-v2-delivery-evidence`. Definition requires a
+clean checkout, creates that branch from the current base branch, and records
+it as the item's development branch by convention. Implementation, review,
+verification, and delivery must remain on that exact branch; the validator
+fails closed when an active item is checked out elsewhere. Delivery pushes the
+work branch after its required evidence is complete. Merging or deleting the
+branch is not part of the pipeline.
+
 ## Compact work-item contract
 
 Current v2 items live at `docs/work-items/<id>/work-item.md` and use
@@ -47,6 +59,16 @@ implementation summary, review findings/repairs, and final verification. It
 also carries only the small amount of routing and safety metadata validated by
 `scripts/validate-monorepo-work-item.mjs`.
 
+Each item declares `CLI local-delivery evidence: required` or `not-required`.
+Required CLI delivery appends one structured `## Delivery evidence` record for
+Delivery result, Artifact-bearing commit, Remote ref equality, Required CI,
+Package, Tarball, Global replacement, Installed-shim smoke, Installed artifact
+provenance, Rollback, and Clean worktree. The validator keeps pending or failed
+required evidence active at `deliver` and rejects delivered status unless every
+category is successful and mutually consistent with the artifact SHA and
+package version. Ordinary non-CLI work remains exempt; delivered historical
+records without the new field remain readable without fabricated evidence.
+
 Routine work requires no approval artifact or digest. Direct user approval is
 required only for dangerous deletion or irreversible data loss. Until it is
 recorded, `Approval: required` with blocked status is an intentional valid stop;
@@ -54,6 +76,15 @@ fresh confirmation is still required immediately before the exact destructive
 action. An unavailable hard prerequisite likewise uses blocked status as an
 intentional valid stop rather than being treated as corruption, mocked,
 skipped, or weakened.
+
+For an in-scope CLI behavior change, a bounded work item that records the
+complete versioned release chain, preflight, rollback, and verification uses
+`Approval: not-required`. After the exact reviewed artifact-bearing commit is
+pushed and its required CI succeeds, global pnpm replacement is a routine
+recoverable delivery operation, not a separate user-approval gate. Missing
+access or an unusable rollback path remains an honest blocked prerequisite.
+Registry publication, source deletion, destructive Git operations, and
+unrelated external mutations remain outside that routine authority.
 
 `NEXT.md` retains exactly one active work-item and pipeline-step pair. A
 delivered item clears both to `none`. Intentional blocked states have no next
@@ -362,8 +393,10 @@ stops.
 
 ## Mutation boundary
 
-Stages 1–5 write planning artifacts only. Implementation is the only stage that
-may change product, test, or product documentation files. Verification records
+Stages 1–5 write planning artifacts only, except that definition creates the
+required `work/<work-item-id>` branch from a clean base checkout. Implementation
+is the only stage that may change product, test, or product documentation files.
+Verification records
 evidence and may create only isolated disposable test output. Delivery updates planning records and may commit and push the exact verified,
 attributable snapshot when the contract does not forbid Git delivery. For
 Workflow v2 CLI behavior work, root package policy may additionally require

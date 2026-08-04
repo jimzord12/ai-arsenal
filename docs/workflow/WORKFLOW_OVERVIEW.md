@@ -17,7 +17,9 @@ define → implement → review/repair → verify → deliver
 
 The writing skills are `define-monorepo-change`, `implement-monorepo-change`,
 `review-monorepo-change`, `verify-monorepo-change`, and
-`deliver-monorepo-change`. The normative contract is
+`deliver-monorepo-change`. Definition creates the clean-checkout branch
+`work/<work-item-id>`; every active stage stays on that exact branch, and
+delivery pushes but does not merge or delete it. The normative contract is
 [`MONOREPO_WORK_ITEM_PIPELINE.md`](MONOREPO_WORK_ITEM_PIPELINE.md).
 
 ## Resume, Stops, and Repair

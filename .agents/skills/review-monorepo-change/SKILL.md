@@ -5,9 +5,11 @@ description: Use when a Workflow v2 implementation needs consolidated review, bo
 
 # Review Monorepo Change
 
-Validate the active compact item and inspect its goal, non-goals, acceptance
-criteria, implementation summary, diff, and focused test evidence. Consolidate
-findings by severity and acceptance impact. Ignore optional or out-of-scope
+Validate the active compact item and confirm the checkout is on the exact
+`work/<work-item-id>` branch created at definition. Inspect its goal, non-goals,
+acceptance criteria, implementation summary, diff, and focused test evidence.
+A branch mismatch is an acceptance failure, not a reason to review another
+candidate. Consolidate findings by severity and acceptance impact. Ignore optional or out-of-scope
 polish. Repair every Critical, High, Medium, and acceptance-related Minor
 finding, rerun only checks invalidated by each repair, and record findings and
 repairs in `work-item.md`. Entry into review requires all five fields to be

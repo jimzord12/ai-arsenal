@@ -18,7 +18,7 @@
     "lint:root": "eslint .",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "test:workflow": "node --test scripts/calculate-review-snapshot.test.mjs scripts/reconcile-review-batch.test.mjs scripts/repair-pnpm-bun-shim.test.mjs scripts/validate-living-workflow.test.mjs scripts/validate-monorepo-work-item.test.mjs scripts/validate-trello-skills-official.test.mjs scripts/verify-trello-skills-install-bytes.test.mjs",
+    "test:workflow": "node --test scripts/calculate-review-snapshot.test.mjs scripts/reconcile-review-batch.test.mjs scripts/repair-pnpm-bun-shim.test.mjs scripts/validate-global-replacement-authority.test.mjs scripts/validate-living-workflow.test.mjs scripts/validate-monorepo-work-item.test.mjs scripts/validate-trello-skills-official.test.mjs scripts/verify-trello-skills-install-bytes.test.mjs",
     "pack": "turbo run pack",
     "validate": "turbo run validate",
     "validate:trello-skills-official": "bun scripts/validate-trello-skills-official.ts",
