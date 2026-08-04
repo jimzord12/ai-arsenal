@@ -8,12 +8,12 @@ Started at: 2026-08-04T11:28:03+03:00
 Max time: 6 hours
 Last time check: 2026-08-04T11:28:03+03:00
 Turns since time check: 1
-Review cycles: 3
+Review cycles: 4
 Review status: passed
-Review snapshot: sha256:c825f2be7369685c8839140ae690c4760bcb39927b7eed10be79dab9d5264a4e
-Review batch: review-20260804-isolated-worktrees-03
+Review snapshot: sha256:6b7c16e7d510da3f1e19dde039cb3d0b377fc8b8ffbefbdbe77786a16782cfcd
+Review batch: review-20260804-isolated-worktrees-04
 Review expected: ["contract","quality"]
-Review received: [{"reviewer":"contract","outcome":"passed","batchId":"review-20260804-isolated-worktrees-03","snapshot":"sha256:c825f2be7369685c8839140ae690c4760bcb39927b7eed10be79dab9d5264a4e"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260804-isolated-worktrees-03","snapshot":"sha256:c825f2be7369685c8839140ae690c4760bcb39927b7eed10be79dab9d5264a4e"}]
+Review received: [{"reviewer":"contract","outcome":"passed","batchId":"review-20260804-isolated-worktrees-04","snapshot":"sha256:6b7c16e7d510da3f1e19dde039cb3d0b377fc8b8ffbefbdbe77786a16782cfcd"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260804-isolated-worktrees-04","snapshot":"sha256:6b7c16e7d510da3f1e19dde039cb3d0b377fc8b8ffbefbdbe77786a16782cfcd"}]
 Dangerous deletion or irreversible data loss: no
 Hard prerequisites: resolved
 Approval: not-required
@@ -87,6 +87,13 @@ now retain their caught cause, and the candidate requires fresh review. Fresh
 contract and quality review passed batch
 `review-20260804-isolated-worktrees-03` at
 `sha256:c825f2be7369685c8839140ae690c4760bcb39927b7eed10be79dab9d5264a4e` with
+no required findings. The artifact commit's Quality CI then failed because the
+active isolated record was checked out in Actions' base workspace. The quality
+workflow now moves active checks into the deterministic linked worktree; review
+fields were reset for the fourth and final permitted review cycle. Fresh
+contract and quality review passed batch
+`review-20260804-isolated-worktrees-04` at
+`sha256:6b7c16e7d510da3f1e19dde039cb3d0b377fc8b8ffbefbdbe77786a16782cfcd` with
 no required findings.
 
 ## Final verification
@@ -109,3 +116,6 @@ Result: passed
 - The pre-commit lint repair reran `pnpm lint:root`, the focused 89-test
   workflow-validator suite, formatting, living-workflow validation, and
   `git diff --check`; all passed after review batch 03.
+- The Quality-CI worktree repair passed a complete fresh `pnpm check`, including
+  134 passing workflow tests and 2 platform-conditional skips, after review
+  batch 04.

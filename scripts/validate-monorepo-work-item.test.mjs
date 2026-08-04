@@ -129,9 +129,12 @@ function matchingReviewResults(snapshot = reviewDigest, batchId = reviewBatch) {
   }));
 }
 
-test('quality CI fetches the parent commit required by clean delivery validation', () => {
+test('quality CI fetches delivery history and enters the active isolated worktree', () => {
   const workflow = fs.readFileSync(qualityWorkflowPath, 'utf8');
   assert.match(workflow, /uses: actions\/checkout@v6\s+with:\s+fetch-depth: 2/);
+  assert.match(workflow, /git worktree add/);
+  assert.match(workflow, /QUALITY_WORKDIR/);
+  assert.match(workflow, /cd "\$QUALITY_WORKDIR"/);
 });
 
 function createFixture(t) {

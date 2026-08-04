@@ -30,11 +30,34 @@ jobs:
         with:
           bun-version: 1.3.14
 
+      - name: Enter isolated active worktree
+        shell: bash
+        run: |
+          active_work_item="$(node -e "const fs=require('fs');const next=fs.readFileSync('NEXT.md','utf8');const match=next.match(/^\*\*Active work item:\*\* `([^`]+)`$/m);if(!match)process.exit(1);process.stdout.write(match[1])")"
+          if [ "$active_work_item" = "none" ]; then
+            echo "QUALITY_WORKDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          item_record="docs/work-items/$active_work_item/work-item.md"
+          grep -Fxq 'Worktree: isolated' "$item_record"
+          worktree="$GITHUB_WORKSPACE/../$(basename "$GITHUB_WORKSPACE").worktrees/$active_work_item"
+          test ! -e "$worktree"
+          git branch --force "work/$active_work_item" "$GITHUB_SHA"
+          git worktree add "$worktree" "work/$active_work_item"
+          echo "QUALITY_WORKDIR=$worktree" >> "$GITHUB_ENV"
+
       - name: Install frozen dependencies
-        run: pnpm install --frozen-lockfile
+        run: |
+          cd "$QUALITY_WORKDIR"
+          pnpm install --frozen-lockfile
 
       - name: Check formatting, lint, types, tests, and coverage
-        run: pnpm check
+        run: |
+          cd "$QUALITY_WORKDIR"
+          pnpm check
 
       - name: Pack and validate the private source artifact
-        run: pnpm validate
+        run: |
+          cd "$QUALITY_WORKDIR"
+          pnpm validate
