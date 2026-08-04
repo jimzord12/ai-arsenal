@@ -87,6 +87,19 @@ const workItemId = '2026-07-13-example';
 const reviewDigest = `sha256:${'a'.repeat(64)}`;
 const reviewBatch = 'review-20260731-01';
 const reviewExpected = ['contract', 'quality'];
+const deliveryEvidenceDefaults = {
+  result: 'pending',
+  artifactCommit: 'pending',
+  remote: 'pending',
+  ci: 'pending',
+  package: 'pending',
+  tarball: 'pending',
+  global: 'pending',
+  smoke: 'pending',
+  provenance: 'pending',
+  rollback: 'pending',
+  clean: 'pending',
+};
 
 function matchingReviewResults(snapshot = reviewDigest, batchId = reviewBatch) {
   return reviewExpected.map((reviewer) => ({
@@ -265,6 +278,7 @@ function initializeGitFixture(root) {
   runGit(root, ['config', 'user.email', 'workflow-tests@example.invalid']);
   runGit(root, ['add', '.']);
   runGit(root, ['commit', '--quiet', '-m', 'fixture baseline']);
+  runGit(root, ['switch', '--quiet', '-c', `work/${workItemId}`]);
 }
 
 function makeActiveCandidateFresh(root, workItemDirectory) {
@@ -310,6 +324,63 @@ function addPassedCompletion(workItemDirectory) {
   );
 }
 
+function deliveryEvidenceSection(mode, evidence = {}) {
+  if (mode === 'not-required') return '';
+  const fields = { ...deliveryEvidenceDefaults, ...evidence };
+  return `\n## Delivery evidence\n\nDelivery result: ${fields.result}\nArtifact-bearing commit: ${fields.artifactCommit}\nRemote ref equality: ${fields.remote}\nRequired CI: ${fields.ci}\nPackage: ${fields.package}\nTarball: ${fields.tarball}\nGlobal replacement: ${fields.global}\nInstalled-shim smoke: ${fields.smoke}\nInstalled artifact provenance: ${fields.provenance}\nRollback: ${fields.rollback}\nClean worktree: ${fields.clean}\n`;
+}
+
+function completeDeliveryEvidence(overrides = {}) {
+  const artifactCommit = 'a'.repeat(40);
+  const packageName = '@jz/ai-arsenal-example';
+  const packageVersion = '1.2.3';
+  const evidence = {
+    result: 'passed',
+    artifactCommit,
+    remote: JSON.stringify({
+      ref: 'origin/master',
+      sha: artifactCommit,
+      confirmed: true,
+    }),
+    ci: JSON.stringify([
+      {
+        url: 'https://github.com/jimzord12/ai-arsenal/actions/runs/123',
+        sha: artifactCommit,
+        conclusion: 'success',
+      },
+    ]),
+    package: JSON.stringify({ name: packageName, version: packageVersion }),
+    tarball: JSON.stringify({
+      file: `${packageName.replaceAll('/', '-')}-${packageVersion}.tgz`,
+      sha256: 'b'.repeat(64),
+      pack: 'success',
+    }),
+    global: JSON.stringify({
+      command: 'pnpm add --global ./package.tgz',
+      result: 'success',
+      installedPackage: packageName,
+      installedVersion: packageVersion,
+    }),
+    smoke: JSON.stringify({
+      version: 'passed',
+      help: 'passed',
+      featureSmoke: 'passed',
+    }),
+    provenance: JSON.stringify({
+      artifactBytes: 'confirmed',
+      sourceTree: 'not-used',
+    }),
+    rollback: JSON.stringify({
+      identity: `${packageName}@1.2.2`,
+      ready: true,
+      attempted: false,
+      result: 'not-attempted',
+    }),
+    clean: JSON.stringify({ confirmed: true }),
+  };
+  return { ...evidence, ...overrides };
+}
+
 function addV2WorkItem(
   workItemDirectory,
   {
@@ -342,6 +413,8 @@ function addV2WorkItem(
     approval = 'not-required',
     approvalSource = 'none',
     finalVerificationResult = stage === 'deliver' ? 'passed' : 'pending',
+    deliveryMode = 'not-required',
+    deliveryEvidence = {},
   } = {},
 ) {
   writeArtifact(
@@ -379,6 +452,7 @@ Dangerous deletion or irreversible data loss: ${dangerous}
 Hard prerequisites: ${prerequisites}
 Approval: ${approval}
 Approval source: ${approvalSource}
+CLI local-delivery evidence: ${deliveryMode}
 
 ## Goal
 
@@ -403,7 +477,7 @@ ${stage === 'verify' || stage === 'deliver' ? 'No required findings.' : 'Pending
 ## Final verification
 
 Result: ${finalVerificationResult}
-`,
+${deliveryEvidenceSection(deliveryMode, deliveryEvidence)}`,
   );
 }
 
@@ -433,7 +507,30 @@ test('the compact template initializes explicit review as pending', () => {
 
   assert.match(template, /^Review status: pending$/m);
   assert.match(template, /^Review snapshot: pending$/m);
+  assert.match(
+    template,
+    /^CLI local-delivery evidence: <required\|not-required>$/m,
+  );
+  assert.match(template, /## Delivery evidence.*Clean worktree/is);
   assert.doesNotMatch(template, /^Required findings remaining:/m);
+});
+
+test('active work items require their deterministic work branch', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory);
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+  initializeGitFixture(fixture.root);
+
+  const matching = runValidator(fixture.root);
+  assert.equal(matching.status, 0, matching.json.blocker);
+
+  runGit(fixture.root, ['switch', '--quiet', '-c', 'work/wrong-branch']);
+  const mismatched = runValidator(fixture.root);
+  assert.equal(mismatched.status, 1);
+  assert.match(
+    mismatched.json.blocker,
+    /exactly|work\/2026-07-13-example|branch/i,
+  );
 });
 
 test('stage skills define pending entry, failed review, pass, and repair reset', () => {
@@ -454,6 +551,15 @@ test('stage skills define pending entry, failed review, pass, and repair reset',
   assert.match(verifySkill, /Review snapshot: sha256/);
   assert.match(deliverSkill, /Review status: passed/);
   assert.match(deliverSkill, /Review snapshot: sha256/);
+  for (const skill of [
+    defineSkill,
+    implementSkill,
+    reviewSkill,
+    verifySkill,
+    deliverSkill,
+  ]) {
+    assert.match(skill, /work\/<(?:id|work-item-id)>/i);
+  }
 });
 
 test('live Workflow v2 authorities define one review-barrier contract', () => {
@@ -478,6 +584,18 @@ test('live Workflow v2 authorities define one review-barrier contract', () => {
     ]) {
       assert.match(contents, new RegExp(field), `${name}: ${field}`);
     }
+  }
+
+  for (const name of [
+    'root operating guidance',
+    'compact template',
+    'normative pipeline',
+  ]) {
+    assert.match(
+      authorities.get(name),
+      /work\/<work-item-id>/,
+      `${name}: branch-per-work-item policy`,
+    );
   }
 
   const pipeline = authorities.get('normative pipeline');
@@ -1148,6 +1266,207 @@ test('v2 rejects malformed or contradictory explicit review states', (t) => {
     assert.equal(result.status, 1, name);
     assert.match(result.json.blocker, blocker, name);
   }
+});
+
+test('ordinary delivery remains valid without CLI artifact evidence', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    deliveryMode: 'not-required',
+  });
+  writeActiveState(fixture.root, workItemId, 'deliver-monorepo-change');
+  makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 0, result.json.blocker);
+  assert.equal(result.json.nextSkill, 'deliver-monorepo-change');
+});
+
+test('required CLI delivery stays active while evidence is pending', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    deliveryMode: 'required',
+  });
+  writeActiveState(fixture.root, workItemId, 'deliver-monorepo-change');
+  makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 0, result.json.blocker);
+  assert.equal(result.json.nextSkill, 'deliver-monorepo-change');
+});
+
+test('required CLI delivery accepts complete evidence without a closure SHA', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    status: 'delivered',
+    deliveryMode: 'required',
+    deliveryEvidence: completeDeliveryEvidence(),
+  });
+  writeActiveState(fixture.root, 'none', 'none');
+  initializeGitFixture(fixture.root);
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 0, result.json.blocker);
+  assert.equal(result.json.nextSkill, null);
+});
+
+test('required CLI delivery rejects each missing evidence category', (t) => {
+  for (const category of Object.keys(deliveryEvidenceDefaults)) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      stage: 'deliver',
+      status: 'delivered',
+      deliveryMode: 'required',
+      deliveryEvidence: {
+        ...completeDeliveryEvidence(),
+        [category]: 'pending',
+      },
+    });
+    writeActiveState(fixture.root, 'none', 'none');
+    initializeGitFixture(fixture.root);
+
+    const result = runValidator(fixture.root);
+
+    assert.equal(result.status, 1, category);
+    assert.match(
+      result.json.blocker,
+      /delivery evidence|passed|pending/i,
+      category,
+    );
+  }
+});
+
+test('required CLI delivery rejects artifact, remote, CI, package, and checksum mismatches', (t) => {
+  const cases = [
+    ['artifact SHA', { artifactCommit: 'c'.repeat(40) }],
+    [
+      'remote SHA',
+      {
+        remote: JSON.stringify({
+          ref: 'origin/master',
+          sha: 'c'.repeat(40),
+          confirmed: true,
+        }),
+      },
+    ],
+    [
+      'CI SHA',
+      {
+        ci: JSON.stringify([
+          {
+            url: 'https://github.com/jimzord12/ai-arsenal/actions/runs/123',
+            sha: 'c'.repeat(40),
+            conclusion: 'success',
+          },
+        ]),
+      },
+    ],
+    [
+      'package version',
+      {
+        package: JSON.stringify({
+          name: '@jz/ai-arsenal-example',
+          version: '9.9.9',
+        }),
+      },
+    ],
+    [
+      'checksum',
+      {
+        tarball: JSON.stringify({
+          file: 'package.tgz',
+          sha256: 'not-a-checksum',
+          pack: 'success',
+        }),
+      },
+    ],
+  ];
+
+  for (const [name, override] of cases) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, {
+      stage: 'deliver',
+      status: 'delivered',
+      deliveryMode: 'required',
+      deliveryEvidence: completeDeliveryEvidence(override),
+    });
+    writeActiveState(fixture.root, 'none', 'none');
+    initializeGitFixture(fixture.root);
+
+    const result = runValidator(fixture.root);
+
+    assert.equal(result.status, 1, name);
+    assert.match(
+      result.json.blocker,
+      /delivery|mismatch|package|checksum|SHA/i,
+      name,
+    );
+  }
+});
+
+test('failed CI and failed installation with successful rollback remain active and resumable', (t) => {
+  const fixture = createFixture(t);
+  const evidence = completeDeliveryEvidence({
+    result: 'failed',
+    ci: JSON.stringify([
+      {
+        url: 'https://github.com/jimzord12/ai-arsenal/actions/runs/123',
+        sha: 'a'.repeat(40),
+        conclusion: 'failure',
+      },
+    ]),
+    global: JSON.stringify({
+      command: 'pnpm add --global ./package.tgz',
+      result: 'failed',
+      error: 'shim invocation failed',
+    }),
+    rollback: JSON.stringify({
+      identity: '@jz/ai-arsenal-example@1.2.2',
+      ready: true,
+      attempted: true,
+      result: 'success',
+    }),
+  });
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    deliveryMode: 'required',
+    deliveryEvidence: evidence,
+  });
+  writeActiveState(fixture.root, workItemId, 'deliver-monorepo-change');
+  makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 0, result.json.blocker);
+  assert.equal(result.json.nextSkill, 'deliver-monorepo-change');
+});
+
+test('failed installed-shim smoke cannot be represented as delivered', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, {
+    stage: 'deliver',
+    status: 'delivered',
+    deliveryMode: 'required',
+    deliveryEvidence: completeDeliveryEvidence({
+      smoke: JSON.stringify({
+        version: 'passed',
+        help: 'passed',
+        featureSmoke: 'failed',
+      }),
+    }),
+  });
+  writeActiveState(fixture.root, 'none', 'none');
+  initializeGitFixture(fixture.root);
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(result.json.blocker, /delivery|smoke|passed/i);
 });
 
 test('v2 enforces time checks and the review-cycle ceiling', (t) => {

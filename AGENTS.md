@@ -139,6 +139,17 @@ compatibility is limited to validator-recognized immutable delivered records.
 The snapshot comes only from `scripts/calculate-review-snapshot.mjs`; `NEXT.md`
 is excluded as routing-only state.
 
+### Branch-per-work-item development
+
+Every new Workflow v2 item gets a dedicated branch named
+`work/<work-item-id>`, for example
+`work/2026-08-04-enforce-workflow-v2-delivery-evidence`. The definition stage
+creates it from the current clean base branch; the active validator requires
+the exact matching branch through implementation, review, verification, and
+delivery. Agents must not develop an active item on `master` or another work
+branch. Delivery commits and pushes the same work branch; merging and branch
+delete remain outside this workflow unless separately requested.
+
 ### `initializing-living-plan-workflow`
 
 Use only for workflow bootstrap or router-reported structural corruption. It

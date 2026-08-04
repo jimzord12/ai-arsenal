@@ -59,7 +59,9 @@ from consumer state.
 ## Routing Rules
 
 Use validator JSON as the routing authority for an active work item. Its
-`nextSkill` selects the eligible v2 stage. Valid intentional stops—pending direct
+`nextSkill` selects the eligible v2 stage. Active items must also be checked out
+on the exact `work/<work-item-id>` branch; a branch mismatch is a validation
+stop. Valid intentional stops—pending direct
 approval for dangerous work, a blocked hard prerequisite, or four exhausted
 review cycles—have no next skill and must be reported without mutation.
 
@@ -67,6 +69,10 @@ For a valid no-active-item result, report the current `NEXT.md` action. Route a
 new explicit bounded request to `define-monorepo-change`; this includes bounded
 release, packing, installation, and source-deletion work when its safety and
 approval boundaries can be recorded honestly.
+
+An in-scope CLI behavior request may record routine global replacement with
+`Approval: not-required` when its complete release, preflight, rollback, and
+verification chain is bounded; only exact CI-green delivery may execute it.
 
 If validation is invalid or workflow metadata is malformed, stop. Set **Next
 skill** to `initializing-living-plan-workflow`; do not select a normal stage.
@@ -112,6 +118,8 @@ input** to the explicit change request.
   automatically outside the workflow instead of recording its exact scope and
   safety boundary in `work-item.md`.
 - Advancing a stage because its artifact appears present without validator JSON.
+- Continuing an active item from `master` or another work branch instead of
+  switching to `work/<work-item-id>`.
 - Returning a prose status update instead of the eight-field routing brief.
 - Repairing, registering, or creating files while routing. Route first; the
   selected write-capable skill owns mutations.

@@ -670,6 +670,243 @@ function validateReviewBatchEvidence({
   return { historical: false, blocker: null };
 }
 
+const deliveryEvidenceLabels = [
+  'Delivery result',
+  'Artifact-bearing commit',
+  'Remote ref equality',
+  'Required CI',
+  'Package',
+  'Tarball',
+  'Global replacement',
+  'Installed-shim smoke',
+  'Installed artifact provenance',
+  'Rollback',
+  'Clean worktree',
+];
+
+function parseDeliveryEvidence(contents) {
+  const heading = contents.match(/^## Delivery evidence\r?\n([\s\S]*)$/m);
+  if (!heading) return null;
+  const body = heading[1].split(/^## /m, 1)[0];
+  const fields = {};
+  for (const label of deliveryEvidenceLabels) {
+    const matches = [
+      ...body.matchAll(new RegExp(`^${label}: (.+)\\r?$`, 'gm')),
+    ];
+    if (matches.length !== 1) {
+      throw new Error(`Delivery evidence must contain ${label} exactly once`);
+    }
+    fields[label] = matches[0][1].trim();
+  }
+  return fields;
+}
+
+function parseDeliveryJson(value, label) {
+  try {
+    return JSON.parse(value);
+  } catch {
+    throw new Error(`Delivery evidence ${label} must contain valid JSON`);
+  }
+}
+
+function deliveryEvidenceFailure(message) {
+  throw new Error(`Delivery evidence ${message}`);
+}
+
+function validateRequiredDeliveryEvidence(contents, status) {
+  const fields = parseDeliveryEvidence(contents);
+  if (!fields) {
+    if (status === 'delivered') {
+      deliveryEvidenceFailure('is required before delivery can close');
+    }
+    return false;
+  }
+
+  if (fields['Delivery result'] === 'pending') {
+    if (status === 'delivered') {
+      deliveryEvidenceFailure('cannot be pending for a delivered item');
+    }
+    return false;
+  }
+  if (!['passed', 'failed'].includes(fields['Delivery result'])) {
+    deliveryEvidenceFailure(
+      'Delivery result must be pending, passed, or failed',
+    );
+  }
+
+  const pending = deliveryEvidenceLabels.some(
+    (label) => fields[label] === 'pending',
+  );
+  if (pending) {
+    if (status === 'delivered') {
+      deliveryEvidenceFailure(
+        'contains pending categories for a delivered item',
+      );
+    }
+    return false;
+  }
+
+  const artifactCommit = fields['Artifact-bearing commit'];
+  if (!/^[0-9a-f]{40}$/.test(artifactCommit)) {
+    deliveryEvidenceFailure(
+      'artifact-bearing commit must be a 40-character SHA',
+    );
+  }
+
+  const remote = parseDeliveryJson(
+    fields['Remote ref equality'],
+    'Remote ref equality',
+  );
+  if (
+    !remote ||
+    typeof remote.ref !== 'string' ||
+    remote.ref.length === 0 ||
+    remote.sha !== artifactCommit ||
+    remote.confirmed !== true
+  ) {
+    deliveryEvidenceFailure(
+      'remote ref equality does not match the artifact SHA',
+    );
+  }
+
+  const ci = parseDeliveryJson(fields['Required CI'], 'Required CI');
+  if (
+    !Array.isArray(ci) ||
+    ci.length === 0 ||
+    ci.some(
+      (run) =>
+        !run ||
+        typeof run.url !== 'string' ||
+        run.url.length === 0 ||
+        run.sha !== artifactCommit ||
+        !['success', 'failure', 'pending'].includes(run.conclusion),
+    )
+  ) {
+    deliveryEvidenceFailure(
+      'required CI evidence does not match the artifact SHA',
+    );
+  }
+
+  const packageEvidence = parseDeliveryJson(fields.Package, 'Package');
+  if (
+    !packageEvidence ||
+    typeof packageEvidence.name !== 'string' ||
+    packageEvidence.name.length === 0 ||
+    typeof packageEvidence.version !== 'string' ||
+    !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(packageEvidence.version)
+  ) {
+    deliveryEvidenceFailure('package name and SemVer are required');
+  }
+
+  const tarball = parseDeliveryJson(fields.Tarball, 'Tarball');
+  const expectedTarball = `${packageEvidence.name.replaceAll('/', '-')}-${packageEvidence.version}.tgz`;
+  if (
+    !tarball ||
+    tarball.file !== expectedTarball ||
+    !/^[0-9a-f]{64}$/.test(tarball.sha256) ||
+    tarball.pack !== 'success'
+  ) {
+    deliveryEvidenceFailure('tarball identity or checksum is invalid');
+  }
+
+  const global = parseDeliveryJson(
+    fields['Global replacement'],
+    'Global replacement',
+  );
+  if (
+    !global ||
+    typeof global.command !== 'string' ||
+    global.command.length === 0
+  ) {
+    deliveryEvidenceFailure('global replacement command is required');
+  }
+  if (!['success', 'failed', 'pending'].includes(global.result)) {
+    deliveryEvidenceFailure('global replacement result is invalid');
+  }
+  if (global.result === 'success') {
+    if (
+      global.installedPackage !== packageEvidence.name ||
+      global.installedVersion !== packageEvidence.version
+    ) {
+      deliveryEvidenceFailure(
+        'installed package/version does not match the package evidence',
+      );
+    }
+  }
+
+  const smoke = parseDeliveryJson(
+    fields['Installed-shim smoke'],
+    'Installed-shim smoke',
+  );
+  if (
+    !smoke ||
+    !['passed', 'failed', 'pending'].includes(smoke.version) ||
+    !['passed', 'failed', 'pending'].includes(smoke.help) ||
+    !['passed', 'failed', 'pending'].includes(smoke.featureSmoke)
+  ) {
+    deliveryEvidenceFailure('installed-shim smoke results are invalid');
+  }
+
+  const provenance = parseDeliveryJson(
+    fields['Installed artifact provenance'],
+    'Installed artifact provenance',
+  );
+  if (
+    !provenance ||
+    provenance.artifactBytes !== 'confirmed' ||
+    provenance.sourceTree !== 'not-used'
+  ) {
+    deliveryEvidenceFailure('installed-artifact byte provenance is incomplete');
+  }
+
+  const rollback = parseDeliveryJson(fields.Rollback, 'Rollback');
+  if (
+    !rollback ||
+    typeof rollback.identity !== 'string' ||
+    rollback.identity.length === 0 ||
+    rollback.ready !== true ||
+    typeof rollback.attempted !== 'boolean' ||
+    !['not-attempted', 'success', 'failed'].includes(rollback.result) ||
+    (!rollback.attempted && rollback.result !== 'not-attempted')
+  ) {
+    deliveryEvidenceFailure('rollback identity/readiness or result is invalid');
+  }
+
+  const clean = parseDeliveryJson(fields['Clean worktree'], 'Clean worktree');
+  if (!clean || clean.confirmed !== true) {
+    deliveryEvidenceFailure('clean-worktree completion is missing');
+  }
+
+  if (status === 'delivered') {
+    if (fields['Delivery result'] !== 'passed') {
+      deliveryEvidenceFailure('delivered items require a passed result');
+    }
+    if (ci.some((run) => run.conclusion !== 'success')) {
+      deliveryEvidenceFailure('delivered items require successful required CI');
+    }
+    if (global.result !== 'success') {
+      deliveryEvidenceFailure(
+        'delivered items require successful global replacement',
+      );
+    }
+    if (
+      smoke.version !== 'passed' ||
+      smoke.help !== 'passed' ||
+      smoke.featureSmoke !== 'passed'
+    ) {
+      deliveryEvidenceFailure(
+        'delivered items require passed installed-shim smoke',
+      );
+    }
+    if (rollback.attempted && rollback.result !== 'success') {
+      deliveryEvidenceFailure(
+        'a failed rollback cannot represent successful delivery',
+      );
+    }
+  }
+  return true;
+}
+
 function requireGitRepository(repositoryRoot) {
   if (!fs.existsSync(path.join(repositoryRoot, '.git'))) {
     throw new Error(
@@ -684,6 +921,23 @@ function requireGitRepository(repositoryRoot) {
   if (result.error || result.status !== 0 || result.stdout.trim() !== 'true') {
     throw new Error(
       'Review freshness requires a readable Git repository; restore the repository context before validating',
+    );
+  }
+}
+
+function requireActiveWorkItemBranch(repositoryRoot, workItem) {
+  if (!fs.existsSync(path.join(repositoryRoot, '.git'))) return;
+  requireGitRepository(repositoryRoot);
+  const expectedBranch = `work/${workItem}`;
+  const result = spawnSync(
+    'git',
+    ['symbolic-ref', '--quiet', '--short', 'HEAD'],
+    { cwd: repositoryRoot, encoding: 'utf8', windowsHide: true },
+  );
+  const actualBranch = result.status === 0 ? result.stdout.trim() : '';
+  if (actualBranch !== expectedBranch) {
+    throw new Error(
+      `Active work item must be checked out on ${expectedBranch}; current branch is ${actualBranch || 'detached'}`,
     );
   }
 }
@@ -767,6 +1021,7 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     'Status',
     /^(active|blocked|delivered)$/,
   );
+  if (status === 'active') requireActiveWorkItemBranch(root, workItem);
   const startedAt = readSingleField(contents, 'Started at', /^\S+$/);
   readSingleField(contents, 'Max time', /^[1-9]\d* (?:minutes?|hours?)$/);
   const lastTimeCheck = readSingleField(contents, 'Last time check', /^\S+$/);
@@ -865,6 +1120,32 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     /^(not-required|required|approved)$/,
   );
   const approvalSource = readSingleField(contents, 'Approval source', /^.+$/);
+  const deliveryModeMatches = [
+    ...contents.matchAll(
+      /^CLI local-delivery evidence: (required|not-required)\r?$/gm,
+    ),
+  ];
+  if (deliveryModeMatches.length > 1) {
+    throw new Error(
+      'CLI local-delivery evidence field must appear at most once',
+    );
+  }
+  const deliveryMode = deliveryModeMatches[0]?.[1] ?? 'not-required';
+  if (
+    !deliveryModeMatches.length &&
+    status !== 'delivered' &&
+    status !== 'blocked'
+  ) {
+    throw new Error(
+      'Active v2 work items must declare whether CLI local-delivery evidence is required',
+    );
+  }
+  if (
+    deliveryMode === 'required' &&
+    (stage === 'deliver' || status === 'delivered')
+  ) {
+    validateRequiredDeliveryEvidence(contents, status);
+  }
 
   for (const timestamp of [startedAt, lastTimeCheck]) {
     if (Number.isNaN(Date.parse(timestamp))) {

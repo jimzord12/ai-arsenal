@@ -48,7 +48,11 @@ or perform consumer or Git-history operations.
 2. Confirm `NEXT.md` has exactly one active-work-item block naming the same
    `<id>` as the contract, plan, and approval, and exactly one pipeline step,
    `implement-monorepo-change`.
-3. Run the preflight validator from the repository root:
+3. Confirm the checkout is on the exact `work/<id>` branch created by
+   definition. Do not switch branches or continue implementation on `master`
+   or another work branch.
+
+4. Run the preflight validator from the repository root:
 
    ```powershell
    node scripts/validate-monorepo-work-item.mjs --work-item <id> --json
@@ -62,7 +66,7 @@ or perform consumer or Git-history operations.
    `initializing-living-plan-workflow` for structural state. Do not repair,
    edit, or begin implementation.
 
-4. Select exactly one valid implementation mode:
+5. Select exactly one valid implementation mode:
 
    - **Forward implementation:** `implementation-report.md` and
      `verification.md` do not exist. Create implementation-report revision `1`
@@ -82,12 +86,12 @@ or perform consumer or Git-history operations.
    Stop for the appropriate earlier planning stage if the repair requires a
    contract or plan change; a failed verification is not renewed approval.
 
-5. Compare every intended change against the contract's goal, hard walls,
+6. Compare every intended change against the contract's goal, hard walls,
    acceptance criteria, test seams, and affected paths in the approved plan.
    Stop before an out-of-contract change, ambiguity, missing prerequisite, or
    needed deviation. A deviation requires a return to the appropriate earlier
    planning stage; it is never an undocumented implementation expansion.
-6. Before reading or changing every affected path, read all applicable scoped
+7. Before reading or changing every affected path, read all applicable scoped
    instructions. In particular, when a plan affects `packages/features-cli/`,
    read `packages/features-cli/AGENTS.md` and do not invoke `features-cli` to
    manage, plan, or track work on that package.

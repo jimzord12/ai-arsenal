@@ -5,15 +5,21 @@ description: Use when a Workflow v2 work item has passed final verification and 
 
 # Deliver Monorepo Change
 
-Validate the active compact item and require recorded passing final
-verification, `Review status: passed`, and a concrete
+Validate the active compact item and require the exact
+`work/<work-item-id>` checkout branch, recorded passing final verification,
+`Review status: passed`, and a concrete
 `Review snapshot: sha256:<64 lowercase hexadecimal characters>`. Reconcile the canonical plan to
 verified current truth without changelog prose, but keep the compact item
 active at `Stage: deliver` and keep `NEXT.md` routed to this skill until every
-delivery obligation is evidenced.
+delivery obligation is evidenced. A required CLI item must use one structured
+`## Delivery evidence` record covering Delivery result, Artifact-bearing commit,
+Remote ref equality, Required CI, Package, Tarball, Global replacement,
+Installed-shim smoke, Installed artifact provenance, Rollback, and Clean
+worktree; pending, failed, missing, or inconsistent evidence cannot close it.
+Ordinary non-CLI work remains exempt.
 
 For ordinary source work, commit and push the exact verified attributable
-snapshot and observe required CI. For CLI behavior work governed by the root
+snapshot to the matching work branch and observe required CI. For CLI behavior work governed by the root
 versioned local-delivery rules, use this bounded two-step sequence:
 
 1. Commit and push the reviewed implementation snapshot, then require its
@@ -44,8 +50,13 @@ validator, living-workflow validator, and `git diff --check`; rerun formatting
 or another gate only when the delivery edit can affect it. Do not rerun the
 complete final-verification suite merely because delivery edited its records.
 
-Inspect each attributable diff and commit with a Conventional Commit. Push only
-when the user and compact non-goals allow it.
+Inspect each attributable diff and commit with a Conventional Commit. Push the
+matching work branch only when the user and compact non-goals allow it; merging
+or deleting that branch is outside delivery.
 Never turn routine commit/push into an approval prompt. Never release, publish,
 globally install, or perform dangerous deletion unless the bounded item
-explicitly includes the applicable rules and approval.
+explicitly includes the applicable rules. A complete in-scope CLI delivery uses
+`Approval: not-required`: after its exact artifact CI passes, global replacement
+does not require a separate user approval prompt. Dangerous deletion, registry
+publication, source deletion, destructive Git operations, and unrelated external
+mutations retain their separate authority boundaries.

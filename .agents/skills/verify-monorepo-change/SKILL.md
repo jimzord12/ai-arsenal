@@ -6,7 +6,8 @@ description: Use when a reviewed AI Arsenal Workflow v2 item has no required fin
 # Workflow v2 (current)
 
 When the active directory contains `work-item.md`, validate it and require
-`Stage: verify`, `Review status: passed`, and a concrete
+`Stage: verify`, the exact `work/<work-item-id>` checkout branch,
+`Review status: passed`, and a concrete
 `Review snapshot: sha256:<64 lowercase hexadecimal characters>`. On the final stable snapshot, run
 every acceptance-focused check plus the applicable full repository gates once,
 including workflow tests, both workflow validators, and `git diff --check` for

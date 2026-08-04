@@ -18,8 +18,22 @@ Dangerous deletion or irreversible data loss: <yes|no>
 Hard prerequisites: <resolved|blocked>
 Approval: <not-required|required|approved>
 Approval source: <none|verbatim direct user approval>
+CLI local-delivery evidence: <required|not-required>
 
 <!--
+Branch policy: definition creates and records by convention the exact
+`work/<work-item-id>` branch from a clean base checkout. Active stages must stay
+on that branch; delivery does not merge or delete it.
+
+For a CLI behavior item, record the complete release chain, preflight, rollback,
+and verification in its bounded scope. The CI-green global replacement then uses
+Approval: not-required; dangerous deletion and separately authorized external
+mutations do not. A required item appends `## Delivery evidence` with exactly
+one line for each of: Delivery result, Artifact-bearing commit, Remote ref
+equality, Required CI, Package, Tarball, Global replacement, Installed-shim
+smoke, Installed artifact provenance, Rollback, and Clean worktree. Delivery
+cannot close until every category is successful and mutually consistent.
+
 Review lifecycle:
 - Definition and entry into review use Review status: pending and Review snapshot: pending.
 - An unsuccessful required review for a concrete candidate uses Review status: failed and Review snapshot: sha256:<64 lowercase hexadecimal characters>.
