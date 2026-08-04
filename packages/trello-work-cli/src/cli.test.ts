@@ -1,6 +1,12 @@
 import { spawn } from 'node:child_process';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import {
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { gunzipSync } from 'node:zlib';
@@ -128,6 +134,7 @@ describe('jz-trello-flow process command contract', () => {
       'jz-trello-flow transition',
       'jz-trello-flow reconcile',
       'jz-trello-flow validate',
+      'jz-trello-flow template',
       'jz-trello-flow checklist list',
       'jz-trello-flow checklist create',
       'jz-trello-flow checklist update',
@@ -341,6 +348,30 @@ describe('jz-trello-flow process command contract', () => {
       valid: true,
       kind: 'draft',
     });
+  });
+
+  it('emits a credential-free canonical template that validates unchanged', async () => {
+    const emitted = await runCli(['template']);
+
+    expect(emitted).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(emitted.stdout.match(/^```yaml$/gm)).toHaveLength(1);
+    expect(parseWorkUnit(emitted.stdout).metadata).toMatchObject({
+      id: null,
+      status: 'inbox',
+    });
+    expect(emitted.stdout).toContain(
+      'status: inbox for a Draft; persisted Work Units may use inbox, in_design, ready, in_progress, review, blocked, or done.',
+    );
+
+    const temporaryRoot = mkdtempSync(join(tmpdir(), 'trello-flow-template-'));
+    const templatePath = join(temporaryRoot, 'work-unit.md');
+    try {
+      writeFileSync(templatePath, emitted.stdout);
+      const validated = await runCli(['validate', '--file', templatePath]);
+      expect(validated).toMatchObject({ exitCode: 0, stderr: '' });
+    } finally {
+      rmSync(temporaryRoot, { recursive: true, force: true });
+    }
   });
 
   it('accepts documented local-validation option order', async () => {

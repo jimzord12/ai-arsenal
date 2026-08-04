@@ -50,6 +50,7 @@ import {
 import { transitionWorkUnit } from './transition';
 import { TrelloClient } from './trello-client';
 import { descriptionPatch, descriptionReplace, metadataUpdate } from './update';
+import { renderWorkUnitTemplate } from './work-unit';
 
 export type CliResult = {
   exitCode: number;
@@ -106,6 +107,7 @@ function commandOptions(command: string, positionals: string[]): Set<string> {
     '--operation-id',
     ...configured,
   ];
+  if (command === 'template') return new Set();
   if (command === 'docs')
     return new Set(['--list', '--topic', '--search', ...common]);
   if (command === 'skills') return new Set(['--dry-run', ...common]);
@@ -165,7 +167,12 @@ function expectedPositionals(
   command: string,
   positionals: string[],
 ): number | undefined {
-  if (command === 'docs' || command === 'create' || command === 'list')
+  if (
+    command === 'template' ||
+    command === 'docs' ||
+    command === 'create' ||
+    command === 'list'
+  )
     return 0;
   if (command === 'skills') {
     if (positionals[0] !== 'install') usage('Unknown skills command.');
@@ -545,6 +552,10 @@ export async function runWorkCli(
     const readText =
       dependencies.readFile ?? ((path: string) => readFile(path, 'utf8'));
 
+    if (args[0] === 'template') {
+      return success(renderWorkUnitTemplate(), false);
+    }
+
     if (args[0] === 'docs') {
       const topic = valueAfter(args, '--topic');
       const search = valueAfter(args, '--search');
@@ -596,6 +607,7 @@ export async function runWorkCli(
 
     if (
       !new Set([
+        'template',
         'boards',
         'workflow',
         'lists',

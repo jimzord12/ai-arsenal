@@ -36,6 +36,7 @@ const COMMAND_EXAMPLES: Record<string, string> = {
   transition: 'jz-trello-flow transition <reference> <target-status> --dry-run',
   reconcile: 'jz-trello-flow reconcile <reference> --dry-run',
   'validate-file': 'jz-trello-flow validate --file <work-unit.md>',
+  template: 'jz-trello-flow template',
   'validate-remote': 'jz-trello-flow validate <reference>',
   'checklist-list': 'jz-trello-flow checklist list <reference>',
   'checklist-create':
@@ -197,6 +198,13 @@ const BASE_COMMAND_CATALOG: BaseCommandDefinition[] = [
     mutating: true,
   },
   {
+    id: 'template',
+    syntax: 'jz-trello-flow template',
+    summary: 'Print a canonical local Draft Work Unit template.',
+    options: [],
+    mutating: false,
+  },
+  {
     id: 'validate-file',
     syntax: 'jz-trello-flow validate --file <work-unit.md>',
     summary: 'Validate a local Work Unit without Trello access.',
@@ -261,6 +269,7 @@ export const COMMAND_CATALOG: CommandDefinition[] = BASE_COMMAND_CATALOG.map(
   (command) => {
     const example = requiredExample(command);
     if (
+      command.id === 'template' ||
       command.id === 'docs' ||
       command.id === 'validate-file' ||
       command.id === 'boards-list' ||

@@ -1,5 +1,11 @@
 # @jz/ai-arsenal-trello-work-cli
 
+## 0.8.0
+
+### Minor Changes
+
+- Add an offline command that emits a canonical Work Unit draft ready for unchanged local validation.
+
 ## 0.7.0
 
 ### Minor Changes

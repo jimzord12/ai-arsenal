@@ -411,6 +411,38 @@ export function renderWorkUnit(document: WorkUnitDocument): string {
   ].join('\n');
 }
 
+export function renderWorkUnitTemplate(): string {
+  return renderWorkUnit({
+    metadata: {
+      id: null,
+      trello_card_id: null,
+      title: 'Describe the desired outcome',
+      type: 'task',
+      status: 'inbox',
+      priority: 'normal',
+      complexity: 'medium',
+      engineering_depth: 'production-pragmatic',
+      risk: 'low',
+      owner: null,
+      parent: null,
+      blocked_by: [],
+      labels: [],
+      created_at: null,
+      updated_at: null,
+    },
+    sections: {
+      Objective: 'Describe the outcome this Work Unit delivers.',
+      Scope: 'List the work included in this Work Unit.',
+      'Out of Scope': 'List work intentionally excluded from this Work Unit.',
+      'Acceptance Criteria':
+        'List observable conditions required for completion.',
+      Verification: 'Describe the checks that prove the acceptance criteria.',
+      Context:
+        'Choose type: chore, task, or slice; status: inbox for a Draft; persisted Work Units may use inbox, in_design, ready, in_progress, review, blocked, or done. Priority: critical, high, normal, or low; complexity and risk: low, medium, or high; engineering_depth: exploratory, production-pragmatic, or hardened.',
+    },
+  });
+}
+
 const EDITABLE_FIELDS = new Set([
   'title',
   'type',

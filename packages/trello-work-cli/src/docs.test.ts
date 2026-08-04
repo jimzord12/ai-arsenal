@@ -29,6 +29,14 @@ describe('offline Work CLI documentation', () => {
     }
   });
 
+  it('limits JSON-output guidance to commands that advertise the option', () => {
+    const guidance = 'Commands that list --output support JSON output.';
+    expect(renderShortHelp()).toContain(guidance);
+    expect(
+      renderDocs({ mode: 'topic', value: 'output', output: 'text' }),
+    ).toContain(guidance);
+  });
+
   it('ships complete workflows, configuration, safety, failure, and recovery guidance', () => {
     const guide = renderDocs({ mode: 'default', output: 'text' });
     for (const phrase of [
@@ -112,6 +120,7 @@ describe('offline Work CLI documentation', () => {
     for (const command of COMMAND_CATALOG.filter(
       (command) =>
         command.id !== 'validate-file' &&
+        command.id !== 'template' &&
         command.id !== 'docs' &&
         command.id !== 'boards-list' &&
         command.id !== 'skills-install',

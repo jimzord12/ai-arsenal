@@ -48,7 +48,7 @@ export const DOCS_TOPICS: DocsTopic[] = [
     id: 'output',
     title: 'Output and Exit codes',
     content:
-      'Every command accepts --output json. Machine-readable success data goes to stdout. Diagnostics and structured failures go to stderr. Exit code 0 means success; 1 means validation/API/verification failure; 2 means usage error; 3 means credentials/authentication failure; 4 means optimistic-concurrency rejection. Codes and messages are stable and never include credential values.',
+      'Commands that list --output support JSON output. Machine-readable success data goes to stdout. Diagnostics and structured failures go to stderr. Exit code 0 means success; 1 means validation/API/verification failure; 2 means usage error; 3 means credentials/authentication failure; 4 means optimistic-concurrency rejection. Codes and messages are stable and never include credential values.',
   },
   {
     id: 'attachments',
@@ -95,7 +95,7 @@ export function renderShortHelp(): string {
       (command) => `  ${command.syntax}\n      ${command.summary}`,
     ),
     '',
-    'Every command supports --output json. Run jz-trello-flow docs for the offline guide.',
+    'Commands that list --output support JSON output. Run jz-trello-flow docs for the offline guide.',
     '',
   ].join('\n');
 }
