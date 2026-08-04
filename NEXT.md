@@ -3,18 +3,18 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-04
 **Project:** AI Arsenal monorepo
-**State:** Workflow v2 item #22 is active on its dedicated work branch.
-**Current phase:** Per-command Trello CLI help
-**Active work item:** `2026-08-04-add-trello-command-help`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Workflow v2 branch-per-work-item development and fail-closed CLI delivery evidence are delivered.
+**Current phase:** No active work item
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Implement issue #22, "Support per-command help for `jz-trello-flow`."
+Define issue #23, "Add a canonical Work Unit template command."
 
 ## Why This Is Next
 
-- Issue #22 is the first independently reviewable child of issue #21. Its command-specific help is distinct from issue #6's offline documentation lookup convention, so it can proceed without a dependency overlap.
+- Issue #22 is delivered as private `jz-trello-flow` `0.7.0`; issue #23 is the next independently reviewable child of issue #21.
 
 ## Open Issue Queue
 
@@ -31,12 +31,12 @@ Implement issue #22, "Support per-command help for `jz-trello-flow`."
 
 ## Blockers / Escalation
 
-- No active blocker. This CLI behavior item requires the complete private-release, exact-artifact, CI, global-replacement, and cross-shell installed-shim evidence chain before delivery.
+- No active blocker. Issue #23 is a new bounded CLI behavior item and will require the complete private-release, exact-artifact, CI, global-replacement, and cross-shell installed-shim evidence chain.
 
 ## Done When
 
-- `jz-trello-flow` provides concise conventional `--help` output for every public command and subcommand, including required arguments, options, and a safe example.
-- Focused coverage preserves normal parser behavior, and the exact private release is packed, CI-validated, clean-consumer tested, globally installed, shim-repaired, independently smoked, and durably evidenced.
+- Define issue #23 through Workflow v2 before changing CLI behavior.
+- The delivered `0.7.0` package remains globally installed from its CI-green tarball, with the verified `0.6.0` artifact retained as rollback.
 
 ## Source of Truth
 

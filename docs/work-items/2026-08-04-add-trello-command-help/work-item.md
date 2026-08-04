@@ -3,11 +3,11 @@
 Work item: 2026-08-04-add-trello-command-help
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-04T16:31:59+03:00
 Max time: 4 hours
 Last time check: 2026-08-04T16:50:12+03:00
-Turns since time check: 2
+Turns since time check: 3
 Review cycles: 3
 Review status: passed
 Review snapshot: sha256:19db008344c489a9599dfd712fb5fbd95cc01069616e9e6673a14d55b5e31c49
@@ -91,3 +91,17 @@ Result: passed
 - `node scripts/validate-living-workflow.mjs` — exit 0; passed.
 - `node scripts/validate-monorepo-work-item.mjs --work-item 2026-08-04-add-trello-command-help --json` — exit 0; the `0.7.0` reviewed snapshot and `verify-monorepo-change` route were valid.
 - `bun packages/trello-work-cli/src/bin.ts draft create --help`, `design start --help`, and `checklist item set --help` — each exit 0; output contained command syntax, final options, and one pipe-free `--dry-run` example with the required board selector.
+
+## Delivery evidence
+
+Delivery result: passed
+Artifact-bearing commit: 6f59cb1f5246e5eec1d5fe3e4fbf96d5c620b13d
+Remote ref equality: {"ref":"refs/heads/work/2026-08-04-add-trello-command-help","sha":"6f59cb1f5246e5eec1d5fe3e4fbf96d5c620b13d","confirmed":true}
+Required CI: [{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/30916419572","sha":"6f59cb1f5246e5eec1d5fe3e4fbf96d5c620b13d","conclusion":"success"},{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/30916418727","sha":"6f59cb1f5246e5eec1d5fe3e4fbf96d5c620b13d","conclusion":"success"}]
+Package: {"name":"@jz/ai-arsenal-trello-work-cli","version":"0.7.0"}
+Tarball: {"file":"jz-ai-arsenal-trello-work-cli-0.7.0.tgz","sha256":"bb8d22da2e8202c034823597aa4c5577dfe36b61cd2021074ca540a0daf10891","pack":"success"}
+Global replacement: {"command":"pnpm add --global <exact-0.7.0-tarball> && pnpm --dir C:/Users/jimzord12/Documents/GitHub/ai-arsenal run repair:global-trello-shim","result":"success","installedPackage":"@jz/ai-arsenal-trello-work-cli","installedVersion":"0.7.0"}
+Installed-shim smoke: {"version":"passed","help":"passed","featureSmoke":"passed"}
+Installed artifact provenance: {"artifactBytes":"confirmed","sourceTree":"not-used","srcCliSha256":"15718b7bed0ab51fbf9f942efb180614791ba5363661c7b5102de90054f39713"}
+Rollback: {"identity":"jz-ai-arsenal-trello-work-cli-0.6.0.tgz sha256:c842e57ad900c717b572d6f117b99c8bb49f7b1faa00841995ff8b96232329b4","ready":true,"attempted":false,"result":"not-attempted"}
+Clean worktree: {"confirmed":true}
