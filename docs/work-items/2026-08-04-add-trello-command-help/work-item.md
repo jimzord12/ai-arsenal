@@ -3,7 +3,7 @@
 Work item: 2026-08-04-add-trello-command-help
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-04T16:31:59+03:00
 Max time: 4 hours
 Last time check: 2026-08-04T17:08:22+03:00
@@ -97,6 +97,7 @@ Result: passed
 - `git diff --check` — exit 0.
 - `node scripts/validate-living-workflow.mjs` — exit 0; passed.
 - `node scripts/validate-monorepo-work-item.mjs --work-item 2026-08-04-add-trello-command-help --json` — exit 0; fresh fourth review batch and verify route passed.
+- Repair commit `a2d6a71a602db4ce9c0d2a003d5b231ff726ea4a` passed [Quality](https://github.com/jimzord12/ai-arsenal/actions/runs/30917554349) and [Windows/Linux Portability](https://github.com/jimzord12/ai-arsenal/actions/runs/30917554050) — both exit-successful CI runs covered the scoped-tarball validator correction.
 
 ## Delivery evidence
 
