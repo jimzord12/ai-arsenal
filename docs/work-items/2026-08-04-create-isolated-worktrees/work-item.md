@@ -2,18 +2,18 @@
 
 Work item: 2026-08-04-create-isolated-worktrees
 Workflow: 2
-Stage: review
-Status: blocked
+Stage: deliver
+Status: active
 Started at: 2026-08-04T11:28:03+03:00
 Max time: 6 hours
-Last time check: 2026-08-04T11:28:03+03:00
-Turns since time check: 4
-Review cycles: 4
-Review status: failed
-Review snapshot: sha256:4258519a3401d8885d2497dc14d63fe32999d97f9c1d84122c431cd8aeb96efd
-Review batch: review-20260804-quality-ci-07
-Review expected: ["quality-ci"]
-Review received: [{"reviewer":"quality-ci","outcome":"failed","batchId":"review-20260804-quality-ci-07","snapshot":"sha256:4258519a3401d8885d2497dc14d63fe32999d97f9c1d84122c431cd8aeb96efd"}]
+Last time check: 2026-08-04T13:50:14+03:00
+Turns since time check: 0
+Review cycles: 1
+Review status: passed
+Review snapshot: sha256:f002b89d13e5854a2338496f6640aac1593bcb048d6e45f0ec60768ed8a303b2
+Review batch: review-20260804-inline-pi-08
+Review expected: ["pi-contract","pi-quality"]
+Review received: [{"reviewer":"pi-contract","outcome":"passed","batchId":"review-20260804-inline-pi-08","snapshot":"sha256:f002b89d13e5854a2338496f6640aac1593bcb048d6e45f0ec60768ed8a303b2"},{"reviewer":"pi-quality","outcome":"passed","batchId":"review-20260804-inline-pi-08","snapshot":"sha256:f002b89d13e5854a2338496f6640aac1593bcb048d6e45f0ec60768ed8a303b2"}]
 Dangerous deletion or irreversible data loss: no
 Hard prerequisites: resolved
 Approval: not-required
@@ -172,9 +172,25 @@ acceptance-critical CI finding. The run is recorded honestly as independent
 `quality-ci` failed evidence for the current committed candidate; no repair or
 fifth review cycle is authorized.
 
+The user explicitly authorized another review-cycle reset on 2026-08-04 for
+issue #29. The resumed-turn proportionality check found the bounded CI repair
+still aligned with the six-hour estimate and original acceptance criteria, so
+the durable turn counter reset to zero. The Quality setup now detaches the
+Actions checkout before force-updating and linking the exact work branch; a
+real disposable-repository test reproduces the already-checked-out branch
+topology. Candidate bytes changed, so all five review fields reset pending and
+the fresh authorized review budget starts at zero.
+
+Fresh authorized batch `review-20260804-inline-pi-08` completed against
+`sha256:f002b89d13e5854a2338496f6640aac1593bcb048d6e45f0ec60768ed8a303b2`.
+Separate read-only Pi processes returned one matching `passed` result each for
+`pi-contract` and `pi-quality`; reconciliation passed without blockers. Review
+cycle 1 of the reset budget is complete, and the item advances to final
+verification.
+
 ## Final verification
 
-Result: failed
+Result: passed
 
 - `pnpm check` — passed. This ran repository formatting; package lint and
   typechecking; 154 Features CLI, 285 Trello Flow CLI (2 skipped live cases), and
@@ -219,3 +235,11 @@ Result: failed
   checked-out branch; Portability
   [`30900899634`](https://github.com/jimzord12/ai-arsenal/actions/runs/30900899634)
   passed. Delivery is blocked after the fourth permitted review cycle.
+
+- Final stable run after authorized Quality CI repair: `pnpm check` exited `0`
+  with 139 workflow tests passed and 2 platform-conditional skips, 154 Features
+  CLI tests passed, 285 Trello Flow CLI tests passed with 2 skipped, and 79
+  weekly-report tests passed. `node scripts/validate-living-workflow.mjs`,
+  `node scripts/validate-monorepo-work-item.mjs --current --json`, and
+  `git diff --check` each exited `0`; the validator confirmed the fresh passed
+  review snapshot and exact isolated branch/worktree.

@@ -43,6 +43,7 @@ jobs:
           grep -Fxq 'Worktree: isolated' "$item_record"
           worktree="$GITHUB_WORKSPACE/../$(basename "$GITHUB_WORKSPACE").worktrees/$active_work_item"
           test ! -e "$worktree"
+          git checkout --detach "$GITHUB_SHA"
           git branch --force "work/$active_work_item" "$GITHUB_SHA"
           git worktree add "$worktree" "work/$active_work_item"
           echo "QUALITY_WORKDIR=$worktree" >> "$GITHUB_ENV"

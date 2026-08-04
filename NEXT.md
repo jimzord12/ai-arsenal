@@ -3,18 +3,18 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-04
 **Project:** AI Arsenal monorepo
-**State:** Workflow v2 isolated worktree-per-item delivery is blocked by a required Quality CI finding after the fourth permitted review cycle.
-**Current phase:** Workflow v2 review blocker
+**State:** Workflow v2 isolated worktree-per-item development passed final verification and awaits CI-backed delivery.
+**Current phase:** Workflow v2 isolated-worktree delivery
 **Active work item:** `2026-08-04-create-isolated-worktrees`
-**Pipeline step:** `review-monorepo-change`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Obtain explicit authorization to reset the exhausted review-cycle budget before repairing Quality CI's in-use-branch failure.
+Commit and push the verified Quality CI repair, require successful Quality and Portability runs, then deliver issue #29.
 
 ## Why This Is Next
 
-- Quality run `30900899541` failed because its active-worktree setup force-updates the branch already checked out by Actions. This is acceptance-critical, but a fifth review cycle requires a new user-authorized reset.
+- Final stable verification passed on the fresh review-approved candidate. Required branch CI must now confirm the repaired Actions topology before closure.
 
 ## Open Issue Queue
 
@@ -31,7 +31,7 @@ Obtain explicit authorization to reset the exhausted review-cycle budget before 
 
 ## Blockers / Escalation
 
-- The user authorized a review-cycle reset and the inline Pi independent-agent review method. Repair the Quality CI shell quoting, then obtain fresh separate-agent evidence.
+- The user authorized a fresh review-cycle reset for the Quality CI in-use-branch repair.
 
 ## Done When
 
