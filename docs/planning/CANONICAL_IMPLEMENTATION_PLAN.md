@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 review-barrier integration, branch-per-work-item development, fail-closed CLI delivery evidence, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.7.0` per-command help are delivered
+> **Status:** Workflow v2 review-barrier integration, branch-per-work-item development, fail-closed CLI delivery evidence, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.7.0` per-command help are delivered; its scoped-tarball delivery-evidence validator repair is active
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-08-04
-> **Current phase:** Workflow v2 delivery evidence and branch-per-work-item policy plus Trello Flow CLI `0.7.0` per-command help delivered; no active item
+> **Current phase:** Scoped pnpm tarball delivery-evidence validator repair for the Trello Flow CLI `0.7.0` release
 > **Operator view:** `NEXT.md`
 
 ---
@@ -1119,4 +1119,4 @@ The canonical plan itself must contain only current truth.
 
 # 24. Immediate Next Step
 
-Issue #22 per-command help is delivered as private `jz-trello-flow` `0.7.0`; the exact CI-green artifact is globally installed and `0.6.0` remains the verified rollback. The next bounded request is issue #23, a canonical non-mutating Work Unit template command.
+The `jz-trello-flow` `0.7.0` artifact is CI-green and globally installed, with `0.6.0` retained as rollback. Its work-item closure is repairing the delivery-evidence validator to accept pnpm's actual scoped-package tarball filename; issue #23 follows that active repair.

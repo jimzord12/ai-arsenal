@@ -351,7 +351,7 @@ function completeDeliveryEvidence(overrides = {}) {
     ]),
     package: JSON.stringify({ name: packageName, version: packageVersion }),
     tarball: JSON.stringify({
-      file: `${packageName.replaceAll('/', '-')}-${packageVersion}.tgz`,
+      file: `${packageName.replace(/^@/, '').replaceAll('/', '-')}-${packageVersion}.tgz`,
       sha256: 'b'.repeat(64),
       pack: 'success',
     }),

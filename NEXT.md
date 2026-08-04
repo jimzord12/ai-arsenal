@@ -3,18 +3,18 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-04
 **Project:** AI Arsenal monorepo
-**State:** Workflow v2 branch-per-work-item development and fail-closed CLI delivery evidence are delivered.
-**Current phase:** No active work item
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** Workflow v2 repair is active for the `jz-trello-flow` `0.7.0` delivery-evidence validator.
+**Current phase:** Actual pnpm tarball identity repair
+**Active work item:** `2026-08-04-add-trello-command-help`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Define issue #23, "Add a canonical Work Unit template command."
+Repair exact scoped-package tarball identity validation for the `jz-trello-flow` `0.7.0` delivery record.
 
 ## Why This Is Next
 
-- Issue #22 is delivered as private `jz-trello-flow` `0.7.0`; issue #23 is the next independently reviewable child of issue #21.
+- The exact pnpm tarball is `jz-ai-arsenal-trello-work-cli-0.7.0.tgz`, but the delivery validator incorrectly requires a filename retaining the npm scope marker (`@`).
 
 ## Open Issue Queue
 
@@ -31,12 +31,12 @@ Define issue #23, "Add a canonical Work Unit template command."
 
 ## Blockers / Escalation
 
-- No active blocker. Issue #23 is a new bounded CLI behavior item and will require the complete private-release, exact-artifact, CI, global-replacement, and cross-shell installed-shim evidence chain.
+- No external blocker. The CI-green artifact, global replacement, installed-shim smoke, provenance, and rollback are complete; closure is blocked only by the validator's scoped-package filename defect.
 
 ## Done When
 
-- Define issue #23 through Workflow v2 before changing CLI behavior.
-- The delivered `0.7.0` package remains globally installed from its CI-green tarball, with the verified `0.6.0` artifact retained as rollback.
+- Repair and re-verify the exact pnpm scoped-package tarball filename contract, then close the already delivered `0.7.0` release evidence.
+- Define issue #23 only after this active item closes.
 
 ## Source of Truth
 

@@ -3,17 +3,17 @@
 Work item: 2026-08-04-add-trello-command-help
 Workflow: 2
 Stage: deliver
-Status: delivered
+Status: active
 Started at: 2026-08-04T16:31:59+03:00
 Max time: 4 hours
-Last time check: 2026-08-04T16:50:12+03:00
-Turns since time check: 3
-Review cycles: 3
+Last time check: 2026-08-04T17:08:22+03:00
+Turns since time check: 1
+Review cycles: 4
 Review status: passed
-Review snapshot: sha256:19db008344c489a9599dfd712fb5fbd95cc01069616e9e6673a14d55b5e31c49
-Review batch: review-20260804-command-help-03
+Review snapshot: sha256:4296c67a51d693a1c84c9e765d4c4c8a9efa5ae8da738338ce62230060aea3b0
+Review batch: review-20260804-command-help-04
 Review expected: ["contract","quality"]
-Review received: [{"reviewer":"contract","outcome":"passed","batchId":"review-20260804-command-help-03","snapshot":"sha256:19db008344c489a9599dfd712fb5fbd95cc01069616e9e6673a14d55b5e31c49"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260804-command-help-03","snapshot":"sha256:19db008344c489a9599dfd712fb5fbd95cc01069616e9e6673a14d55b5e31c49"}]
+Review received: [{"reviewer":"contract","outcome":"passed","batchId":"review-20260804-command-help-04","snapshot":"sha256:4296c67a51d693a1c84c9e765d4c4c8a9efa5ae8da738338ce62230060aea3b0"},{"reviewer":"quality","outcome":"passed","batchId":"review-20260804-command-help-04","snapshot":"sha256:4296c67a51d693a1c84c9e765d4c4c8a9efa5ae8da738338ce62230060aea3b0"}]
 Dangerous deletion or irreversible data loss: no
 Hard prerequisites: resolved
 Approval: not-required
@@ -50,6 +50,7 @@ Implemented catalog-backed per-command `--help` before parser validation or conf
 - `packages/trello-work-cli/src/cli.ts` — route `--help` after a public command path to the offline renderer before argument validation, credentials, configuration, or mutation.
 - `packages/trello-work-cli/src/cli.test.ts` — exercise every catalog entry offline, process-level `draft create`, `design start`, and `checklist item set` paths, complete configured options, and pipe-free dry-run examples.
 - `packages/trello-work-cli/package.json` and `CHANGELOG.md` — Changesets generated the SemVer-minor private `0.7.0` release and changelog entry for per-command help.
+- `scripts/validate-monorepo-work-item.mjs` and `.test.mjs` — normalize npm scoped package names to pnpm's actual tarball filename by omitting only the leading `@`.
 
 ### Decisions
 
@@ -64,6 +65,7 @@ Implemented catalog-backed per-command `--help` before parser validation or conf
 - `pnpm --filter @jz/ai-arsenal-trello-work-cli run typecheck` — passed.
 - `pnpm --filter @jz/ai-arsenal-trello-work-cli run lint` — passed.
 - `pnpm --filter @jz/ai-arsenal-trello-work-cli run format` — passed.
+- Scoped-tarball regression first failed with `Delivery evidence tarball identity or checksum is invalid`; `node --test scripts/validate-monorepo-work-item.test.mjs` then passed all 69 tests.
 
 ## Review findings and repairs
 
@@ -80,17 +82,21 @@ Release metadata is part of the reviewed CLI delivery snapshot. The new minor Ch
 
 Cycle 3 (`review-20260804-command-help-03`, `sha256:19db008344c489a9599dfd712fb5fbd95cc01069616e9e6673a14d55b5e31c49`) reconciled as passed: contract and quality reviewers confirmed the private `0.7.0` SemVer-minor release metadata, changelog, package boundary, and unchanged command-help contract. No required finding remains.
 
+Cycle 4 (`review-20260804-command-help-04`, `sha256:4296c67a51d693a1c84c9e765d4c4c8a9efa5ae8da738338ce62230060aea3b0`) reconciled as passed: contract and quality reviewers confirmed exact pnpm scoped-package filename normalization, retained strict evidence checks, and the scoped fixture regression. No required finding remains.
+
+Cycle 4 repaired the delivery-evidence validator so actual pnpm scoped-package tarballs omit the leading `@` before scope separators become hyphens. The exact `0.7.0` artifact, CI, global replacement, shim smoke, provenance, and rollback evidence remain complete.
+
 ## Final verification
 
 Result: passed
 
-- Changed-file observation — `NEXT.md`, the active work-item record, package `0.7.0` metadata/changelog, and the four in-scope implementation paths; all are within the recorded scope. Result: passed.
-- `pnpm check` — exit 0. Prettier, all package lint/typecheck/test gates, 154 Features CLI tests, 317 Trello Flow tests with 2 credential-gated skips, 79 weekly-report tests, 127 workflow tests with 2 platform-conditional skips, and both workflow validators passed.
-- `pnpm --filter @jz/ai-arsenal-trello-work-cli run validate` — exit 0; strict `publint --pack pnpm` passed for private `0.7.0`.
+- Changed-file observation — delivery-evidence validator, its scoped-package fixture, active work-item record, `NEXT.md`, and canonical plan; all are within the repair scope. Result: passed.
+- `pnpm exec prettier --check NEXT.md docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md docs/work-items/2026-08-04-add-trello-command-help/work-item.md scripts/validate-monorepo-work-item.mjs scripts/validate-monorepo-work-item.test.mjs` — exit 0.
+- `pnpm lint:root` — exit 0.
+- `pnpm test:workflow` — exit 0; 127 passed and 2 platform-conditional skips, including the 69-test `validate-monorepo-work-item` suite.
 - `git diff --check` — exit 0.
 - `node scripts/validate-living-workflow.mjs` — exit 0; passed.
-- `node scripts/validate-monorepo-work-item.mjs --work-item 2026-08-04-add-trello-command-help --json` — exit 0; the `0.7.0` reviewed snapshot and `verify-monorepo-change` route were valid.
-- `bun packages/trello-work-cli/src/bin.ts draft create --help`, `design start --help`, and `checklist item set --help` — each exit 0; output contained command syntax, final options, and one pipe-free `--dry-run` example with the required board selector.
+- `node scripts/validate-monorepo-work-item.mjs --work-item 2026-08-04-add-trello-command-help --json` — exit 0; fresh fourth review batch and verify route passed.
 
 ## Delivery evidence
 

@@ -799,7 +799,9 @@ function validateRequiredDeliveryEvidence(contents, status) {
   }
 
   const tarball = parseDeliveryJson(fields.Tarball, 'Tarball');
-  const expectedTarball = `${packageEvidence.name.replaceAll('/', '-')}-${packageEvidence.version}.tgz`;
+  const expectedTarball = `${packageEvidence.name
+    .replace(/^@/, '')
+    .replaceAll('/', '-')}-${packageEvidence.version}.tgz`;
   if (
     !tarball ||
     tarball.file !== expectedTarball ||
