@@ -3,19 +3,19 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-05
 **Project:** AI Arsenal monorepo
-**State:** Issue #23 has a fresh isolated successor after the workflow release-preparation repair.
-**Current phase:** Trello Flow CLI canonical Work Unit template command
-**Active work item:** `2026-08-05-add-work-unit-template`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Issue #23 is delivered as globally installed private `jz-trello-flow` `0.8.0`.
+**Current phase:** Trello Flow CLI authoring and discovery UX
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Commit and push the exact reviewed `0.8.0` candidate, require exact-SHA CI, then pack, globally replace, repair the shim, smoke every required shell, and close the item with durable evidence.
+Define issue #24, "Make design start input requirements actionable."
 
 ## Why This Is Next
 
-- Workflow repair commit `68f75059bf5ff180ca24bc485de7eff4ce928788` passed exact-SHA Quality and Portability CI and now requires CLI release preparation before review.
-- The predecessor exhausted four reviews before that schema existed. Its product changes may be imported, but its record, routing state, snapshots, batches, and cycle count are not reusable.
+- Issue #23's fresh successor passed one complete independent review batch, final verification, exact-SHA Quality and Portability CI, clean-consumer validation, global replacement, installed-byte proof, and cross-shell smoke.
+- Issue #24 is the next independently reviewable child of issue #21.
 
 ## Open Issue Queue
 
@@ -27,18 +27,17 @@ Commit and push the exact reviewed `0.8.0` candidate, require exact-SHA CI, then
 
 ## Requirements
 
-- Work only in `C:/Users/jimzord12/Documents/GitHub/ai-arsenal.worktrees/2026-08-05-add-work-unit-template` on `work/2026-08-05-add-work-unit-template`.
-- Complete the Trello CLI Changeset, `pnpm version-packages`, focused checks, and `CLI release preparation` declaration before entering review.
-- After any global `jz-trello-flow` lifecycle operation, run `pnpm --dir C:/Users/jimzord12/Documents/GitHub/ai-arsenal run repair:global-trello-shim` and complete the documented cross-shell smoke checks.
+- New Workflow v2 items start from the clean base checkout and use their own deterministic isolated worktree.
+- After any global `jz-trello-flow` lifecycle operation, run the documented shim repair and Git Bash, CMD, and PowerShell smoke checks.
 
 ## Blockers / Escalation
 
-- No active blocker. The verified `0.7.0` artifact remains the rollback while the fresh successor receives a new four-cycle review budget.
+- No active blocker. Exact `0.7.0` remains the verified rollback for installed `0.8.0`.
 
 ## Done When
 
-- The predecessor's product-only diff is imported and verified without carrying its Workflow v2 control/evidence files.
-- Release preparation is complete before a fresh review, and the exact reviewed/CI-green artifact completes the required local-delivery evidence chain.
+- Define issue #24 through Workflow v2 before changing CLI behavior.
+- Preserve globally installed `0.8.0` until issue #24's separately reviewed release is CI-green.
 
 ## Source of Truth
 

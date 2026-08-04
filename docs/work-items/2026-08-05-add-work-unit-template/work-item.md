@@ -3,7 +3,7 @@
 Work item: 2026-08-05-add-work-unit-template
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-05T00:29:31+03:00
 Max time: 4 hours
 Last time check: 2026-08-05T00:29:31+03:00
@@ -67,14 +67,14 @@ Result: passed
 
 ## Delivery evidence
 
-Delivery result: pending
-Artifact-bearing commit: pending
-Remote ref equality: pending
-Required CI: pending
-Package: pending
-Tarball: pending
-Global replacement: pending
-Installed-shim smoke: pending
-Installed artifact provenance: pending
-Rollback: pending
-Clean worktree: pending
+Delivery result: passed
+Artifact-bearing commit: 957d8412da470686f6b42c90174ffe80b372014c
+Remote ref equality: {"ref":"origin/work/2026-08-05-add-work-unit-template","sha":"957d8412da470686f6b42c90174ffe80b372014c","confirmed":true}
+Required CI: [{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/30953856675","sha":"957d8412da470686f6b42c90174ffe80b372014c","conclusion":"success"},{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/30953856645","sha":"957d8412da470686f6b42c90174ffe80b372014c","conclusion":"success"}]
+Package: {"name":"@jz/ai-arsenal-trello-work-cli","version":"0.8.0"}
+Tarball: {"file":"jz-ai-arsenal-trello-work-cli-0.8.0.tgz","sha256":"68a38a394b892362c92ac78e36b70c2ca7504a41d6487d951daa68c5e87457e6","pack":"success"}
+Global replacement: {"command":"pnpm add --global C:/Users/JIMZOR~1/AppData/Local/Temp/tmp.vB7NslnYAT/jz-ai-arsenal-trello-work-cli-0.8.0.tgz","result":"success","installedPackage":"@jz/ai-arsenal-trello-work-cli","installedVersion":"0.8.0"}
+Installed-shim smoke: {"version":"passed","help":"passed","featureSmoke":"passed"}
+Installed artifact provenance: {"artifactBytes":"confirmed","sourceTree":"not-used"}
+Rollback: {"identity":"jz-ai-arsenal-trello-work-cli-0.7.0.tgz#sha256:bb8d22da2e8202c034823597aa4c5577dfe36b61cd2021074ca540a0daf10891","ready":true,"attempted":false,"result":"not-attempted"}
+Clean worktree: {"confirmed":true}

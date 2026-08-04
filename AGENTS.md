@@ -73,9 +73,10 @@ Known:
 - Commit `332cff2` on `master` adds verified flexible `--feature` selectors. The approved private `0.1.0` release has a generated Changesets changelog, validated packed artifact, and verified global installation.
 - Workflow v2 review-barrier integration issue `#19` is delivered and closed. Artifact commit `b7b095d27fb2750bfeaef670a384670e7fe30dda` passed exact-SHA Quality runs `30652534854` and `30652535100` plus Portability runs `30652534982` and `30652535659`; the blocked four-cycle predecessor and user-authorized one-attempt successor preserve the complete audit.
 - Workflow v2 isolated worktree-per-item issue `#29` is delivered and closed. Artifact commit `e443c85cfb5ab0812b79057f217dc9f9d75c68e7` passed Quality run `30902781283` and Windows/Linux Portability run `30902781295`; its work branch and deterministic sibling worktree remain intact for external integration.
+- Issue `#23` is delivered as private Trello Flow CLI `0.8.0`. Its offline `jz-trello-flow template` command emits one canonical Draft that validates unchanged without credentials or Trello access. Artifact commit `957d8412da470686f6b42c90174ffe80b372014c` passed exact-SHA Quality run `30953856675` and Portability run `30953856645`; the exact 32-file tarball SHA-256 is `68a38a394b892362c92ac78e36b70c2ca7504a41d6487d951daa68c5e87457e6`, all installed package files byte-match it, and exact `0.7.0` checksum `bb8d22da2e8202c034823597aa4c5577dfe36b61cd2021074ca540a0daf10891` remains ready for rollback.
 
 Issue `#21`, improving `jz-trello-flow` authoring and discovery UX through
-bounded child issues, is the next product track.
+bounded child issues, continues with issue `#24`.
 
 The immediate next action is defined in `NEXT.md`.
 
