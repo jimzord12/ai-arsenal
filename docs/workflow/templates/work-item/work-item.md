@@ -18,12 +18,17 @@ Dangerous deletion or irreversible data loss: <yes|no>
 Hard prerequisites: <resolved|blocked>
 Approval: <not-required|required|approved>
 Approval source: <none|verbatim direct user approval>
+Worktree: isolated
 CLI local-delivery evidence: <required|not-required>
 
 <!--
-Branch policy: definition creates and records by convention the exact
-`work/<work-item-id>` branch from a clean base checkout. Active stages must stay
-on that branch; delivery does not merge or delete it.
+Worktree policy: definition runs only from a clean, non-`work/*` base checkout
+and creates the exact `work/<work-item-id>` branch at
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>`. It writes this
+record and the active `NEXT.md` route only in that worktree; the base stays clean
+with `none` / `none`. `Worktree: isolated` requires every active stage to run
+from that exact registered path and branch. Delivery does not merge, delete, or
+remove branches or worktrees; worktree removal remains dangerous deletion.
 
 For a CLI behavior item, record the complete release chain, preflight, rollback,
 and verification in its bounded scope. The CI-green global replacement then uses

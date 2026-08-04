@@ -15,6 +15,10 @@ const validatorPath = path.join(
   scriptsDirectory,
   'validate-monorepo-work-item.mjs',
 );
+const provisionerPath = path.join(
+  scriptsDirectory,
+  'provision-monorepo-worktree.mjs',
+);
 const compactTemplatePath = path.join(
   scriptsDirectory,
   '..',
@@ -30,6 +34,14 @@ const defineSkillPath = path.join(
   '.agents',
   'skills',
   'define-monorepo-change',
+  'SKILL.md',
+);
+const orchestrateSkillPath = path.join(
+  scriptsDirectory,
+  '..',
+  '.agents',
+  'skills',
+  'orchestrate-monorepo-work',
   'SKILL.md',
 );
 const implementSkillPath = path.join(
@@ -78,6 +90,13 @@ const pipelinePath = path.join(
   'docs',
   'workflow',
   'MONOREPO_WORK_ITEM_PIPELINE.md',
+);
+const workflowOverviewPath = path.join(
+  scriptsDirectory,
+  '..',
+  'docs',
+  'workflow',
+  'WORKFLOW_OVERVIEW.md',
 );
 const livingValidatorPath = path.join(
   scriptsDirectory,
@@ -281,6 +300,44 @@ function initializeGitFixture(root) {
   runGit(root, ['switch', '--quiet', '-c', `work/${workItemId}`]);
 }
 
+function createCleanBaseFixture(t) {
+  const root = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'ai-arsenal-worktree-base-'),
+  );
+  const worktreesRoot = path.join(
+    path.dirname(root),
+    `${path.basename(root)}.worktrees`,
+  );
+  t.after(() => {
+    fs.rmSync(root, { force: true, recursive: true });
+    fs.rmSync(worktreesRoot, { force: true, recursive: true });
+  });
+  writeActiveState(root, 'none', 'none');
+  runGit(root, ['init', '--quiet']);
+  runGit(root, ['config', 'user.name', 'Workflow Tests']);
+  runGit(root, ['config', 'user.email', 'workflow-tests@example.invalid']);
+  runGit(root, ['add', '.']);
+  runGit(root, ['commit', '--quiet', '-m', 'fixture baseline']);
+  return { root, worktreesRoot };
+}
+
+function runProvisioner(root, workItem = workItemId) {
+  const result = spawnSync(
+    process.execPath,
+    [provisionerPath, '--work-item', workItem, '--json'],
+    { cwd: root, encoding: 'utf8' },
+  );
+  let json;
+  try {
+    json = JSON.parse(result.stdout);
+  } catch {
+    assert.fail(
+      `provisioner did not emit JSON\nstdout: ${result.stdout}\nstderr: ${result.stderr}`,
+    );
+  }
+  return { ...result, json };
+}
+
 function makeActiveCandidateFresh(root, workItemDirectory) {
   initializeGitFixture(root);
   const workItemPath = path.join(workItemDirectory, 'work-item.md');
@@ -415,6 +472,7 @@ function addV2WorkItem(
     finalVerificationResult = stage === 'deliver' ? 'passed' : 'pending',
     deliveryMode = 'not-required',
     deliveryEvidence = {},
+    workItem = workItemId,
   } = {},
 ) {
   writeArtifact(
@@ -422,7 +480,7 @@ function addV2WorkItem(
     'work-item.md',
     `# Work Item
 
-Work item: ${workItemId}
+Work item: ${workItem}
 Workflow: 2
 Stage: ${stage}
 Status: ${status}
@@ -481,6 +539,25 @@ ${deliveryEvidenceSection(deliveryMode, deliveryEvidence)}`,
   );
 }
 
+function addActiveIsolatedV2WorkItem(root, workItem = workItemId) {
+  const workItemDirectory = path.join(root, 'docs', 'work-items', workItem);
+  fs.mkdirSync(workItemDirectory, { recursive: true });
+  addV2WorkItem(workItemDirectory, { workItem });
+  const workItemPath = path.join(workItemDirectory, 'work-item.md');
+  fs.writeFileSync(
+    workItemPath,
+    fs
+      .readFileSync(workItemPath, 'utf8')
+      .replace(
+        'CLI local-delivery evidence: not-required',
+        'Worktree: isolated\nCLI local-delivery evidence: not-required',
+      ),
+    'utf8',
+  );
+  writeActiveState(root, workItem, 'implement-monorepo-change');
+  return workItemDirectory;
+}
+
 test('a compact v2 work item routes through the five-stage workflow', (t) => {
   const fixture = createFixture(t);
   addV2WorkItem(fixture.workItemDirectory);
@@ -530,6 +607,230 @@ test('active work items require their deterministic work branch', (t) => {
   assert.match(
     mismatched.json.blocker,
     /exactly|work\/2026-07-13-example|branch/i,
+  );
+});
+
+test('definition provisioner creates a deterministic isolated worktree from a clean base', (t) => {
+  const fixture = createCleanBaseFixture(t);
+
+  const result = runProvisioner(fixture.root);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(result.json.workItem, workItemId);
+  assert.equal(result.json.branch, `work/${workItemId}`);
+  assert.ok(fs.existsSync(result.json.worktree));
+  assert.equal(path.basename(result.json.worktree), workItemId);
+  assert.equal(
+    path.basename(path.dirname(result.json.worktree)),
+    `${path.basename(fixture.root)}.worktrees`,
+  );
+  assert.equal(runGit(fixture.root, ['branch', '--show-current']), 'master');
+  assert.equal(runGit(fixture.root, ['status', '--porcelain']), '');
+  assert.equal(
+    runGit(result.json.worktree, ['branch', '--show-current']),
+    `work/${workItemId}`,
+  );
+});
+
+test('definition provisioner rejects dirty bases and branch or path collisions', (t) => {
+  const dirty = createCleanBaseFixture(t);
+  fs.writeFileSync(path.join(dirty.root, 'uncommitted.txt'), 'dirty\n', 'utf8');
+  const dirtyResult = runProvisioner(dirty.root);
+  assert.equal(dirtyResult.status, 1);
+  assert.match(dirtyResult.json.blocker, /clean base checkout/i);
+
+  const branchCollision = createCleanBaseFixture(t);
+  runGit(branchCollision.root, ['branch', `work/${workItemId}`]);
+  const branchResult = runProvisioner(branchCollision.root);
+  assert.equal(branchResult.status, 1);
+  assert.match(branchResult.json.blocker, /work branch collision/i);
+
+  const pathCollision = createCleanBaseFixture(t);
+  fs.mkdirSync(path.join(pathCollision.worktreesRoot, workItemId), {
+    recursive: true,
+  });
+  const pathResult = runProvisioner(pathCollision.root);
+  assert.equal(pathResult.status, 1);
+  assert.match(pathResult.json.blocker, /worktree path collision/i);
+
+  const linked = createCleanBaseFixture(t);
+  const linkedProvision = runProvisioner(linked.root);
+  assert.equal(linkedProvision.status, 0, linkedProvision.json.blocker);
+  const linkedResult = runProvisioner(
+    linkedProvision.json.worktree,
+    '2026-07-14-from-linked-worktree',
+  );
+  assert.equal(linkedResult.status, 1);
+  assert.match(linkedResult.json.blocker, /non-work base checkout/i);
+});
+
+test('isolated active items require their exact deterministic worktree', (t) => {
+  const matchingBase = createCleanBaseFixture(t);
+  const matchingProvision = runProvisioner(matchingBase.root);
+  assert.equal(matchingProvision.status, 0, matchingProvision.json.blocker);
+  const matchingDirectory = path.join(
+    matchingProvision.json.worktree,
+    'docs',
+    'work-items',
+    workItemId,
+  );
+  fs.mkdirSync(matchingDirectory, { recursive: true });
+  addV2WorkItem(matchingDirectory);
+  const matchingItemPath = path.join(matchingDirectory, 'work-item.md');
+  fs.writeFileSync(
+    matchingItemPath,
+    fs
+      .readFileSync(matchingItemPath, 'utf8')
+      .replace(
+        'CLI local-delivery evidence: not-required',
+        'Worktree: isolated\nCLI local-delivery evidence: not-required',
+      ),
+    'utf8',
+  );
+  writeActiveState(
+    matchingProvision.json.worktree,
+    workItemId,
+    'implement-monorepo-change',
+  );
+  const matching = runValidator(matchingProvision.json.worktree);
+  assert.equal(matching.status, 0, matching.json.blocker);
+
+  const redirectedBase = createCleanBaseFixture(t);
+  const redirectedRoot = path.join(
+    redirectedBase.worktreesRoot,
+    'not-the-work-item-id',
+  );
+  runGit(redirectedBase.root, [
+    'worktree',
+    'add',
+    '--quiet',
+    '-b',
+    `work/${workItemId}`,
+    redirectedRoot,
+    'HEAD',
+  ]);
+  const redirectedDirectory = path.join(
+    redirectedRoot,
+    'docs',
+    'work-items',
+    workItemId,
+  );
+  fs.mkdirSync(redirectedDirectory, { recursive: true });
+  addV2WorkItem(redirectedDirectory);
+  const redirectedItemPath = path.join(redirectedDirectory, 'work-item.md');
+  fs.writeFileSync(
+    redirectedItemPath,
+    fs
+      .readFileSync(redirectedItemPath, 'utf8')
+      .replace(
+        'CLI local-delivery evidence: not-required',
+        'Worktree: isolated\nCLI local-delivery evidence: not-required',
+      ),
+    'utf8',
+  );
+  writeActiveState(redirectedRoot, workItemId, 'implement-monorepo-change');
+
+  const redirected = runValidator(redirectedRoot);
+  assert.equal(redirected.status, 1);
+  assert.match(redirected.json.blocker, /deterministic worktree|worktree/i);
+});
+
+test('two isolated active items route and snapshot independently', (t) => {
+  const fixture = createCleanBaseFixture(t);
+  const secondWorkItem = '2026-07-14-independent-example';
+  const first = runProvisioner(fixture.root);
+  const second = runProvisioner(fixture.root, secondWorkItem);
+  assert.equal(first.status, 0, first.json.blocker);
+  assert.equal(second.status, 0, second.json.blocker);
+
+  const firstDirectory = addActiveIsolatedV2WorkItem(first.json.worktree);
+  const secondDirectory = addActiveIsolatedV2WorkItem(
+    second.json.worktree,
+    secondWorkItem,
+  );
+  const firstResult = runValidator(first.json.worktree);
+  const secondResult = runValidator(second.json.worktree, [
+    '--work-item',
+    secondWorkItem,
+  ]);
+  assert.equal(firstResult.status, 0, firstResult.json.blocker);
+  assert.equal(secondResult.status, 0, secondResult.json.blocker);
+  assert.equal(runValidator(fixture.root, ['--work-item', 'none']).status, 0);
+
+  const firstSnapshot = calculateReviewSnapshot({
+    repositoryRoot: first.json.worktree,
+    workItemPath: path.join(firstDirectory, 'work-item.md'),
+  });
+  fs.writeFileSync(
+    path.join(second.json.worktree, 'only-second-candidate.txt'),
+    'second\n',
+    'utf8',
+  );
+  assert.equal(
+    calculateReviewSnapshot({
+      repositoryRoot: first.json.worktree,
+      workItemPath: path.join(firstDirectory, 'work-item.md'),
+    }),
+    firstSnapshot,
+  );
+  assert.notEqual(
+    calculateReviewSnapshot({
+      repositoryRoot: second.json.worktree,
+      workItemPath: path.join(secondDirectory, 'work-item.md'),
+    }),
+    firstSnapshot,
+  );
+});
+
+test('isolated active items reject base and detached checkouts', (t) => {
+  const fixture = createCleanBaseFixture(t);
+  const provisioned = runProvisioner(fixture.root);
+  assert.equal(provisioned.status, 0, provisioned.json.blocker);
+  const itemDirectory = addActiveIsolatedV2WorkItem(provisioned.json.worktree);
+
+  fs.mkdirSync(path.join(fixture.root, 'docs', 'work-items'), {
+    recursive: true,
+  });
+  fs.cpSync(
+    itemDirectory,
+    path.join(fixture.root, 'docs', 'work-items', workItemId),
+    {
+      recursive: true,
+    },
+  );
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+  const base = runValidator(fixture.root);
+  assert.equal(base.status, 1);
+  assert.match(base.json.blocker, /work\/|base checkout|branch/i);
+
+  runGit(provisioned.json.worktree, ['switch', '--quiet', '--detach']);
+  const detached = runValidator(provisioned.json.worktree);
+  assert.equal(detached.status, 1);
+  assert.match(detached.json.blocker, /detached|branch/i);
+});
+
+test('live Workflow v2 authorities require one isolated worktree per new item', () => {
+  const authorities = new Map([
+    ['root operating guidance', fs.readFileSync(agentsPath, 'utf8')],
+    ['compact template', fs.readFileSync(compactTemplatePath, 'utf8')],
+    ['normative pipeline', fs.readFileSync(pipelinePath, 'utf8')],
+    ['workflow overview', fs.readFileSync(workflowOverviewPath, 'utf8')],
+    ['router', fs.readFileSync(orchestrateSkillPath, 'utf8')],
+    ['definition skill', fs.readFileSync(defineSkillPath, 'utf8')],
+    ['delivery skill', fs.readFileSync(deliverSkillPath, 'utf8')],
+  ]);
+
+  for (const [name, contents] of authorities) {
+    assert.match(contents, /work\/<work-item-id>/, `${name}: work branch`);
+    assert.match(contents, /\.worktrees/, `${name}: isolated worktree`);
+  }
+  assert.match(authorities.get('compact template'), /^Worktree: isolated$/m);
+  assert.match(
+    authorities.get('definition skill'),
+    /provision-monorepo-worktree\.mjs/,
+  );
+  assert.match(
+    authorities.get('delivery skill'),
+    /remov(?:e|al).*dangerous deletion/is,
   );
 });
 

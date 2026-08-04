@@ -139,16 +139,20 @@ compatibility is limited to validator-recognized immutable delivered records.
 The snapshot comes only from `scripts/calculate-review-snapshot.mjs`; `NEXT.md`
 is excluded as routing-only state.
 
-### Branch-per-work-item development
+### Worktree-per-work-item development
 
-Every new Workflow v2 item gets a dedicated branch named
-`work/<work-item-id>`, for example
-`work/2026-08-04-enforce-workflow-v2-delivery-evidence`. The definition stage
-creates it from the current clean base branch; the active validator requires
-the exact matching branch through implementation, review, verification, and
-delivery. Agents must not develop an active item on `master` or another work
-branch. Delivery commits and pushes the same work branch; merging and branch
-delete remain outside this workflow unless separately requested.
+Every new Workflow v2 item gets the dedicated branch
+`work/<work-item-id>` in the deterministic sibling worktree
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>`, for example
+`ai-arsenal.worktrees/2026-08-04-enforce-workflow-v2-delivery-evidence`.
+Definition runs from a clean, non-`work/*` base checkout, provisions that path,
+and writes the compact record and active `NEXT.md` route only in the new
+worktree. The base remains clean with no active item. Active validation requires
+both that exact registered worktree and branch through implementation, review,
+verification, and delivery; agents must not resume from the base, another
+worktree, a detached checkout, or another branch. Delivery commits and pushes
+the same work branch but does not merge, delete, or remove branches/worktrees.
+Worktree removal is dangerous deletion and requires direct confirmation.
 
 ### `initializing-living-plan-workflow`
 

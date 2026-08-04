@@ -3,10 +3,10 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-04
 **Project:** AI Arsenal monorepo
-**State:** Workflow v2 branch-per-work-item development and fail-closed CLI delivery evidence are delivered.
-**Current phase:** No active work item
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** Workflow v2 isolated worktree-per-item development and fail-closed CLI delivery evidence are delivered.
+**Current phase:** Workflow v2 delivery reconciliation review
+**Active work item:** `2026-08-04-create-isolated-worktrees`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
@@ -14,7 +14,7 @@ Define issue #21, "Improve `jz-trello-flow` CLI authoring and discovery UX."
 
 ## Why This Is Next
 
-- Issues #13 and #12 are delivered; issue #21 is next in the recorded dependency order.
+- Issue #29 delivered isolated worktree-per-item development; issue #21 is next in the recorded dependency order.
 
 ## Open Issue Queue
 
@@ -26,21 +26,22 @@ Define issue #21, "Improve `jz-trello-flow` CLI authoring and discovery UX."
 
 ## Requirements
 
-- New Workflow v2 items use `work/<work-item-id>` branches, and active stages remain on the exact matching branch.
+- New Workflow v2 items use `work/<work-item-id>` in `<repository-parent>/<repository-name>.worktrees/<work-item-id>`; active stages remain in that exact registered worktree and branch.
 - After any global `jz-trello-flow` lifecycle operation, agents must use `pnpm --dir <AI-Arsenal-repository-root> run repair:global-trello-shim` and complete the documented cross-shell smoke checks.
 
 ## Blockers / Escalation
 
-- No active blocker. This workflow-policy item does not perform a release, global replacement, or live Trello mutation.
+- No active blocker. Issue #29 was workflow policy only: no release, global replacement, live Trello mutation, worktree removal, or branch deletion occurred.
 
 ## Done When
 
-- Define the next bounded work item through `orchestrate-monorepo-work`; the delivered Workflow v2 policy remains validated.
+- Define issue #21 through `orchestrate-monorepo-work`; the delivered isolated-worktree policy remains validated.
 
 ## Source of Truth
 
 - `AGENTS.md`
-- GitHub issues #1, #5 through #13, and #21 through #27
+- GitHub issues #1, #5 through #13, #21 through #27, and #29
+- `docs/work-items/2026-08-04-create-isolated-worktrees/work-item.md`
 - `docs/work-items/2026-08-04-resolve-global-cli-replacement-authority/work-item.md`
 - `docs/work-items/2026-08-04-enforce-workflow-v2-delivery-evidence/work-item.md`
 - `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`

@@ -5,8 +5,9 @@ description: Use when a Workflow v2 work item has passed final verification and 
 
 # Deliver Monorepo Change
 
-Validate the active compact item and require the exact
-`work/<work-item-id>` checkout branch, recorded passing final verification,
+Validate the active compact item and require its exact registered
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>` checkout and
+`work/<work-item-id>` branch, recorded passing final verification,
 `Review status: passed`, and a concrete
 `Review snapshot: sha256:<64 lowercase hexadecimal characters>`. Reconcile the canonical plan to
 verified current truth without changelog prose, but keep the compact item
@@ -52,7 +53,13 @@ complete final-verification suite merely because delivery edited its records.
 
 Inspect each attributable diff and commit with a Conventional Commit. Push the
 matching work branch only when the user and compact non-goals allow it; merging
-or deleting that branch is outside delivery.
+or deleting that branch is outside delivery. The active `NEXT.md` route is local
+to this worktree and clears to `none` before closure, so independently delivered
+branches do not cross-route when later merged. An external integrator merges
+already-delivered branches sequentially, reconciling any shared planning-file
+conflict and rerunning only invalidated checks. Worktree removal or pruning is
+not delivery automation: it is dangerous deletion and requires fresh direct
+confirmation.
 Never turn routine commit/push into an approval prompt. Never release, publish,
 globally install, or perform dangerous deletion unless the bounded item
 explicitly includes the applicable rules. A complete in-scope CLI delivery uses

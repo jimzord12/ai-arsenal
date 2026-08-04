@@ -1,9 +1,9 @@
 # AI Arsenal Canonical Living Implementation Plan
 
-> **Status:** Workflow v2 review-barrier integration, branch-per-work-item development, fail-closed CLI delivery evidence, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered
+> **Status:** Workflow v2 review-barrier integration, isolated worktree-per-item development, fail-closed CLI delivery evidence, legacy Features CLI junction retirement, repaired weekly-report CLI `0.1.1`, and Trello Flow CLI `0.6.0` version flags are delivered
 > **Living-plan schema:** 1.0
 > **Last reconciled:** 2026-08-04
-> **Current phase:** Workflow v2 delivery evidence and branch-per-work-item policy delivered; no active item
+> **Current phase:** Workflow v2 isolated-worktree policy delivered; no active item
 > **Operator view:** `NEXT.md`
 
 ---
@@ -508,12 +508,20 @@ self-hosting.
 
 ## 8.1 Normal routing and durable evidence
 
-Every new Workflow v2 item uses the deterministic branch
-`work/<work-item-id>`. Definition creates it from a clean current base branch;
-implementation, review, verification, and delivery remain on that exact branch.
-Delivery pushes the work branch but does not merge or delete it. Active branch
-mismatch is a fail-closed validation error, while delivered historical records
-remain readable without retroactive branch metadata.
+Every new Workflow v2 item uses the deterministic
+`work/<work-item-id>` branch in the sibling worktree
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>`. Definition
+requires a clean non-`work/*` base checkout and preflights branch/path
+collisions and redirection before provisioning that worktree. It creates the
+compact item and its active `NEXT.md` route only there, leaving the base clean
+with `none` / `none`. Active validation fails closed from the base, another,
+missing, redirected, or detached worktree and from a mismatched branch.
+Independent worktrees retain independent routes and review candidates. Delivery
+pushes but does not merge, delete, prune, or remove anything; an external
+integrator resolves shared planning-file changes when sequentially merging
+already-delivered branches. Worktree removal remains dangerous deletion.
+Delivered historical records and existing pre-policy worktrees remain readable
+without retroactive metadata changes.
 
 The router selects the stage from one validated compact work item:
 
@@ -597,9 +605,9 @@ fail-closed CLI delivery evidence are delivered. Current v2 items declare
 whether CLI local-delivery evidence is required; required evidence remains
 active until artifact, remote, CI, package, tarball, installation, smoke,
 provenance, rollback, and clean-worktree results are complete and consistent.
-Ordinary non-CLI items remain exempt. Active items are developed only on their
-matching `work/<work-item-id>` branch, and delivery does not merge or delete
-that branch.
+Ordinary non-CLI items remain exempt. Active items are developed only in their
+matching isolated `work/<work-item-id>` worktree, and delivery does not merge,
+delete, prune, or remove that branch/worktree.
 
 ## 8.2 Reconciliation and current truth
 

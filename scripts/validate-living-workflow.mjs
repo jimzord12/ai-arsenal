@@ -57,6 +57,11 @@ const plan = read('docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md');
 const overview = read('docs/workflow/WORKFLOW_OVERVIEW.md');
 const pipeline = read('docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md');
 const reviewSkill = read('.agents/skills/review-monorepo-change/SKILL.md');
+const orchestrateSkill = read(
+  '.agents/skills/orchestrate-monorepo-work/SKILL.md',
+);
+const defineSkill = read('.agents/skills/define-monorepo-change/SKILL.md');
+const deliverSkill = read('.agents/skills/deliver-monorepo-change/SKILL.md');
 const compactTemplate = read('docs/workflow/templates/work-item/work-item.md');
 const agentsTemplate = read(
   '.agents/skills/initializing-living-plan-workflow/assets/AGENTS.template.md',
@@ -82,6 +87,31 @@ for (const [file, contents] of [
       errors.push(`${file} is missing Workflow v2 guidance: ${label}`);
     }
   }
+}
+
+for (const [file, contents] of [
+  ['AGENTS.md', agents],
+  ['docs/workflow/templates/work-item/work-item.md', compactTemplate],
+  ['docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md', pipeline],
+  ['docs/workflow/WORKFLOW_OVERVIEW.md', overview],
+  ['.agents/skills/orchestrate-monorepo-work/SKILL.md', orchestrateSkill],
+  ['.agents/skills/define-monorepo-change/SKILL.md', defineSkill],
+  ['.agents/skills/deliver-monorepo-change/SKILL.md', deliverSkill],
+]) {
+  if (!/work\/<work-item-id>/.test(contents) || !/\.worktrees/.test(contents)) {
+    errors.push(`${file} is missing isolated worktree-per-item policy.`);
+  }
+}
+if (!/^Worktree: isolated$/m.test(compactTemplate)) {
+  errors.push('Compact work-item template must initialize Worktree: isolated.');
+}
+if (!/provision-monorepo-worktree\.mjs/.test(defineSkill)) {
+  errors.push('Definition skill must use the worktree provisioner.');
+}
+if (!/remov(?:e|al).*dangerous deletion/is.test(deliverSkill)) {
+  errors.push(
+    'Delivery skill must retain dangerous-deletion worktree-removal boundary.',
+  );
 }
 
 for (const [file, contents, requirements] of [

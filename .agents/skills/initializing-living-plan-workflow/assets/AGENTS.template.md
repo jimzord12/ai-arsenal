@@ -16,6 +16,14 @@ Current work uses one compact `work-item.md` and this route:
 define → implement → review/repair → verify → deliver
 ```
 
+New items are provisioned from a clean non-`work/*` base checkout into the
+exact `work/<work-item-id>` branch at
+`<repository-parent>/<repository-name>.worktrees/<work-item-id>`. The new
+worktree alone owns its active `NEXT.md` route; the base checkout remains
+`none` / `none`. Active stages must stay in that registered worktree and branch.
+Delivery never merges, deletes, prunes, or removes it; worktree removal is
+dangerous deletion requiring direct confirmation.
+
 Required normal skills:
 
 - `orchestrate-monorepo-work`

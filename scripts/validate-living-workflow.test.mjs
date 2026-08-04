@@ -35,6 +35,11 @@ A candidate-changing repair resets all five fields to pending; a repair that cha
 Verify and deliver fail closed.
 Immutable historical compatibility requires an exact hash; immutable delivered records require an exact matching hash.
 `;
+const isolatedWorktreeFixture = `
+New items use work/<work-item-id> at <repository-parent>/<repository-name>.worktrees/<work-item-id>.
+Worktree: isolated.
+Worktree removal is dangerous deletion.
+`;
 
 function write(relativePath, content) {
   const absolutePath = path.join(root, relativePath);
@@ -47,7 +52,7 @@ function createFixture() {
 
   write(
     'AGENTS.md',
-    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${normalSkills.join('\n')}\n${reviewBarrierFixture}`,
+    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${normalSkills.join('\n')}\n${reviewBarrierFixture}${isolatedWorktreeFixture}`,
   );
   write(
     'NEXT.md',
@@ -68,11 +73,11 @@ function createFixture() {
   );
   write(
     'docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md',
-    `# Pipeline\n${reviewBarrierFixture}`,
+    `# Pipeline\n${reviewBarrierFixture}${isolatedWorktreeFixture}`,
   );
   write(
     'docs/workflow/WORKFLOW_OVERVIEW.md',
-    '# Overview\n\ndefine → implement → review/repair → verify → deliver\none compact `work-item.md`\norchestrate-monorepo-work\ndeliver-monorepo-change\n',
+    '# Overview\n\ndefine → implement → review/repair → verify → deliver\none compact `work-item.md`\norchestrate-monorepo-work\ndeliver-monorepo-change\nwork/<work-item-id>\n.repository.worktrees\n',
   );
   write(
     '.agents/skills/initializing-living-plan-workflow/assets/AGENTS.template.md',
@@ -80,7 +85,7 @@ function createFixture() {
   );
   write(
     'docs/workflow/templates/work-item/work-item.md',
-    `## Goal\n## Non-goals\n## Acceptance criteria\nStarted at:\nMax time:\n## Implementation summary\n## Review findings and repairs\n## Final verification\n${reviewBarrierFixture}`,
+    `## Goal\n## Non-goals\n## Acceptance criteria\nStarted at:\nMax time:\nWorktree: isolated\n## Implementation summary\n## Review findings and repairs\n## Final verification\n${reviewBarrierFixture}${isolatedWorktreeFixture}`,
   );
   write(
     'package.json',
@@ -103,6 +108,10 @@ function createFixture() {
         ? '\ndefine → implement → review/repair → verify → deliver\ndefine-monorepo-change\n'
         : '',
       skill === 'review-monorepo-change' ? reviewBarrierFixture : '',
+      skill === 'define-monorepo-change'
+        ? 'provision-monorepo-worktree.mjs\n'
+        : '',
+      isolatedWorktreeFixture,
     ].join('');
     write(
       `.agents/skills/${skill}/SKILL.md`,
@@ -287,6 +296,19 @@ test('rejects material v1 reversion in the initializer AGENTS template', () => {
 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /AGENTS\.template\.md.*Workflow v2/i);
+});
+
+test('rejects live authority that omits isolated-worktree policy', () => {
+  const fixture = createFixture();
+  write(
+    '.agents/skills/define-monorepo-change/SKILL.md',
+    '---\nname: define-monorepo-change\ndescription: Use when validating the fixture.\n---\nwork/<work-item-id> only\nprovision-monorepo-worktree.mjs\n',
+  );
+
+  const result = validate(fixture);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /isolated worktree|\.worktrees/i);
 });
 
 test('rejects a root workflow command that bypasses the current registration', () => {
