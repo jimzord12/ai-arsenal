@@ -2,18 +2,18 @@
 
 Work item: 2026-08-14-make-design-start-input-requirements-actionable
 Workflow: 2
-Stage: deliver
+Stage: review
 Status: active
 Started at: 2026-08-14T00:00:00+03:00
 Max time: 90 minutes
 Last time check: 2026-08-14T21:55:00+03:00
 Turns since time check: 0
-Review cycles: 1
+Review cycles: 2
 Review status: passed
-Review snapshot: sha256:9cfca07ccac10824afb624b703f5b158088c30d39cc629f4e489db76e87eb227
-Review batch: review-20260815-01
+Review snapshot: sha256:fdcfefcbd83503924c8abe5c7101c1553bdb0774ff9cde9d6b6ee9a80a12e28c
+Review batch: review-20260815-02
 Review expected: ["independent-review"]
-Review received: [{"reviewer":"independent-review","outcome":"passed","batchId":"review-20260815-01","snapshot":"sha256:9cfca07ccac10824afb624b703f5b158088c30d39cc629f4e489db76e87eb227"}]
+Review received: [{"reviewer":"independent-review","outcome":"passed","batchId":"review-20260815-02","snapshot":"sha256:fdcfefcbd83503924c8abe5c7101c1553bdb0774ff9cde9d6b6ee9a80a12e28c"}]
 Dangerous deletion or irreversible data loss: no
 Hard prerequisites: resolved
 Approval: not-required

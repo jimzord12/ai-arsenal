@@ -6,7 +6,7 @@
 **State:** Issue #24 implementation is active in its isolated Workflow v2 worktree.
 **Current phase:** Trello Flow CLI authoring and discovery UX
 **Active work item:** `2026-08-14-make-design-start-input-requirements-actionable`
-**Pipeline step:** `deliver-monorepo-change`
+**Pipeline step:** `review-monorepo-change`
 
 ## Next Action
 
