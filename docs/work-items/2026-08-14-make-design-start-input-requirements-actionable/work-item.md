@@ -2,7 +2,7 @@
 
 Work item: 2026-08-14-make-design-start-input-requirements-actionable
 Workflow: 2
-Stage: review
+Stage: verify
 Status: active
 Started at: 2026-08-14T00:00:00+03:00
 Max time: 90 minutes
