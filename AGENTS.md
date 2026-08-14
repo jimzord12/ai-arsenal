@@ -80,6 +80,8 @@ bounded child issues, continues with issue `#24`.
 
 The immediate next action is defined in `NEXT.md`.
 
+Current v2 review is proportional: use one independent review plus one focused repair and re-review by default; the fail-closed ceiling remains four review cycles.
+
 ## Sources of Authority
 
 Use this precedence:
@@ -128,8 +130,10 @@ Use the router-selected stage only after its prerequisites are valid:
 4. `verify-monorepo-change`
 5. `deliver-monorepo-change`
 
-All current state lives in one `docs/work-items/<id>/work-item.md`. Historical
-v1 multi-file work items remain readable but never dictate routing for v2 work.
+All current state lives in one `docs/work-items/<id>/work-item.md`; root
+`NEXT.md` is routing-only. Current v2 stages never read or create v1 artifact
+files. Historical v1 multi-file work items remain readable but never dictate
+routing for v2 work.
 
 Review uses one snapshot-bound evidence contract across every live Workflow v2
 surface. `Review status`, `Review snapshot`, `Review batch`, `Review expected`,
@@ -272,10 +276,14 @@ above applies.
   estimate is an indicator to simplify or report—not an automatic failure.
 - Use focused tests during implementation. Run full required gates once on the
   final stable snapshot and rerun only checks invalidated by later repairs.
-- Review uses consolidated findings and at most four repair/re-review cycles.
+- Review defaults to one independent review plus one focused repair and
+  re-review, while retaining the fail-closed ceiling of four review cycles.
   Fix every Critical, High, Medium, and acceptance-related Minor finding.
   Ignore optional or out-of-scope polish. After cycle four, record remaining
   blockers and stop.
+
+Final verification uses exactly one unpunctuated line: `Result: pending`,
+`Result: passed`, or `Result: failed`.
 
 ## File Organization
 

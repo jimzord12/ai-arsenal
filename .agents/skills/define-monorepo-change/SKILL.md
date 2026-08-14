@@ -5,6 +5,10 @@ description: Use when an explicit bounded AI Arsenal monorepo request has no act
 
 # Define Monorepo Change
 
+Current v2 stages use only `work-item.md` for durable item state and the
+routing-only `NEXT.md` active-work-item/pipeline-step pair. Do not read,
+create, or advance v1 artifact files for current work.
+
 Read `AGENTS.md`, `NEXT.md`, the relevant canonical-plan section, the pipeline
 contract, the compact template, Git status, and directly relevant repository
 evidence. Run the no-active validator and continue only when it is valid.
@@ -55,3 +59,14 @@ create v1 request/context/contract/plan/approval artifacts. Later stages must
 verify they remain in the exact registered
 `<repository-parent>/<repository-name>.worktrees/<work-item-id>` worktree on
 its `work/<work-item-id>` branch.
+
+<!-- workflow-v1-compatibility:start -->
+<details>
+<summary>Historical Workflow v1 Compatibility (never use for new work)</summary>
+
+Definition has no current v2 operation over the retired v1 artifact chain.
+Historical directories without `work-item.md` remain readable only through the
+validator's compatibility path.
+
+</details>
+<!-- workflow-v1-compatibility:end -->

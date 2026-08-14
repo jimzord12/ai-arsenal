@@ -48,6 +48,9 @@ package-byte defects return to implementation and a fresh bounded review.
 
 
 Review lifecycle:
+- Current Workflow v2 stages use only this compact `work-item.md` for durable
+  item state; root `NEXT.md` is routing-only. Historical v1 artifact files are
+  never current v2 stage inputs.
 - Definition and entry into review use Review status: pending and Review snapshot: pending.
 - An unsuccessful required review for a concrete candidate uses Review status: failed and Review snapshot: sha256:<64 lowercase hexadecimal characters>.
 - Complete required review evidence for a concrete candidate uses Review status: passed and Review snapshot: sha256:<64 lowercase hexadecimal characters>.
@@ -59,6 +62,10 @@ Review lifecycle:
 - Verify and deliver fail closed unless the recorded review is passed, complete, matching, and fresh for the current candidate.
 - Historical compatibility applies only to validator-recognized immutable delivered records with an exact matching hash.
 - Review cycles remain bounded at four; an unsuccessful fourth cycle is blocked.
+- Default proportionality is one independent review plus one focused repair and
+  re-review; the fail-closed ceiling remains four review cycles.
+- Final verification contains exactly one unpunctuated line matching one of
+  `Result: pending`, `Result: passed`, or `Result: failed`.
 -->
 
 ## Goal

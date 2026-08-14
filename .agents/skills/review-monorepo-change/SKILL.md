@@ -5,6 +5,10 @@ description: Use when a Workflow v2 implementation needs consolidated review, bo
 
 # Review Monorepo Change
 
+Current v2 stages use only `work-item.md` for durable item state and the
+routing-only `NEXT.md` active-work-item/pipeline-step pair. Do not read,
+create, or advance v1 artifact files for current work.
+
 Validate the active compact item and confirm the checkout is the exact
 `<repository-parent>/<repository-name>.worktrees/<work-item-id>` worktree on
 its `work/<work-item-id>` branch created at definition. Inspect its goal, non-goals,
@@ -70,3 +74,17 @@ route `NEXT.md` to `verify-monorepo-change`. This skill consumes a concrete
 candidate snapshot. Verify and deliver fail closed unless that snapshot has a
 complete matching passed review batch and remains fresh. Continue with the
 smallest reliable scope; elapsed time is not itself failure.
+
+Default proportionality is one independent review plus one focused repair and
+re-review; the fail-closed ceiling remains four review cycles.
+
+<!-- workflow-v1-compatibility:start -->
+<details>
+<summary>Historical Workflow v1 Compatibility (never use for new work)</summary>
+
+Review has no current v2 operation over the retired v1 artifact chain.
+Historical directories without `work-item.md` remain readable only through the
+validator's compatibility path.
+
+</details>
+<!-- workflow-v1-compatibility:end -->

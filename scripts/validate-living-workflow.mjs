@@ -64,6 +64,7 @@ const defineSkill = read('.agents/skills/define-monorepo-change/SKILL.md');
 const implementSkill = read(
   '.agents/skills/implement-monorepo-change/SKILL.md',
 );
+const verifySkill = read('.agents/skills/verify-monorepo-change/SKILL.md');
 const deliverSkill = read('.agents/skills/deliver-monorepo-change/SKILL.md');
 const compactTemplate = read('docs/workflow/templates/work-item/work-item.md');
 const agentsTemplate = read(
@@ -374,6 +375,100 @@ for (const skill of retiredV1Skills) {
     !content.includes('never use for new work')
   ) {
     errors.push(`${skillPath} is missing its historical compatibility marker.`);
+  }
+}
+
+const currentV2ArtifactPattern =
+  /(?:request|context|change-contract|implementation-plan|approval|implementation-report|verification|reconciliation|revision-request)\.md/;
+for (const skill of normalSkills) {
+  const skillPath = `.agents/skills/${skill}/SKILL.md`;
+  const content = read(skillPath);
+  if (
+    !/Current v2 stages use only (?:the compact )?`work-item\.md`[\s\S]*routing-only `NEXT\.md`/i.test(
+      content,
+    )
+  ) {
+    errors.push(
+      `${skillPath} is missing the compact-only current v2 boundary.`,
+    );
+  }
+  const start = content.indexOf('<!-- workflow-v1-compatibility:start -->');
+  const end = content.indexOf('<!-- workflow-v1-compatibility:end -->');
+  if (start < 0 || end <= start) {
+    errors.push(
+      `${skillPath} is missing its fenced historical compatibility block.`,
+    );
+    continue;
+  }
+  const currentSurface =
+    content.slice(0, start) +
+    content.slice(end + '<!-- workflow-v1-compatibility:end -->'.length);
+  if (currentV2ArtifactPattern.test(currentSurface)) {
+    errors.push(
+      `${skillPath} exposes a v1 artifact in current v2 instructions.`,
+    );
+  }
+}
+
+const pipelineCompatibilityStart = pipeline.indexOf(
+  '<!-- workflow-v1-compatibility:start -->',
+);
+const pipelineCompatibilityEnd = pipeline.indexOf(
+  '<!-- workflow-v1-compatibility:end -->',
+);
+if (
+  pipelineCompatibilityStart < 0 ||
+  pipelineCompatibilityEnd <= pipelineCompatibilityStart
+) {
+  errors.push(
+    'Normative pipeline is missing its fenced historical compatibility block.',
+  );
+} else if (
+  currentV2ArtifactPattern.test(
+    pipeline.slice(0, pipelineCompatibilityStart) +
+      pipeline.slice(
+        pipelineCompatibilityEnd +
+          '<!-- workflow-v1-compatibility:end -->'.length,
+      ),
+  )
+) {
+  errors.push(
+    'Normative pipeline exposes a v1 artifact in current v2 instructions.',
+  );
+}
+
+for (const [file, contents] of [
+  ['AGENTS.md', agents],
+  ['docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md', pipeline],
+  ['docs/workflow/WORKFLOW_OVERVIEW.md', overview],
+  ['docs/workflow/templates/work-item/work-item.md', compactTemplate],
+  ['.agents/skills/review-monorepo-change/SKILL.md', reviewSkill],
+]) {
+  if (
+    !/one independent review plus one focused repair[\s\S]*four review cycles/i.test(
+      contents,
+    )
+  ) {
+    errors.push(
+      `${file} is missing the proportionality default and four-cycle ceiling.`,
+    );
+  }
+}
+
+if (!/^Result: pending$/m.test(compactTemplate)) {
+  errors.push(
+    'Compact work-item template must use the exact Result: pending syntax.',
+  );
+}
+for (const [file, contents] of [
+  ['AGENTS.md', agents],
+  ['docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md', pipeline],
+  ['docs/workflow/WORKFLOW_OVERVIEW.md', overview],
+  ['docs/workflow/templates/work-item/work-item.md', compactTemplate],
+  ['.agents/skills/verify-monorepo-change/SKILL.md', verifySkill],
+]) {
+  if (/^Result: (?:pending|passed|failed)\.$/m.test(contents)) {
+    errors.push(`${file} documents a punctuated Result marker.`);
   }
 }
 

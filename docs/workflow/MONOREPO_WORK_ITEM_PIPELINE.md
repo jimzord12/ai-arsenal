@@ -2,7 +2,13 @@
 
 This is the normative Workflow v2 contract for AI Arsenal monorepo work. It is
 separate from consumer `.scratch/features/` work and never uses `features-cli`
-for package self-hosting.
+for package self-hosting. Current v2 stages use only `work-item.md` for durable
+item state and the routing-only `NEXT.md` active-work-item/pipeline-step pair.
+Do not read, create, or advance v1 artifact files for current work.
+
+Current v2 stages use only `work-item.md` for durable item state
+and routing-only `NEXT.md` for the active-work-item/pipeline-step pair. They do
+not read, create, or advance v1 artifact files.
 
 ## Tier and proportionality
 
@@ -16,6 +22,8 @@ increment reaches five, record the time/scope proportionality check, update
 validator checks only that durable recorded value; it cannot observe omitted
 conversational turns. Exceeding the estimate triggers simplification or a
 concise status assessment; it does not automatically fail the work item.
+Default proportionality is one independent review plus one focused repair and
+re-review; the fail-closed ceiling remains four review cycles.
 
 ## Current stage order
 
@@ -34,6 +42,8 @@ define → implement → review/repair → verify → deliver
 - `verify-monorepo-change` records `Result: passed` only after running the full
   required gates once on the final stable snapshot. After a repair, rerun only
   invalidated checks.
+- `Final verification` contains exactly one line matching `Result: pending`,
+  `Result: passed`, or `Result: failed`; the marker has no trailing period.
 - `deliver-monorepo-change` records the verified result, reconciles current
   planning truth, reruns only checks invalidated by its delivery-record edits,
   clears active registration, and may commit/push unless the work item narrows
@@ -168,6 +178,10 @@ retain that evidence
 and require a clean candidate. Immutable historical compatibility is limited
 to the validator's pre-batch delivered-record allowlist, where each exact hash
 must match; newly fabricated or modified records cannot claim it.
+
+<!-- workflow-v1-compatibility:start -->
+<details>
+<summary>Historical Workflow v1 Compatibility (never use for new work)</summary>
 
 ## Historical v1 compatibility
 
@@ -451,3 +465,6 @@ delivered; `deliver-monorepo-change` owns that bounded operation and its
 evidence. Registry publication, destructive history rewriting, and source
 deletion remain outside this pipeline unless separately and explicitly
 authorized.
+
+</details>
+<!-- workflow-v1-compatibility:end -->

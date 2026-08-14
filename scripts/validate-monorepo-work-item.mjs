@@ -1325,6 +1325,14 @@ function validateV2ActiveRoute(activeState, output) {
 
 function validateV2WorkItem(workItem, workItemDirectory, activeState) {
   const workItemPath = path.join(workItemDirectory, 'work-item.md');
+  const unexpectedEntries = fs
+    .readdirSync(workItemDirectory)
+    .filter((entry) => entry !== 'work-item.md');
+  if (unexpectedEntries.length > 0) {
+    throw new Error(
+      `Workflow v2 permits only one compact work-item.md in the current record directory; unexpected v1 artifact or entry(s): ${unexpectedEntries.join(', ')}`,
+    );
+  }
   const contents = fs.readFileSync(workItemPath, 'utf8');
   const identity = readSingleField(contents, 'Work item', workItemPattern);
   if (identity !== workItem) {
@@ -1597,12 +1605,18 @@ function validateV2WorkItem(workItem, workItemDirectory, activeState) {
     );
   }
   const finalVerificationBody = sectionBodies.get('## Final verification');
+  const finalVerificationLines = [
+    ...finalVerificationBody.matchAll(/^Result: [^\r\n]*\r?$/gm),
+  ];
   const finalVerificationMatches = [
     ...finalVerificationBody.matchAll(/^Result: (pending|passed|failed)\r?$/gm),
   ];
-  if (finalVerificationMatches.length !== 1) {
+  if (
+    finalVerificationLines.length !== 1 ||
+    finalVerificationMatches.length !== 1
+  ) {
     throw new Error(
-      'Final verification must contain exactly one Result: pending, passed, or failed',
+      'Final verification must contain exactly one unpunctuated Result: pending, passed, or failed line',
     );
   }
   const finalVerificationResult = finalVerificationMatches[0][1];

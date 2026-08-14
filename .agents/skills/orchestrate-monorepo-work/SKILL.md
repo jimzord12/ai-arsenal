@@ -5,6 +5,10 @@ description: Use when resuming, routing, or reporting the next step for an AI Ar
 
 # Workflow v2 (current)
 
+Current v2 stages use only `work-item.md` for durable item state and the
+routing-only `NEXT.md` active-work-item/pipeline-step pair. Do not read,
+create, or advance v1 artifact files for current work.
+
 For a directory containing `work-item.md`, validate the current registration
 and route only by its compact `Stage` through:
 
@@ -26,8 +30,7 @@ changelog declaration to be complete and valid. Delivery cannot mutate those
 package bytes. Such a defect returns through implementation and a fresh review,
 or blocks after the unsuccessful fourth cycle.
 
-Return the existing eight-label routing brief. The v1 instructions below apply
-only to historical directories without `work-item.md`; never start v1 work.
+Return the existing eight-label routing brief.
 
 # Orchestrate Monorepo Work
 
@@ -134,3 +137,14 @@ input** to the explicit change request.
 - Returning a prose status update instead of the eight-field routing brief.
 - Repairing, registering, or creating files while routing. Route first; the
   selected write-capable skill owns mutations.
+
+<!-- workflow-v1-compatibility:start -->
+<details>
+<summary>Historical Workflow v1 Compatibility (never use for new work)</summary>
+
+This router does not execute the retired v1 artifact chain. Directories without
+`work-item.md` remain readable through the validator's historical compatibility
+path only; current work always returns to the compact v2 route above.
+
+</details>
+<!-- workflow-v1-compatibility:end -->
