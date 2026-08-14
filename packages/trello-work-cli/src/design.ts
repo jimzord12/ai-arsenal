@@ -49,7 +49,7 @@ export async function startDesign(
   if (template.metadata.id !== null || template.metadata.status !== 'inbox') {
     throw new WorkCliError(
       'DESIGN_START_REQUIRES_DRAFT',
-      'Design content must be a canonical Inbox draft.',
+      'Design start requires a canonical Inbox Draft Work Unit with status: inbox, id: null, trello_card_id: null, created_at: null, and updated_at: null. The command derives the persisted identity and timestamps from Trello, then changes the Work Unit status to in_design.',
     );
   }
   const postcondition = {

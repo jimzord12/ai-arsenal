@@ -93,6 +93,52 @@ describe('design start', () => {
     expect(client.writes).toBe(1);
   });
 
+  it('explains the required draft metadata when input is already persisted', async () => {
+    const client = new FakeDesignClient();
+    const persisted = (await template())
+      .replace('id: null', 'id: "WU-42"')
+      .replace(
+        'trello_card_id: null',
+        'trello_card_id: "0123456789abcdef01234567"',
+      )
+      .replace('status: inbox', 'status: in_design')
+      .replace('created_at: null', 'created_at: "2026-07-28T12:00:00.000Z"')
+      .replace('updated_at: null', 'updated_at: "2026-07-28T12:01:00.000Z"');
+
+    await expect(
+      startDesign(original.id, persisted, config, client, {
+        operationId: 'design-invalid-draft-1',
+      }),
+    ).rejects.toMatchObject({
+      code: 'DESIGN_START_REQUIRES_DRAFT',
+      message: expect.stringContaining('status: inbox'),
+    });
+    await expect(
+      startDesign(original.id, persisted, config, client, {
+        operationId: 'design-invalid-draft-2',
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('id: null, trello_card_id: null'),
+    });
+    await expect(
+      startDesign(original.id, persisted, config, client, {
+        operationId: 'design-invalid-draft-3',
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringContaining(
+        'created_at: null, and updated_at: null',
+      ),
+    });
+    await expect(
+      startDesign(original.id, persisted, config, client, {
+        operationId: 'design-invalid-draft-4',
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringContaining('derives the persisted identity'),
+    });
+    expect(client.writes).toBe(0);
+  });
+
   it('recovers an identical replay on the same card without another write', async () => {
     const client = new FakeDesignClient();
     const source = await template();

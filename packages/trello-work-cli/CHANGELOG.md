@@ -1,5 +1,11 @@
 # @jz/ai-arsenal-trello-work-cli
 
+## 0.8.1
+
+### Patch Changes
+
+- Make `design start` diagnostics and command help explain the required Inbox Draft metadata and the resulting In Design state.
+
 ## 0.8.0
 
 ### Minor Changes

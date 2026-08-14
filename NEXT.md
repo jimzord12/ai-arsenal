@@ -5,8 +5,8 @@
 **Project:** AI Arsenal monorepo
 **State:** Issue #37 is delivered; the Windows-only Quality test-harness skip is verified and CI-green.
 **Current phase:** Workflow v2 Windows test-harness compatibility
-**Active work item:** `none`
-**Pipeline step:** `none`
+**Active work item:** `2026-08-14-make-design-start-input-requirements-actionable`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 

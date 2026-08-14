@@ -89,7 +89,7 @@ Validate a draft, create exactly one Inbox card, derive `WU-N` from returned `id
 
 ### jz-trello-flow design start <card-reference> --file <work-unit.md>
 
-Claim the selected Inbox card and convert that same card in place to canonical In Design content. The Trello card ID, comments, attachments, and history are preserved.
+The file must be a new Inbox Draft: keep `status: inbox`, `id: null`, `trello_card_id: null`, `created_at: null`, and `updated_at: null`. `design start` derives the persisted Work Unit identity and timestamps from the selected Trello card, then converts that same card in place to canonical In Design content. The Trello card ID, comments, attachments, and history are preserved.
 
 ### jz-trello-flow create --file <work-unit.md> | --stdin
 
