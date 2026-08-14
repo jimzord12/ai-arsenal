@@ -1,51 +1,46 @@
 # NEXT
 
 **Workflow version:** 2.0
-**Last reconciled:** 2026-08-14
+**Last reconciled:** 2026-08-05
 **Project:** AI Arsenal monorepo
-**State:** Issue #24 implementation is active in its isolated Workflow v2 worktree.
-**Current phase:** Trello Flow CLI authoring and discovery UX
+**State:** Issue #37 is delivered; the Windows-only Quality test-harness skip is verified and CI-green.
+**Current phase:** Workflow v2 Windows test-harness compatibility
 **Active work item:** `2026-08-14-make-design-start-input-requirements-actionable`
-**Pipeline step:** `verify-monorepo-change`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Implement issue #24 with focused RED/GREEN tests, then complete the required CLI release and review gates.
+Define issue #39, the Workflow v2 compact-record alignment repair.
 
 ## Why This Is Next
 
-- GitHub issue #24 is the next independently reviewable child of issue #21.
-- The work item is provisioned on the exact deterministic isolated branch/worktree required by Workflow v2.
-- The base checkout remains clean and inactive.
+- Issue #37 passed independent review, final verification, exact-SHA Quality and Portability CI, and delivery evidence recording.
+- The remaining Workflow v2 alignment work is independently bounded in issue #39.
 
 ## Open Issue Queue
 
-1. #24 — Make design start input requirements actionable.
-2. #25 through #27 — Remaining authoring/discovery UX children.
-3. #31 through #36 — Work Unit title-convention follow-ups.
-4. #6 through #11 — Existing Trello guidance and diagnostics track.
-5. #1 — Standalone README update for the `jz-skills` package.
+1. #39 — Align current Workflow v2 compact-record skills and proportionality.
+2. #24 — Make design start input requirements actionable.
+3. #21 — Improve `jz-trello-flow` CLI authoring and discovery UX.
 
 ## Requirements
 
-- New Workflow v2 items use their own deterministic isolated worktree.
-- CLI behavior work requires Changesets/SemVer, packed-artifact validation, CI, global replacement, and installed-shim smoke verification.
-- Preserve globally installed `jz-trello-flow` `0.8.0` until the new release is CI-green.
+- Preserve the existing #24 worktree byte-for-byte.
+- Keep the Linux/Ubuntu Quality coverage active.
+- Investigate the underlying Windows harness compatibility separately after the Workflow v2 repair.
 
 ## Blockers / Escalation
 
-- Existing base Quality gate failure: branch/worktree setup regression test.
-- No hard prerequisite blocker for issue #24 implementation.
+- Issue #37 delivered at commit `f8e19b97d5ab8875adea35c637e2991d5472aa85`; PR #38 remains open for integration.
 
 ## Done When
 
-- Issue #24 acceptance criteria pass.
-- Required independent review, verification, release, CI, installation, and current-truth reconciliation pass.
+- Issue #37 is delivered and its active registration is cleared.
+- Issue #39 is the next workflow-repair definition action.
 
 ## Source of Truth
 
 - `AGENTS.md`
-- `docs/work-items/2026-08-14-make-design-start-input-requirements-actionable/work-item.md`
-- GitHub issues #21 and #24
-- `docs/planning/CANONICAL_IMPLEMENTATION_PLAN.md`
+- GitHub issue #37
 - `docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md`
+- `scripts/validate-monorepo-work-item.mjs`

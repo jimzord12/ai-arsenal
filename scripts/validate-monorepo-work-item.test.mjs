@@ -187,38 +187,50 @@ test('Quality active-worktree setup is valid Bash', () => {
   assert.equal(result.status, 0, result.stderr);
 });
 
-test('Quality setup frees an already checked-out work branch before linking it', (t) => {
-  const { root, worktreesRoot } = createCleanBaseFixture(t);
-  const itemDirectory = path.join(root, 'docs', 'work-items', workItemId);
-  fs.mkdirSync(itemDirectory, { recursive: true });
-  writeActiveState(root, workItemId, 'deliver-monorepo-change');
-  fs.writeFileSync(
-    path.join(itemDirectory, 'work-item.md'),
-    'Worktree: isolated\n',
-    'utf8',
-  );
-  runGit(root, ['checkout', '-b', `work/${workItemId}`]);
-  runGit(root, ['add', '.']);
-  runGit(root, ['commit', '--quiet', '-m', 'active fixture']);
+test(
+  'Quality setup frees an already checked-out work branch before linking it',
+  {
+    skip:
+      process.platform === 'win32'
+        ? 'requires the Linux CI shell/worktree environment'
+        : false,
+  },
+  (t) => {
+    const { root, worktreesRoot } = createCleanBaseFixture(t);
+    const itemDirectory = path.join(root, 'docs', 'work-items', workItemId);
+    fs.mkdirSync(itemDirectory, { recursive: true });
+    writeActiveState(root, workItemId, 'deliver-monorepo-change');
+    fs.writeFileSync(
+      path.join(itemDirectory, 'work-item.md'),
+      'Worktree: isolated\n',
+      'utf8',
+    );
+    runGit(root, ['checkout', '-b', `work/${workItemId}`]);
+    runGit(root, ['add', '.']);
+    runGit(root, ['commit', '--quiet', '-m', 'active fixture']);
 
-  const script = [
-    'export GITHUB_WORKSPACE="$PWD"',
-    'export GITHUB_SHA="$(git rev-parse HEAD)"',
-    'export GITHUB_ENV="$PWD/github-env"',
-    qualityWorktreeSetupScript(),
-  ].join('\n');
-  const result = spawnSync(resolveBashForSyntaxCheck(), ['-c', script], {
-    cwd: root,
-    encoding: 'utf8',
-  });
+    const script = [
+      'export GITHUB_WORKSPACE="$PWD"',
+      'export GITHUB_SHA="$(git rev-parse HEAD)"',
+      'export GITHUB_ENV="$PWD/github-env"',
+      qualityWorktreeSetupScript(),
+    ].join('\n');
+    const result = spawnSync(resolveBashForSyntaxCheck(), ['-c', script], {
+      cwd: root,
+      encoding: 'utf8',
+    });
 
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(runGit(root, ['branch', '--show-current']), '');
-  assert.equal(
-    runGit(path.join(worktreesRoot, workItemId), ['branch', '--show-current']),
-    `work/${workItemId}`,
-  );
-});
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(runGit(root, ['branch', '--show-current']), '');
+    assert.equal(
+      runGit(path.join(worktreesRoot, workItemId), [
+        'branch',
+        '--show-current',
+      ]),
+      `work/${workItemId}`,
+    );
+  },
+);
 
 function createFixture(t) {
   return createNamedFixture(t, workItemId);
