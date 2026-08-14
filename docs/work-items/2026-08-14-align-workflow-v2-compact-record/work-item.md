@@ -109,7 +109,7 @@ Result: passed
 Delivery result: passed
 Artifact-bearing commit: c50cc4aef09b627088296ec745299f2f2537f179
 Remote ref equality: {"ref":"refs/heads/work/2026-08-14-align-workflow-v2-compact-record","sha":"c50cc4aef09b627088296ec745299f2f2537f179","confirmed":true}
-Required CI: [{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31841258068","sha":"c50cc4aef09b627088296ec745299f2f2537f179","conclusion":"success"},{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31841258091","sha":"c50cc4aef09b627088296ec745299f2f2537f179","conclusion":"success"}]
+Required CI: [{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31841246651","sha":"c50cc4aef09b627088296ec745299f2f2537f179","conclusion":"success"},{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31841258068","sha":"c50cc4aef09b627088296ec745299f2f2537f179","conclusion":"success"},{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31841246586","sha":"c50cc4aef09b627088296ec745299f2f2537f179","conclusion":"success"},{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31841258091","sha":"c50cc4aef09b627088296ec745299f2f2537f179","conclusion":"success"}]
 Package: not-required
 Tarball: not-required
 Global replacement: not-required
