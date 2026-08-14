@@ -5,6 +5,10 @@ description: Use when a Workflow v2 work item has passed final verification and 
 
 # Deliver Monorepo Change
 
+Current v2 stages use only `work-item.md` for durable item state and the
+routing-only `NEXT.md` active-work-item/pipeline-step pair. Do not read,
+create, or advance v1 artifact files for current work.
+
 Validate the active compact item and require its exact registered
 `<repository-parent>/<repository-name>.worktrees/<work-item-id>` checkout and
 `work/<work-item-id>` branch, recorded passing final verification,
@@ -75,3 +79,14 @@ explicitly includes the applicable rules. A complete in-scope CLI delivery uses
 does not require a separate user approval prompt. Dangerous deletion, registry
 publication, source deletion, destructive Git operations, and unrelated external
 mutations retain their separate authority boundaries.
+
+<!-- workflow-v1-compatibility:start -->
+<details>
+<summary>Historical Workflow v1 Compatibility (never use for new work)</summary>
+
+Delivery has no current v2 operation over the retired v1 artifact chain.
+Historical directories without `work-item.md` remain readable only through the
+validator's compatibility path.
+
+</details>
+<!-- workflow-v1-compatibility:end -->

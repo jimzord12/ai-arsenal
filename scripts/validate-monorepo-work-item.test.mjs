@@ -761,12 +761,201 @@ test('the compact template initializes explicit review as pending', () => {
 
   assert.match(template, /^Review status: pending$/m);
   assert.match(template, /^Review snapshot: pending$/m);
+  assert.match(template, /^Result: pending$/m);
+  assert.doesNotMatch(template, /^Result: (?:pending|passed|failed)\.$/m);
   assert.match(
     template,
     /^CLI local-delivery evidence: <required\|not-required>$/m,
   );
   assert.match(template, /## Delivery evidence.*Clean worktree/is);
   assert.doesNotMatch(template, /^Required findings remaining:/m);
+});
+
+test('current Workflow v2 authorities use only the compact record and routing-only NEXT', () => {
+  const authorityPaths = [
+    orchestrateSkillPath,
+    defineSkillPath,
+    implementSkillPath,
+    reviewSkillPath,
+    verifySkillPath,
+    deliverSkillPath,
+    pipelinePath,
+  ];
+  const historicalStart = '<!-- workflow-v1-compatibility:start -->';
+  const historicalEnd = '<!-- workflow-v1-compatibility:end -->';
+  const v1ArtifactPattern =
+    /(?:request|context|change-contract|implementation-plan|approval|implementation-report|verification|reconciliation|revision-request)\.md/;
+
+  for (const authorityPath of authorityPaths) {
+    const contents = fs.readFileSync(authorityPath, 'utf8');
+    assert.match(
+      contents,
+      /current v2 stages use only (?:the compact )?`work-item\.md`/i,
+    );
+    assert.match(contents, /routing-only `NEXT\.md`/i);
+    const start = contents.indexOf(historicalStart);
+    const end = contents.indexOf(historicalEnd);
+    assert.ok(
+      start >= 0 && end > start,
+      `${authorityPath} must fence v1 compatibility`,
+    );
+    const currentSurface =
+      contents.slice(0, start) + contents.slice(end + historicalEnd.length);
+    assert.doesNotMatch(
+      currentSurface,
+      v1ArtifactPattern,
+      `${authorityPath} exposes v1 artifacts in its current v2 instructions`,
+    );
+  }
+});
+
+test('current Workflow v2 authorities document proportional review and exact Result syntax', () => {
+  const authorities = [
+    fs.readFileSync(agentsPath, 'utf8'),
+    fs.readFileSync(pipelinePath, 'utf8'),
+    fs.readFileSync(workflowOverviewPath, 'utf8'),
+    fs.readFileSync(compactTemplatePath, 'utf8'),
+    fs.readFileSync(reviewSkillPath, 'utf8'),
+  ];
+
+  for (const contents of authorities) {
+    assert.match(
+      contents,
+      /one independent review plus one focused repair[\s\S]*four review cycles/i,
+    );
+  }
+
+  const resultAuthorities = [
+    fs.readFileSync(agentsPath, 'utf8'),
+    fs.readFileSync(pipelinePath, 'utf8'),
+    fs.readFileSync(workflowOverviewPath, 'utf8'),
+    fs.readFileSync(compactTemplatePath, 'utf8'),
+    fs.readFileSync(verifySkillPath, 'utf8'),
+  ];
+  assert.match(resultAuthorities[3], /^Result: pending$/m);
+  for (const contents of resultAuthorities) {
+    assert.doesNotMatch(contents, /^Result: (?:pending|passed|failed)\.$/m);
+  }
+});
+
+test('compact v2 routes every stage through its current skill without v1 artifacts', (t) => {
+  const expected = new Map([
+    ['define', 'define-monorepo-change'],
+    ['implement', 'implement-monorepo-change'],
+    ['review', 'review-monorepo-change'],
+    ['verify', 'verify-monorepo-change'],
+    ['deliver', 'deliver-monorepo-change'],
+  ]);
+
+  for (const [stage, pipelineStep] of expected) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory, { stage });
+    writeActiveState(fixture.root, workItemId, pipelineStep);
+    if (stage === 'verify' || stage === 'deliver') {
+      makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+    }
+
+    const result = runValidator(fixture.root);
+
+    assert.equal(result.status, 0, `${stage}: ${result.json.blocker}`);
+    assert.equal(result.json.nextSkill, pipelineStep, stage);
+  }
+});
+
+test('v2 rejects every current v1 artifact and revision directory', (t) => {
+  for (const forbidden of [
+    'request.md',
+    'context.md',
+    'change-contract.md',
+    'implementation-plan.md',
+    'approval.md',
+    'implementation-report.md',
+    'verification.md',
+    'reconciliation.md',
+    'revision-request.md',
+    'revisions',
+  ]) {
+    const fixture = createFixture(t);
+    addV2WorkItem(fixture.workItemDirectory);
+    const forbiddenPath = path.join(fixture.workItemDirectory, forbidden);
+    if (forbidden === 'revisions') {
+      fs.mkdirSync(forbiddenPath);
+    } else {
+      fs.writeFileSync(forbiddenPath, 'historical artifact\n', 'utf8');
+    }
+    writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+    const result = runValidator(fixture.root);
+
+    assert.equal(result.status, 1, forbidden);
+    assert.match(result.json.blocker, /compact|v1 artifact|only work-item/i);
+  }
+});
+
+test('v2 final verification accepts exactly one unpunctuated Result marker', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory);
+  const workItemPath = path.join(fixture.workItemDirectory, 'work-item.md');
+  const original = fs.readFileSync(workItemPath, 'utf8');
+  const finalVerificationStart = original.indexOf('## Final verification');
+  assert.notEqual(finalVerificationStart, -1);
+  const beforeFinalVerification = original.slice(0, finalVerificationStart);
+  const finalVerification = original.slice(finalVerificationStart);
+  fs.writeFileSync(
+    workItemPath,
+    beforeFinalVerification +
+      finalVerification.replace(
+        'Result: pending',
+        'Result: pending\nResult: passed.',
+      ),
+    'utf8',
+  );
+  writeActiveState(fixture.root, workItemId, 'implement-monorepo-change');
+
+  const result = runValidator(fixture.root);
+
+  assert.equal(result.status, 1);
+  assert.match(
+    result.json.blocker,
+    /exactly one.*Result|Result.*pending.*passed.*failed/i,
+  );
+});
+
+test('review snapshot protection excludes NEXT routing bytes but includes compact candidate intent', (t) => {
+  const fixture = createFixture(t);
+  addV2WorkItem(fixture.workItemDirectory, { stage: 'verify' });
+  writeActiveState(fixture.root, workItemId, 'verify-monorepo-change');
+  makeActiveCandidateFresh(fixture.root, fixture.workItemDirectory);
+
+  const workItemPath = path.join(fixture.workItemDirectory, 'work-item.md');
+  const beforeRoutingEdit = calculateReviewSnapshot({
+    repositoryRoot: fixture.root,
+    workItemPath,
+  });
+  fs.writeFileSync(
+    path.join(fixture.root, 'NEXT.md'),
+    '# NEXT\n\nRouting-only note.\n\n**Active work item:** `2026-07-13-example`\n**Pipeline step:** `verify-monorepo-change`\n',
+    'utf8',
+  );
+  assert.equal(
+    calculateReviewSnapshot({ repositoryRoot: fixture.root, workItemPath }),
+    beforeRoutingEdit,
+  );
+
+  fs.writeFileSync(
+    workItemPath,
+    fs
+      .readFileSync(workItemPath, 'utf8')
+      .replace(
+        '- The compact workflow validates.',
+        '- The compact workflow validates changed intent.',
+      ),
+    'utf8',
+  );
+  assert.notEqual(
+    calculateReviewSnapshot({ repositoryRoot: fixture.root, workItemPath }),
+    beforeRoutingEdit,
+  );
 });
 
 test('active work items require their deterministic work branch', (t) => {

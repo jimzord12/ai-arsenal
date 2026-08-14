@@ -5,6 +5,10 @@ description: Use when an active AI Arsenal Workflow v2 item is defined and needs
 
 # Workflow v2 (current)
 
+Current v2 stages use only `work-item.md` for durable item state and the
+routing-only `NEXT.md` active-work-item/pipeline-step pair. Do not read,
+create, or advance v1 artifact files for current work.
+
 When the active directory contains `work-item.md`, validate it and require
 `Stage: implement` from the exact registered
 `<repository-parent>/<repository-name>.worktrees/<work-item-id>` worktree on
@@ -46,8 +50,9 @@ then reset `Review status: pending`, `Review snapshot: pending`,
 implementation repair that changes candidate bytes. Then set `Stage: review`
 and route `NEXT.md` to `review-monorepo-change`.
 
-The v1 artifact instructions below apply only to historical directories
-without `work-item.md`.
+<!-- workflow-v1-compatibility:start -->
+<details>
+<summary>Historical Workflow v1 Compatibility (never use for new work)</summary>
 
 # Implement Monorepo Change
 
@@ -234,3 +239,6 @@ otherwise mutate Git history.
   recording a deviation as though it were approved scope.
 - Reconciling the canonical plan, creating `verification.md`, releasing,
   changing consumer state, or mutating Git history after implementation.
+
+</details>
+<!-- workflow-v1-compatibility:end -->

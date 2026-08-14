@@ -5,6 +5,10 @@ description: Use when a reviewed AI Arsenal Workflow v2 item has no required fin
 
 # Workflow v2 (current)
 
+Current v2 stages use only `work-item.md` for durable item state and the
+routing-only `NEXT.md` active-work-item/pipeline-step pair. Do not read,
+create, or advance v1 artifact files for current work.
+
 When the active directory contains `work-item.md`, validate it and require
 `Stage: verify`, the exact registered
 `<repository-parent>/<repository-name>.worktrees/<work-item-id>` worktree and
@@ -15,7 +19,8 @@ every acceptance-focused check plus the applicable full repository gates once,
 including workflow tests, both workflow validators, and `git diff --check` for
 workflow changes. Record exact commands, exit codes, and concise results in
 `Final verification`, including the exact `Result: passed` marker only when all
-required checks pass.
+required checks pass. The section must contain exactly one unpunctuated line:
+`Result: pending`, `Result: passed`, or `Result: failed`.
 
 At the start of each agent turn that resumes this item, increment
 `Turns since time check` once. If the increment reaches five, record the
@@ -28,8 +33,9 @@ repair increments the review cycle and reruns only invalidated checks. If all
 checks pass, set
 `Stage: deliver` and route `NEXT.md` to `deliver-monorepo-change`.
 
-The v1 artifact instructions below apply only to historical directories
-without `work-item.md`.
+<!-- workflow-v1-compatibility:start -->
+<details>
+<summary>Historical Workflow v1 Compatibility (never use for new work)</summary>
 
 # Verify Monorepo Change
 
@@ -189,3 +195,6 @@ history.
   evidence. Only `reconcile-monorepo-change` owns that later stage.
 - Trying to repair a failed result, changing anything besides the failed
   handoff, or treating failure as permission to expand the contract.
+
+</details>
+<!-- workflow-v1-compatibility:end -->

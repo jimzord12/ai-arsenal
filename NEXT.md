@@ -3,19 +3,19 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-05
 **Project:** AI Arsenal monorepo
-**State:** Issue #37 is delivered; the Windows-only Quality test-harness skip is verified and CI-green.
-**Current phase:** Workflow v2 Windows test-harness compatibility
-**Active work item:** `none`
-**Pipeline step:** `none`
+**State:** Issue #39 compact-record alignment implementation and independent review are complete; verification is next and no CLI product behavior is in scope.
+**Current phase:** Workflow v2 compact-record alignment verification
+**Active work item:** `2026-08-14-align-workflow-v2-compact-record`
+**Pipeline step:** `deliver-monorepo-change`
 
 ## Next Action
 
-Define issue #39, the Workflow v2 compact-record alignment repair.
+Verify issue #39, the Workflow v2 compact-record alignment repair.
 
 ## Why This Is Next
 
 - Issue #37 passed independent review, final verification, exact-SHA Quality and Portability CI, and delivery evidence recording.
-- The remaining Workflow v2 alignment work is independently bounded in issue #39.
+- The issue #39 compact record is active in this isolated worktree; implementation evidence is recorded and the repair is bounded to Workflow v2 authorities, validators, and focused regressions.
 
 ## Open Issue Queue
 
@@ -36,7 +36,7 @@ Define issue #39, the Workflow v2 compact-record alignment repair.
 ## Done When
 
 - Issue #37 is delivered and its active registration is cleared.
-- Issue #39 is the next workflow-repair definition action.
+- Issue #39 is independently reviewed, verified, and delivered without changing CLI behavior or issue #24's worktree.
 
 ## Source of Truth
 

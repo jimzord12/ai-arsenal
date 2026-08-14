@@ -45,6 +45,23 @@ const cliReleasePolicyFixture = `
 CLI release preparation completes before review.
 Delivery must not create or apply Changesets or edit package source, manifest, or changelog.
 `;
+const compactBoundaryFixture = `
+Current v2 stages use only the compact \`work-item.md\` for durable item state and routing-only \`NEXT.md\` state.
+`;
+const proportionalityFixture = `
+Default proportionality is one independent review plus one focused repair and re-review; the fail-closed ceiling remains four review cycles.
+`;
+const resultSyntaxFixture = `
+Result: pending
+Final verification uses exactly one unpunctuated Result marker.
+`;
+const compatibilityFenceFixture = `
+<!-- workflow-v1-compatibility:start -->
+<details><summary>Historical Workflow v1 Compatibility (never use for new work)</summary>
+Historical compatibility only.
+</details>
+<!-- workflow-v1-compatibility:end -->
+`;
 
 function write(relativePath, content) {
   const absolutePath = path.join(root, relativePath);
@@ -57,7 +74,7 @@ function createFixture() {
 
   write(
     'AGENTS.md',
-    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${normalSkills.join('\n')}\n${reviewBarrierFixture}${isolatedWorktreeFixture}${cliReleasePolicyFixture}`,
+    `<!-- living-plan-workflow:start -->\n<!-- living-plan-workflow:end -->\nNEXT.md\nCANONICAL_IMPLEMENTATION_PLAN.md\ninitializing-living-plan-workflow\nexecuting-living-plan-phase\nreconciling-living-plan\n${normalSkills.join('\n')}\n${reviewBarrierFixture}${isolatedWorktreeFixture}${cliReleasePolicyFixture}${proportionalityFixture}`,
   );
   write(
     'NEXT.md',
@@ -78,11 +95,11 @@ function createFixture() {
   );
   write(
     'docs/workflow/MONOREPO_WORK_ITEM_PIPELINE.md',
-    `# Pipeline\n${reviewBarrierFixture}${isolatedWorktreeFixture}${cliReleasePolicyFixture}`,
+    `# Pipeline\n${compactBoundaryFixture}${reviewBarrierFixture}${isolatedWorktreeFixture}${cliReleasePolicyFixture}${proportionalityFixture}${compatibilityFenceFixture}`,
   );
   write(
     'docs/workflow/WORKFLOW_OVERVIEW.md',
-    '# Overview\n\ndefine → implement → review/repair → verify → deliver\none compact `work-item.md`\norchestrate-monorepo-work\ndeliver-monorepo-change\nwork/<work-item-id>\n.repository.worktrees\n',
+    `# Overview\n\ndefine → implement → review/repair → verify → deliver\none compact \`work-item.md\`\norchestrate-monorepo-work\ndeliver-monorepo-change\nwork/<work-item-id>\n.repository.worktrees\n${proportionalityFixture}`,
   );
   write(
     '.agents/skills/initializing-living-plan-workflow/assets/AGENTS.template.md',
@@ -90,7 +107,7 @@ function createFixture() {
   );
   write(
     'docs/workflow/templates/work-item/work-item.md',
-    `## Goal\n## Non-goals\n## Acceptance criteria\nStarted at:\nMax time:\nWorktree: isolated\n## Implementation summary\n## Review findings and repairs\n## Final verification\n${reviewBarrierFixture}${isolatedWorktreeFixture}${cliReleasePolicyFixture}`,
+    `## Goal\n## Non-goals\n## Acceptance criteria\nStarted at:\nMax time:\nWorktree: isolated\n## Implementation summary\n## Review findings and repairs\n## Final verification\n${resultSyntaxFixture}${reviewBarrierFixture}${isolatedWorktreeFixture}${cliReleasePolicyFixture}${compactBoundaryFixture}${proportionalityFixture}`,
   );
   write(
     'package.json',
@@ -108,23 +125,28 @@ function createFixture() {
     'reconciling-living-plan',
     ...normalSkills,
   ]) {
-    const body = [
-      skill === 'orchestrate-monorepo-work'
-        ? '\ndefine → implement → review/repair → verify → deliver\ndefine-monorepo-change\n'
-        : '',
-      skill === 'review-monorepo-change' ? reviewBarrierFixture : '',
-      skill === 'define-monorepo-change'
-        ? 'provision-monorepo-worktree.mjs\n'
-        : '',
+    const body =
       [
-        'implement-monorepo-change',
-        'review-monorepo-change',
-        'deliver-monorepo-change',
-      ].includes(skill)
-        ? cliReleasePolicyFixture
-        : '',
-      isolatedWorktreeFixture,
-    ].join('');
+        skill === 'orchestrate-monorepo-work'
+          ? '\ndefine → implement → review/repair → verify → deliver\ndefine-monorepo-change\n'
+          : '',
+        skill === 'review-monorepo-change' ? reviewBarrierFixture : '',
+        skill === 'define-monorepo-change'
+          ? 'provision-monorepo-worktree.mjs\n'
+          : '',
+        [
+          'implement-monorepo-change',
+          'review-monorepo-change',
+          'deliver-monorepo-change',
+        ].includes(skill)
+          ? cliReleasePolicyFixture
+          : '',
+        isolatedWorktreeFixture,
+      ].join('') +
+      compactBoundaryFixture +
+      proportionalityFixture +
+      (skill === 'verify-monorepo-change' ? resultSyntaxFixture : '') +
+      compatibilityFenceFixture;
     write(
       `.agents/skills/${skill}/SKILL.md`,
       `---\nname: ${skill}\ndescription: Use when validating the fixture.\n---\n${body}`,

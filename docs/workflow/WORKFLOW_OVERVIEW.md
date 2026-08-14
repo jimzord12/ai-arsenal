@@ -6,6 +6,8 @@ Workflow v2 routes each bounded monorepo change through one compact
 `work-item.md`. It keeps durable definition, implementation, review, final
 verification, and delivery evidence without replacing consumer
 `.scratch/features/` work.
+Current v2 stages use only `work-item.md` for durable item state; root `NEXT.md`
+is routing-only. The retired v1 artifact chain is historical compatibility only.
 
 ## Normal Route
 
@@ -31,8 +33,9 @@ Required CLI behavior work completes its Changeset, package version, and
 generated changelog during implementation, then reviews those final package
 bytes. Delivery commits/pushes, observes exact-SHA CI, packs/installs/smokes,
 and records evidence without changing package source, manifest, or changelog.
-Any candidate repair resets the full review batch; an unsuccessful fourth
-cycle blocks.
+Any candidate repair resets the full review batch; default proportionality is
+one independent review plus one focused repair and re-review; the fail-closed
+ceiling remains four review cycles, and an unsuccessful fourth cycle blocks.
 
 ## Resume, Stops, and Repair
 
@@ -48,7 +51,8 @@ router.
 
 ## Completion and Legacy Compatibility
 
-Final verification records an explicit passed result before delivery.
+Final verification records exactly one unpunctuated `Result: pending`,
+`Result: passed`, or `Result: failed` line; delivery requires `Result: passed`.
 `deliver-monorepo-change` reconciles current planning truth, reruns only checks
 invalidated by its delivery edits, clears active registration, and performs the
 bounded Git delivery.
