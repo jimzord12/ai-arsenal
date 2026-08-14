@@ -2,7 +2,7 @@
 
 Work item: 2026-08-14-make-design-start-input-requirements-actionable
 Workflow: 2
-Stage: verify
+Stage: deliver
 Status: active
 Started at: 2026-08-14T00:00:00+03:00
 Max time: 90 minutes
@@ -77,17 +77,17 @@ The reviewed candidate passed the acceptance-focused tests, package gates, workf
 
 ## Delivery evidence
 
-Delivery result: pending
-Artifact-bearing commit: 012b2ac0bc49308f7613ea3fd30492f3edc411d6
-Remote ref equality: pending
-Required CI: pending
-Package: @jz/ai-arsenal-trello-work-cli@0.8.1
-Tarball: pending
-Global replacement: pending
-Installed-shim smoke: pending
-Installed artifact provenance: pending
-Rollback: exact prior global package/artifact remains available until replacement verification passes
-Clean worktree: pending
+Delivery result: passed
+Artifact-bearing commit: c363c853397b726efb9180f630d95a8bfa3243d6
+Remote ref equality: {"ref":"origin/work/2026-08-14-make-design-start-input-requirements-actionable","sha":"c363c853397b726efb9180f630d95a8bfa3243d6","confirmed":true}
+Required CI: [{"workflow":"Quality","url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31846770369","sha":"c363c853397b726efb9180f630d95a8bfa3243d6","conclusion":"success"},{"workflow":"Portability","url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31846770388","sha":"c363c853397b726efb9180f630d95a8bfa3243d6","conclusion":"success"}]
+Package: {"name":"@jz/ai-arsenal-trello-work-cli","version":"0.8.1"}
+Tarball: {"file":"jz-ai-arsenal-trello-work-cli-0.8.1.tgz","sha256":"b6917cd5948c069c0de0127fb8a7924aeaceeddfb5e797b4f18269e446e8cf90","pack":"success","contents":32}
+Global replacement: {"command":"pnpm add -g C:/tmp/issue24-pack-out/jz-ai-arsenal-trello-work-cli-0.8.1.tgz","result":"success","installedPackage":"@jz/ai-arsenal-trello-work-cli","installedVersion":"0.8.1"}
+Installed-shim smoke: {"version":"passed","help":"passed","featureSmoke":"passed","designStartHelp":"passed"}
+Installed artifact provenance: {"artifactBytes":"confirmed","sourceTree":"not-used","globalPath":"C:/Users/jimzord12/AppData/Local/pnpm/global/v11/3aac-1a0026cdf95/node_modules/@jz/ai-arsenal-trello-work-cli"}
+Rollback: {"identity":"@jz/ai-arsenal-trello-work-cli@0.8.0","ready":true,"attempted":false,"result":"not-attempted"}
+Clean worktree: {"confirmed":true,"afterClosureCommit":true}
 
 ## Evidence log
 
