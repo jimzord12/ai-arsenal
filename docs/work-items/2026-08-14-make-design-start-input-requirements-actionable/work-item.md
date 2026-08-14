@@ -77,7 +77,17 @@ The reviewed candidate passed the acceptance-focused tests, package gates, workf
 
 ## Delivery evidence
 
-Pending.
+Delivery result: pending
+Artifact-bearing commit: 012b2ac0bc49308f7613ea3fd30492f3edc411d6
+Remote ref equality: pending
+Required CI: pending
+Package: @jz/ai-arsenal-trello-work-cli@0.8.1
+Tarball: pending
+Global replacement: pending
+Installed-shim smoke: pending
+Installed artifact provenance: pending
+Rollback: exact prior global package/artifact remains available until replacement verification passes
+Clean worktree: pending
 
 ## Evidence log
 
