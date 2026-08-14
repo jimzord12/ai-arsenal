@@ -3,23 +3,23 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-05
 **Project:** AI Arsenal monorepo
-**State:** Issue #37 is an isolated Workflow v2 test-harness repair in progress.
+**State:** Issue #37 is delivered; the Windows-only Quality test-harness skip is verified and CI-green.
 **Current phase:** Workflow v2 Windows test-harness compatibility
-**Active work item:** `2026-08-14-skip-windows-quality-worktree-regression`
-**Pipeline step:** `deliver-monorepo-change`
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 
-Deliver the reviewed and verified issue #37 candidate, then reconcile the active route.
+Define issue #39, the Workflow v2 compact-record alignment repair.
 
 ## Why This Is Next
 
-- The base checkout is clean and the issue has its own deterministic isolated worktree.
-- The failing test is independent of the compact Workflow v2 repair and must be made an honest platform-scoped gate before that repair proceeds.
+- Issue #37 passed independent review, final verification, exact-SHA Quality and Portability CI, and delivery evidence recording.
+- The remaining Workflow v2 alignment work is independently bounded in issue #39.
 
 ## Open Issue Queue
 
-1. Workflow v2.1 compact-record alignment repair, after this platform-scoped baseline repair.
+1. #39 — Align current Workflow v2 compact-record skills and proportionality.
 2. #24 — Make design start input requirements actionable.
 3. #21 — Improve `jz-trello-flow` CLI authoring and discovery UX.
 
@@ -27,17 +27,16 @@ Deliver the reviewed and verified issue #37 candidate, then reconcile the active
 
 - Preserve the existing #24 worktree byte-for-byte.
 - Keep the Linux/Ubuntu Quality coverage active.
-- Do not change the Quality workflow or skip unrelated tests.
+- Investigate the underlying Windows harness compatibility separately after the Workflow v2 repair.
 
 ## Blockers / Escalation
 
-- None.
+- Issue #37 delivered at commit `f8e19b97d5ab8875adea35c637e2991d5472aa85`; PR #38 remains open for integration.
 
 ## Done When
 
-- The affected test skips only on Windows with a clear reason.
-- Non-Windows execution remains covered.
-- Review, verification, commit, push, and required CI evidence are complete.
+- Issue #37 is delivered and its active registration is cleared.
+- Issue #39 is the next workflow-repair definition action.
 
 ## Source of Truth
 

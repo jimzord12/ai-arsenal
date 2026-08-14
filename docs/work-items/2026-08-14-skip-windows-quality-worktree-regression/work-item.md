@@ -3,7 +3,7 @@
 Work item: 2026-08-14-skip-windows-quality-worktree-regression
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-14T22:58:54+03:00
 Max time: 2 hours
 Last time check: 2026-08-14T22:58:54+03:00
@@ -71,3 +71,17 @@ Result: passed
 - `git diff --check` — exit 0.
 
 No product CLI, package metadata, Quality workflow, issue #24 worktree, branch removal, or worktree removal was performed.
+
+## Delivery evidence
+
+Delivery result: passed
+Artifact-bearing commit: f8e19b97d5ab8875adea35c637e2991d5472aa85
+Remote ref equality: {"ref":"origin/work/2026-08-14-skip-windows-quality-worktree-regression","sha":"f8e19b97d5ab8875adea35c637e2991d5472aa85","confirmed":true}
+Required CI: [{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31836620210","sha":"f8e19b97d5ab8875adea35c637e2991d5472aa85","conclusion":"success"},{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31836620186","sha":"f8e19b97d5ab8875adea35c637e2991d5472aa85","conclusion":"success"}]
+Package: not-required
+Tarball: not-required
+Global replacement: not-required
+Installed-shim smoke: not-required
+Installed artifact provenance: not-required
+Rollback: not-required
+Clean worktree: {"confirmed":true}
