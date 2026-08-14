@@ -3,10 +3,10 @@
 **Workflow version:** 2.0
 **Last reconciled:** 2026-08-05
 **Project:** AI Arsenal monorepo
-**State:** Issue #39 compact-record alignment implementation and independent review are complete; verification is next and no CLI product behavior is in scope.
-**Current phase:** Workflow v2 compact-record alignment verification
-**Active work item:** `2026-08-14-align-workflow-v2-compact-record`
-**Pipeline step:** `deliver-monorepo-change`
+**State:** Issue #39 compact-record alignment is delivered; no CLI product behavior was in scope.
+**Current phase:** No active Workflow v2 work item
+**Active work item:** `none`
+**Pipeline step:** `none`
 
 ## Next Action
 

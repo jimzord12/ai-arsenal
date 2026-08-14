@@ -3,7 +3,7 @@
 Work item: 2026-08-14-align-workflow-v2-compact-record
 Workflow: 2
 Stage: deliver
-Status: active
+Status: delivered
 Started at: 2026-08-14T23:49:31+03:00
 Max time: 4 hours
 Last time check: 2026-08-14T23:49:31+03:00
@@ -103,3 +103,19 @@ Focused implementation evidence:
 - `git diff --check` — exit 0; no output.
 
 Result: passed
+
+## Delivery evidence
+
+Delivery result: passed
+Artifact-bearing commit: c50cc4aef09b627088296ec745299f2f2537f179
+Remote ref equality: {"ref":"refs/heads/work/2026-08-14-align-workflow-v2-compact-record","sha":"c50cc4aef09b627088296ec745299f2f2537f179","confirmed":true}
+Required CI: [{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31841258068","sha":"c50cc4aef09b627088296ec745299f2f2537f179","conclusion":"success"},{"url":"https://github.com/jimzord12/ai-arsenal/actions/runs/31841258091","sha":"c50cc4aef09b627088296ec745299f2f2537f179","conclusion":"success"}]
+Package: not-required
+Tarball: not-required
+Global replacement: not-required
+Installed-shim smoke: not-required
+Installed artifact provenance: not-required
+Rollback: not-required
+Clean worktree: {"confirmed":true}
+
+Branch and worktree are retained. Merge, branch deletion, worktree removal, and issue #24 mutation are outside delivery.
