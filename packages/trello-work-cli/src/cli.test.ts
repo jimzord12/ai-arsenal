@@ -180,6 +180,17 @@ describe('jz-trello-flow process command contract', () => {
     },
   );
 
+  it('explains the design-start Draft input and resulting state in help', async () => {
+    const result = await runCli(['design', 'start', '--help']);
+
+    expect(result).toMatchObject({ exitCode: 0, stderr: '' });
+    expect(result.stdout).toContain('status: inbox');
+    expect(result.stdout).toContain('id: null, trello_card_id: null');
+    expect(result.stdout).toContain(
+      'Trello supplies the persisted identity and timestamps',
+    );
+  });
+
   it.each([
     ['draft', 'create'],
     ['design', 'start'],

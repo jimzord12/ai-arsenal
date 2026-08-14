@@ -148,7 +148,8 @@ const BASE_COMMAND_CATALOG: BaseCommandDefinition[] = [
     id: 'design-start',
     syntax:
       'jz-trello-flow design start <card-reference> --file <work-unit.md>',
-    summary: 'Convert one Inbox card in place into an In Design Work Unit.',
+    summary:
+      'Convert one Inbox Draft Work Unit in place into In Design; input must keep status: inbox, id: null, trello_card_id: null, and timestamps null, while Trello supplies the persisted identity and timestamps.',
     options: ['--file', ...MUTATION_SAFETY, '--output'],
     mutating: true,
   },

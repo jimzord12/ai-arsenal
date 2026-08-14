@@ -33,6 +33,7 @@ jobs:
       - name: Enter isolated active worktree
         shell: bash
         run: |
+          set -euo pipefail
           active_work_item="$(node -e 'const fs = require("fs"); const next = fs.readFileSync("NEXT.md", "utf8"); const match = next.match(/^\*\*Active work item:\*\* `([^`]+)`$/m); if (!match) process.exit(1); process.stdout.write(match[1]);')"
           if [ "$active_work_item" = "none" ]; then
             echo "QUALITY_WORKDIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
@@ -41,7 +42,9 @@ jobs:
 
           item_record="docs/work-items/$active_work_item/work-item.md"
           grep -Fxq 'Worktree: isolated' "$item_record"
-          worktree="$GITHUB_WORKSPACE/../$(basename "$GITHUB_WORKSPACE").worktrees/$active_work_item"
+          repository_root="$(git rev-parse --show-toplevel)"
+          repository_name="$(basename "$repository_root")"
+          worktree="$(dirname "$repository_root")/$repository_name.worktrees/$active_work_item"
           test ! -e "$worktree"
           git checkout --detach "$GITHUB_SHA"
           git branch --force "work/$active_work_item" "$GITHUB_SHA"

@@ -66,7 +66,7 @@ When drafting description content, use Markdown structure to support scanning. U
 
 1. **Read the card.** Confirm explicit board, Inbox state, identity, attachments/comments, and latest version. Completion: the same-card target is unambiguous.
 2. **Clarify materially.** Use human input, repository evidence, and Superpowers brainstorming/planning when applicable. Mark unresolved material content as `Pending:` or Open Questions. Completion: current known intent and uncertainty are explicit.
-3. **Start design on the same card.** Use the CLI design-start operation with current version and durable operation ID. Completion: read-back confirms unchanged card identity, canonical Work Unit content, `in_design` status, and expected list.
+3. **Start design on the same card.** Provide a validated new Inbox Draft with `status: inbox`, `id: null`, `trello_card_id: null`, `created_at: null`, and `updated_at: null`. Use the CLI design-start operation with current version and durable operation ID. The command derives the persisted identity and timestamps from Trello. Completion: read-back confirms unchanged card identity, canonical Work Unit content, `in_design` status, and expected list.
 4. **Continue clarification.** Update only canonical sections/metadata needed for resumability. Completion: another actor can distinguish resolved facts from pending decisions.
 
 Never create a new Draft Work Unit to replace the selected Inbox card.
@@ -77,7 +77,7 @@ Never create a new Draft Work Unit to replace the selected Inbox card.
 2. **Validate offline.** Use version-matched CLI validation. Completion: validation succeeds or defects are corrected locally.
 3. **Inspect creation.** Use dry run when board or creation intent is not already established. A dry run cannot allocate the final Work Unit ID. Completion: target board and planned creation are understood.
 4. **Create once.** Use explicit board and durable operation ID. Completion: read-back accepts the server-assigned identity and confirms the new canonical Work Unit is in Inbox.
-5. **Start design on the created card.** Read the new Inbox Work Unit, then use the same-card design-start operation with the latest version, a new operation ID for that intent, and the canonical In Design content. Completion: read-back confirms the server-assigned identity is unchanged and status/list are In Design.
+5. **Start design on the created card.** Read the new Inbox Work Unit, prepare a fresh Draft input with the required null identity/timestamp fields, then use the same-card design-start operation with the latest version, a new operation ID for that intent, and the draft content. The command derives the server-assigned identity and timestamps and changes status/list to In Design. Completion: read-back confirms the server-assigned identity is unchanged and status/list are In Design.
 6. **Continue clarification.** Resolve material questions before readiness.
 
 Never recreate a card after a lost response; route ambiguity to recovery.
